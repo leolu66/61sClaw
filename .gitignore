@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.
+env/
+venvso
+.Python/
+*.egg-info/
+dist/
+build/
+
+# OpenClaw
+.openclaw/
+workspace-state.json
+*.db
+*.db-journal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.log
+*.tmp
+
+# AI特有文件（不同设备不同，不上传GitHub）
+SOUL.md
+IDENTITY.md
+USER.md

@@ -1,0 +1,307 @@
+{
+  "name": "game-auto-clicker",
+  "version": "1.0.0",
+  "description": "游戏自动点击工具 - 模拟真人鼠标操作",
+  "tasks": {
+    "pc_reward": {
+      "name": "领取PC端奖励",
+      "description": "点击游戏区域上方的PC端图标领取奖励"
+    },
+    "shop_free_reward": {
+      "name": "领取商店免费福利",
+      "description": "进入商店领取免费福利后返回主界面"
+    },
+    "lifetime_card": {
+      "name": "领取终生卡奖励",
+      "description": "进入畅玩卡领取终身卡奖励后返回主界面"
+    },
+    "patrol_reward": {
+      "name": "领取巡逻奖励",
+      "description": "领取巡逻奖励并关闭成功提示弹窗"
+    },
+    "auto_fishing": {
+      "name": "开启自动钓鱼",
+      "description": "进入钓鱼界面开启自动钓鱼后返回主界面"
+    },
+    "claim_more": {
+      "name": "领取更多",
+      "description": "邮件领取 + 好友收送 + 杂货铺宝箱"
+    },
+    "adventure_trial": {
+      "name": "冒险试炼",
+      "description": "试炼之地5个地点，每个领取2次"
+    },
+    "tribe": {
+      "name": "部落任务",
+      "description": "部落签到 + 4个子任务"
+    }
+  },
+  "settings": {
+    "move_duration_min": 0.15,
+    "move_duration_max": 0.4,
+    "click_delay_min": 0.1,
+    "click_delay_max": 0.3,
+    "post_click_delay": 0.5
+  },
+  "coordinates": {
+    "game_area": {
+      "top_left": [630, 325],
+      "bottom_right": [1295, 1520],
+      "width": 665,
+      "height": 1195,
+      "description": "游戏画面区域"
+    },
+    "pc_icon": {
+      "screen_x": 990,
+      "screen_y": 450,
+      "size": [20, 20],
+      "description": "PC端按钮中心位置"
+    },
+    "reward_button": {
+      "screen_x": 960,
+      "screen_y": 1120,
+      "size": [180, 140],
+      "description": "领取奖励按钮中心位置"
+    },
+    "congrats_popup": {
+      "y_min": 695,
+      "y_max": 1070,
+      "description": "恭喜画面弹窗的Y坐标范围，点击范围外可关闭"
+    },
+    "close_popup": {
+      "x_range": [630, 1290],
+      "y_options": [[325, 695], [1070, 1520]],
+      "description": "关闭弹窗的点击区域（Y在弹窗外，X随机）"
+    },
+    "shop_button": {
+      "screen_x": 690,
+      "screen_y": 530,
+      "radius": 40,
+      "description": "商店按钮 - 直径80的圆，圆心(690,530)"
+    },
+    "shop_claim_button": {
+      "screen_x": 1180,
+      "screen_y": 815,
+      "description": "商店领取按钮 - 长方形，中心(1180,815)"
+    },
+    "shop_back_button": {
+      "screen_x": 680,
+      "screen_y": 1455,
+      "radius": 30,
+      "description": "商店返回按钮 - 直径60的圆，圆心(680,1455)"
+    },
+    "playcard_button": {
+      "screen_x": 690,
+      "screen_y": 635,
+      "radius": 40,
+      "description": "畅玩卡按钮 - 直径80的圆，圆心(690,635)"
+    },
+    "lifetime_card_button": {
+      "screen_x": 1240,
+      "screen_y": 1455,
+      "radius": 30,
+      "description": "终身卡按钮 - 直径60的圆，圆心(1240,1455)（右下角）"
+    },
+    "lifetime_claim_button": {
+      "screen_x": 960,
+      "screen_y": 1360,
+      "description": "终身卡领取按钮 - 180x80长方形，中心(960,1360)"
+    },
+    "lifetime_back_button": {
+      "screen_x": 680,
+      "screen_y": 1455,
+      "radius": 30,
+      "description": "终身卡返回按钮 - 直径60的圆，圆心(680,1455)"
+    },
+    "patrol_reward_button": {
+      "screen_x": 1238,
+      "screen_y": 1257,
+      "radius": 30,
+      "description": "巡逻奖励按钮 - 直径60的圆，圆心(1238,1257)（右下部）"
+    },
+    "patrol_claim_all_button": {
+      "screen_x": 1090,
+      "screen_y": 1257,
+      "description": "领取全部按钮 - 180x80长方形，中心(1090,1257)"
+    },
+    "patrol_success_popup": {
+      "y_min": 700,
+      "y_max": 1075,
+      "description": "领取成功提示弹窗的Y坐标范围，点击范围外可关闭"
+    },
+    "fishing_button": {
+      "screen_x": 1010,
+      "screen_y": 1436,
+      "size": 80,
+      "description": "钓鱼按钮 - 80x80正方形，中心(1010,1436)（下部）"
+    },
+    "fishing_auto_button": {
+      "screen_x": 1240,
+      "screen_y": 1080,
+      "radius": 30,
+      "description": "自动按钮 - 直径60的圆，圆心(1240,1080)"
+    },
+    "fishing_start_button": {
+      "screen_x": 962,
+      "screen_y": 1250,
+      "description": "开始按钮 - 180x80长方形，中心(962,1250)"
+    },
+    "fishing_back_button": {
+      "screen_x": 680,
+      "screen_y": 1455,
+      "radius": 30,
+      "description": "钓鱼返回按钮 - 直径60的圆，圆心(680,1455)"
+    },
+    "claim_more_button": {
+      "screen_x": 1250,
+      "screen_y": 1450,
+      "size": [60, 40],
+      "description": "领取更多按钮 - 60x40矩形，中心(1250,1450)"
+    },
+    "mail_tab": {
+      "screen_x": 770,
+      "screen_y": 550,
+      "description": "邮件标签页 - 中心(770, 550)"
+    },
+    "claim_all_button": {
+      "screen_x": 960,
+      "screen_y": 1200,
+      "description": "领取全部按钮 - 中心(960, 1200)"
+    },
+    "friend_tab": {
+      "screen_x": 1050,
+      "screen_y": 550,
+      "description": "好友标签页 - 中心(1050, 550)"
+    },
+    "one_click_button": {
+      "screen_x": 960,
+      "screen_y": 1050,
+      "description": "一键收送按钮 - 中心(960, 1050)"
+    },
+    "shop_tab": {
+      "screen_x": 1350,
+      "screen_y": 550,
+      "description": "杂货铺标签页 - 中心(1350, 550)"
+    },
+    "treasure_box_1": {
+      "screen_x": 750,
+      "screen_y": 700,
+      "description": "第一个宝箱 - 中心(750, 700)，每日限领1次"
+    },
+    "treasure_box_2": {
+      "screen_x": 960,
+      "screen_y": 700,
+      "description": "第二个宝箱 - 中心(960, 700)"
+    },
+    "treasure_box_3": {
+      "screen_x": 1170,
+      "screen_y": 700,
+      "description": "第三个宝箱 - 中心(1170, 700)"
+    },
+    "treasure_box_4": {
+      "screen_x": 1380,
+      "screen_y": 700,
+      "description": "第四个宝箱 - 中心(1380, 700)"
+    },
+    "close_popup_low": {
+      "x_range": [630, 1290],
+      "y_range": [325, 600],
+      "description": "关闭弹窗 - 点击Y<600区域"
+    },
+    "adventure_button": {
+      "screen_x": 690,
+      "screen_y": 845,
+      "radius": 40,
+      "description": "冒险按钮 - 直径80的圆"
+    },
+    "trial_land_button": {
+      "screen_x": 960,
+      "screen_y": 1200,
+      "description": "试炼之地按钮 - 中心(960, 1200)"
+    },
+    "waste_mine": {
+      "screen_x": 970,
+      "screen_y": 610,
+      "description": "废弃矿山 - 中心(970, 610)"
+    },
+    "ancient_battlefield": {
+      "screen_x": 970,
+      "screen_y": 840,
+      "description": "远古战场 - 中心(970, 840)"
+    },
+    "mystic_forest": {
+      "screen_x": 970,
+      "screen_y": 1090,
+      "description": "神秘森林 - 中心(970, 1090)"
+    },
+    "moonlight_temple": {
+      "screen_x": 970,
+      "screen_y": 1330,
+      "description": "月光神殿 - 中心(970, 1330)"
+    },
+    "gem_cave": {
+      "screen_x": 970,
+      "screen_y": 1500,
+      "description": "宝石矿洞 - 中心(970, 1500)"
+    },
+    "claim_free_button": {
+      "screen_x": 960,
+      "screen_y": 1050,
+      "description": "免费领取按钮 - 中心(960, 1050)"
+    },
+    "trial_back_button": {
+      "screen_x": 680,
+      "screen_y": 1455,
+      "radius": 30,
+      "description": "试炼之地返回按钮"
+    },
+    "tribe_button": {
+      "screen_x": 900,
+      "screen_y": 1430,
+      "radius": 30,
+      "description": "部落按钮 - 直径60的圆，中心(900,1430)"
+    },
+    "tribe_sign": {
+      "screen_x": 970,
+      "screen_y": 620,
+      "description": "签到按钮 - 中心(970, 620)"
+    },
+    "tribe_sign_claim": {
+      "screen_x": 960,
+      "screen_y": 1230,
+      "size": [160, 60],
+      "description": "签到领奖按钮 - 中心(960, 1230)"
+    },
+    "tribe_trial": {
+      "screen_x": 970,
+      "screen_y": 780,
+      "description": "部落试炼 - 中心(970, 780)"
+    },
+    "battle_song_canyon": {
+      "screen_x": 970,
+      "screen_y": 1000,
+      "description": "战歌峡谷 - 中心(970, 1000)"
+    },
+    "sea_god_ruins": {
+      "screen_x": 970,
+      "screen_y": 1220,
+      "description": "海神遗迹 - 中心(970, 1220)"
+    },
+    "ice_throne": {
+      "screen_x": 970,
+      "screen_y": 1370,
+      "description": "冰封王座 - 中心(970, 1370)"
+    },
+    "claim_button": {
+      "screen_x": 960,
+      "screen_y": 1200,
+      "description": "通用领取按钮 - 中心(960, 1200)"
+    },
+    "back_button": {
+      "screen_x": 680,
+      "screen_y": 1455,
+      "radius": 30,
+      "description": "返回按钮 - 直径60的圆"
+    }
+  }
+}
