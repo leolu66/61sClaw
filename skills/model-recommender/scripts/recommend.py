@@ -26,21 +26,24 @@ def main():
     data = load_models()
     models = sorted(data['models'], key=lambda x: x['position'])
     
-    print("="*80)
-    print("💰 模型价格排行榜（Top 5）")
-    print("="*80)
+    print("="*90)
+    print("💰 模型价格排行榜（完整版）")
+    print("="*90)
     print()
     
-    for m in models[:5]:
+    print(f"{'排名':<8} {'模型':<30} {'价格 (I/O)':<16} {'上下文':<10} {'特点':<30}")
+    print("-"*90)
+    
+    for m in models:
         badge = m.get('badge', '•')
         price = f"¥{m['input']} / ¥{m['output']}"
         tags = ', '.join(m['tags'])
-        print(f"{badge}  {m['name']:<25} {price:<15} {tags}")
+        print(f"{badge:<8} {m['name']:<30} {price:<16} {m['context']:<10} {tags:<30}")
     
     print()
-    print("="*80)
+    print("="*90)
     print("📊 按场景推荐")
-    print("="*80)
+    print("="*90)
     print()
     
     print("| 场景 | 首选 | 备选 | 高端 |")
@@ -52,13 +55,13 @@ def main():
     print("| 性价比 | QWen-Flash | Doubao-Lite | - |")
     
     print()
-    print("="*80)
-    print("🎯 当前推荐")
-    print("="*80)
+    print("="*90)
+    print("🎯 当前模型")
+    print("="*90)
     print()
-    print("根据你的使用场景，推荐使用 **QWen-Plus**（当前正在使用）。")
+    print("当前使用：**QWen-Plus**")
     print()
-    print("理由：")
+    print("特点：")
     print("- 1M 超长上下文，适合处理长文档")
     print("- 支持多模态（图像 + 文本）")
     print("- 价格适中：¥2 / ¥12")
