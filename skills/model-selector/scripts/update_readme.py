@@ -1,7 +1,12 @@
 import re
+import os
+
+# 获取 skills 目录（脚本所在目录的父目录）
+script_dir = os.path.dirname(os.path.abspath(__file__))
+skills_dir = os.path.dirname(script_dir)
 
 # 读取 README
-with open(r'C:\Users\luzhe\.openclaw\workspace-main\skills\README.md', 'r', encoding='utf-8') as f:
+with open(os.path.join(skills_dir, 'README.md'), 'r', encoding='utf-8') as f:
     content = f.read()
 
 # 添加模型选择器描述到模型推荐器后面
@@ -36,7 +41,7 @@ if insert_marker in content:
         content = parts[0] + insert_marker + parts[1].replace("\n---\n\n### 🎮", new_section + "\n---\n\n### 🎮", 1)
 
 # 写回
-with open(r'C:\Users\luzhe\.openclaw\workspace-main\skills\README.md', 'w', encoding='utf-8') as f:
+with open(os.path.join(skills_dir, 'README.md'), 'w', encoding='utf-8') as f:
     f.write(content)
 
 print("OK: README.md updated")

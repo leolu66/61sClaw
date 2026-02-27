@@ -18,7 +18,9 @@ if sys.platform == 'win32':
 
 # 配置
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
-LOCAL_WORKSPACE = r"C:\Users\luzhe\.openclaw\workspace-main"
+
+# 工作目录：从 skills/workspace-sync/scripts 向上两级到 workspace-main
+LOCAL_WORKSPACE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 def load_config():
     """加载配置"""

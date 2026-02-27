@@ -14,19 +14,27 @@ if sys.platform == 'win32':
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
-# 添加七牛云SDK路径
-QINIU_SDK_PATH = r"C:\Users\luzhe\AppData\Roaming\npm\node_modules\openclaw\skills\qiniu-cloud\scripts"
-sys.path.insert(0, QINIU_SDK_PATH)
+# 添加七牛云SDK路径（通过相对路径访问 qiniu-cloud 技能）
+script_dir = os.path.dirname(os.path.abspath(__file__))
+skills_dir = os.path.dirname(script_dir)
+qiniu_sdk_path = os.path.join(skills_dir, 'qiniu-cloud', 'scripts')
 
-try:
-    from qiniu_ops import upload_file, list_files
-except ImportError:
-    print("Error: Cannot import qiniu_ops. Please ensure qiniu-cloud skill is installed.")
+if os.path.exists(qiniu_sdk_path):
+    sys.path.insert(0, qiniu_sdk_path)
+    try:
+        from qiniu_ops import upload_file, list_files
+    except ImportError:
+        print("Error: Cannot import qiniu_ops. Please ensure qiniu-cloud skill is installed.")
+        sys.exit(1)
+else:
+    print(f"Error: qiniu-cloud skill not found at {qiniu_sdk_path}")
     sys.exit(1)
 
 # 配置
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
-LOCAL_WORKSPACE = r"C:\Users\luzhe\.openclaw\workspace-main"
+
+# 工作目录：从 skills/qiniu-sync/scripts 向上两级到 workspace-main
+LOCAL_WORKSPACE = os.path.abspath(os.path.join(script_dir, '..', '..'))
 
 def load_config():
     """加载配置"""

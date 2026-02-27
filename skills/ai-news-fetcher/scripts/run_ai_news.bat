@@ -6,7 +6,7 @@ echo 启动时间: %date% %time%
 echo ========================================
 echo.
 
-cd /d "C:\Users\luzhe\.claude\skills\ai-news-fetcher\scripts"
+cd /d "%~dp0"
 
 python generate_report.py
 

@@ -3,7 +3,7 @@
 
 $taskName = "AI新闻日报获取"
 $taskDescription = "每天12:30自动获取AI新闻并生成日报"
-$scriptPath = "C:\Users\luzhe\.claude\skills\ai-news-fetcher\scripts\run_ai_news.bat"
+$scriptPath = Join-Path $PSScriptRoot "run_ai_news.bat"
 
 # 检查是否已存在同名任务
 $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue

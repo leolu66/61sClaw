@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-cd /d "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts"
+cd /d "%~dp0"
 
 echo 开始批量获取公众号文章...
 echo.
