@@ -12,9 +12,13 @@ import hashlib
 import base64
 import uuid
 import subprocess
+import io
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+
+# 设置 UTF-8 编码（注释掉，避免关闭文件的问题）
+# sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 # 配置
 VAULT_DIR = Path.home() / ".openclaw" / "vault"
@@ -442,13 +446,13 @@ class Vault:
         
         self.credentials[slug] = credential
         self._save()
-        print(f"✅ 已保存凭据：{credential['name']}")
+        print(f"[OK] 已保存凭据：{credential['name']}")
         return True
     
     def get(self, slug: str, show_sensitive: bool = False) -> Optional[Dict]:
         """查询凭据"""
         if slug not in self.credentials:
-            print(f"❌ 未找到凭据：{slug}")
+            print(f"[ERROR] 未找到凭据：{slug}")
             return None
         
         cred = self.credentials[slug]
@@ -490,7 +494,7 @@ class Vault:
     def update(self, slug: str, fields: Dict[str, str]) -> bool:
         """更新凭据"""
         if slug not in self.credentials:
-            print(f"❌ 未找到凭据：{slug}")
+            print(f"[ERROR] 未找到凭据：{slug}")
             return False
         
         cred = self.credentials[slug]
@@ -542,13 +546,13 @@ class Vault:
     def delete(self, slug: str) -> bool:
         """删除凭据"""
         if slug not in self.credentials:
-            print(f"❌ 未找到凭据：{slug}")
+            print(f"[ERROR] 未找到凭据：{slug}")
             return False
         
         name = self.credentials[slug]["name"]
         del self.credentials[slug]
         self._save()
-        print(f"✅ 已删除凭据：{name}")
+        print(f"[OK] 已删除凭据：{name}")
         return True
 
 
@@ -557,7 +561,7 @@ def print_credential(cred: Optional[Dict]):
     if not cred:
         return
     
-    print(f"\n{cred['icon']} {cred['name']} ({cred['category']})")
+    print(f"\n[INFO] {cred['name']} ({cred['category']})")
     if cred['tags']:
         print(f"   标签：{', '.join(cred['tags'])}")
     if cred['notes']:
@@ -613,8 +617,44 @@ def main():
             print("用法：vault get-secret <slug>")
             return
         slug = sys.argv[2]
-        cred = vault.get(slug, show_sensitive=True)
-        print_credential(cred)
+        
+        # 直接读取原始数据，匹配 key 而不是 label
+        from vault import CREDENTIALS_FILE
+        if CREDENTIALS_FILE.exists():
+            with open(CREDENTIALS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            cred = data.get('credentials', {}).get(slug)
+            if cred:
+                password_fields = ['password', 'pwd', 'passwd', 'pass', 'pw', 'token', 'secret', 'key']
+                password_value = None
+                
+                for field in cred.get('fields', []):
+                    field_key = field.get('key', '').lower()
+                    is_sensitive = field.get('isSensitive', False)
+                    value = field.get('value', '')
+                    
+                    # 如果是敏感字段且需要解密
+                    if is_sensitive and value:
+                        value = vault._decrypt_sensitive(value)
+                    
+                    for pw_keyword in password_fields:
+                        if pw_keyword in field_key:
+                            password_value = value
+                            break
+                    if password_value:
+                        break
+                
+                if password_value:
+                    print(password_value)
+                else:
+                    # 没有密码字段，输出所有字段值
+                    for field in cred.get('fields', []):
+                        print(field.get('value', ''))
+            else:
+                print(f"[ERROR] 未找到凭据：{slug}")
+        else:
+            print("[ERROR] 凭据文件不存在")
     
     elif command == "add":
         if len(sys.argv) < 3:
@@ -674,7 +714,7 @@ def main():
                     "updatedAt": datetime.now().isoformat()
                 }
         vault._save()
-        print(f"✅ 已初始化 {len(PLATFORM_TEMPLATES)} 个平台模板")
+        print(f"[OK] 已初始化 {len(PLATFORM_TEMPLATES)} 个平台模板")
     
     else:
         print(f"未知命令：{command}")
