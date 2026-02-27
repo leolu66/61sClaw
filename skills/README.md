@@ -242,25 +242,19 @@
 - "查询 [平台] 密码"、"保存 [平台] 账号"
 
 **功能**:
-- 安全存储（AES-256-GCM 加密）
-- 快速查询（支持别名：gmail=google）
+- 安全存储（敏感信息自动加密）
+- 快速查询（支持别名）
 - 列出所有平台
 - 更新/删除凭据
 
-**已支持平台**:
-- WhaleCloud Lab、智谱 AI、Moonshot (Kimi)
-- 阿里云、飞书、GitHub、七牛云、Brave Search
-- 公司邮箱、坚果云、Cursor、Gitee、Docker Hub
-- 微软账号、Google 账号、115、Ollama 等
-
-**脚本**: `scripts/vault.py`
-
-**查询示例**:
+**使用示例**:
 ```bash
 vault get-secret email      # 查询邮箱密码
 vault get-secret gmail      # 查询 Google 密码（别名）
 vault get-secret zmp        # 查询 ZMP 系统密码
 ```
+
+**脚本**: `scripts/vault.py`
 
 ---
 
