@@ -74,7 +74,8 @@ def fetch_c114_news(source_key='c114', limit=10):
     
     try:
         response = requests.get(url, headers=headers, timeout=15)
-        response.encoding = 'utf-8'
+        # C114 使用 GBK 编码
+        response.encoding = 'gbk'
         
         if response.status_code != 200:
             print(f"⚠️ 获取失败: {url} - 状态码: {response.status_code}")
@@ -167,7 +168,8 @@ def fetch_article_content(url):
     
     try:
         response = requests.get(url, headers=headers, timeout=15)
-        response.encoding = 'utf-8'
+        # C114 使用 GBK 编码
+        response.encoding = 'gbk'
         
         if response.status_code != 200:
             return None
