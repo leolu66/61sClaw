@@ -34,7 +34,7 @@ MODELS = [
     {"name": "doubao-vision-lite", "alias": "Doubao-Vision-Lite", "input": 3, "output": 12, "context": "256K", "tag": "视觉性价比", "source": "whalecloud"},
     # 外部直连（自费）- 🌐
     {"name": "moonshot/kimi-k2.5", "alias": "Kimi-K2.5 (Moonshot 直连)", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "external"},
-    {"name": "zhipu/glm-4.7", "alias": "GLM-4.7 (智谱直连)", "input": 4, "output": 16, "context": "200K", "tag": "中文 Agentic", "source": "external"},
+    {"name": "zhipu/glm-4.7", "alias": "GLM-4.7 (智谱直连)", "input": None, "output": None, "context": "200K", "tag": "资源包已购", "source": "external"},
 ]
 
 # 默认模型
@@ -59,7 +59,12 @@ def display_models(current_model):
     print("-"*100)
     
     for i, model in enumerate(MODELS, 1):
-        price = f"¥{model['input']} / ¥{model['output']}"
+        # 处理资源包模型（无价格）
+        if model.get('input') is None or model.get('output') is None:
+            price = "资源包"
+        else:
+            price = f"¥{model['input']} / ¥{model['output']}"
+        
         current_marker = " [当前使用]" if model['name'] in current_model or model['alias'] in current_model else ""
         source_icon = "🌐" if model.get('source') == 'external' else "🏢"
         print(f"{i:<6} {model['alias']:<35} {price:<16} {model['context']:<10} {source_icon:<8} {model['tag']:<20}{current_marker}")
@@ -67,7 +72,7 @@ def display_models(current_model):
     print("-"*100)
     print(f"\n**当前使用**: {current_model}")
     print("\n💡 **提示**: 直接回复序号 (如 `5`) 即可切换模型")
-    print("🏢 = WhaleCloud 代理（公司结算） | 🌐 = 外部直连（自费）")
+    print("🏢 = WhaleCloud 代理（公司结算） | 🌐 = 外部直连（自费/资源包）")
     print("="*100)
 
 
