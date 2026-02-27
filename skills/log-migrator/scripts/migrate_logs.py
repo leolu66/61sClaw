@@ -107,15 +107,22 @@ class LogMigrator:
             return []
 
         old_logs = []
+        print(f"\n🔍 扫描目录: {self.source_dir}")
+        print(f"   总文件数: {len(list(self.source_dir.iterdir()))}")
+        print()
+
         # 使用 pathlib 而不是 os.listdir，更好地处理编码
         for file_path in sorted(self.source_dir.iterdir()):
             filename = file_path.name
             if not filename.endswith('.md'):
                 continue
 
-            if self._is_old_log(filename):
+            print(f"   检查: {filename}")
+            is_old = self._is_old_log(filename)
+            if is_old:
                 old_logs.append(filename)
 
+        print(f"\n✅ 扫描完成，发现 {len(old_logs)} 个旧文件")
         return old_logs
 
     def migrate_file(self, filename):
