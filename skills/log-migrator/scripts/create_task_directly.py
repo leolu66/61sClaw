@@ -62,20 +62,8 @@ def create_task_directly():
         choice = input().strip().upper()
         if choice == 'Y':
             subprocess.run('taskschd.msc', shell=True)
-    else:
-        print("\n稍后可以在任务计划程序中查看任务")
-    else:
-        print("\n❌ 定时任务创建失败！")
-        print("=" * 60)
-        print("\n手动创建步骤:")
-        print("1. 按 Win+R，输入 taskschd.msc")
-        print("2. 创建基本任务")
-        print("3. 程序/触发器: 每天 23:20")
-        print("4. 操作:")
-        print(f"   程序: {python_exe}")
-        print(f"   参数: {python_script}")
-        print(f"   起始于: {script_dir}")
-        print("5. 使用最高权限运行")
+        else:
+            print("\n稍后可以在任务计划程序中查看任务")
 
     print()
     print("=" * 60)
