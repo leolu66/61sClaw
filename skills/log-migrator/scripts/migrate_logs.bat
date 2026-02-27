@@ -6,7 +6,7 @@ echo 启动时间: %date% %time%
 echo ========================================
 echo.
 
-cd /d "%~dp0"
+cd /d %~dp0
 
 python migrate_logs.py
 
