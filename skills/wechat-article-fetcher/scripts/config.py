@@ -68,8 +68,15 @@ class Config:
     def _fill_from_env(self, config: Dict):
         """从环境变量填充敏感信息"""
         import os
-        config["wechat"]["cookie"] = os.environ.get("WECHAT_COOKIE", config["wechat"].get("cookie", ""))
-        config["wechat"]["token"] = os.environ.get("WECHAT_TOKEN", config["wechat"].get("token", ""))
+        config["wechat"]["cookie"] = os.environ.get("XTC_WECHAT_COOKIE", config["wechat"].get("cookie", ""))
+        config["wechat"]["token"] = os.environ.get("XTC_WECHAT_TOKEN", config["wechat"].get("token", ""))
+        
+        # 如果没有配置，提示用户
+        if not config["wechat"]["cookie"] or not config["wechat"]["token"]:
+            print("\n⚠️ 微信公众号 Cookie 未设置！")
+            print("请在公众号后台获取 Cookie 和 Token，然后设置环境变量：")
+            print("  set XTC_WECHAT_COOKIE=你的Cookie")
+            print("  set XTC_WECHAT_TOKEN=你的Token")
     
     def save(self, config: Dict = None):
         """保存配置到文件"""

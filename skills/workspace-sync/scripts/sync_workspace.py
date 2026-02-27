@@ -42,6 +42,7 @@ def get_sync_dirs():
         "memory",       # 记忆
         "gobang-game",  # 五子棋游戏
         "music-player", # 音乐播放器
+        "agfiles",      # AI 生成的文件
     ]
 
 def get_openclaw_logs():
@@ -145,13 +146,15 @@ def sync_workspace():
         else:
             print(f"  ⏭️ openclaw_logs: 无变化")
     
-    # 同步数据库文件
+    # 同步数据库文件（从 datas 目录）
     db_files = ["zhipu_balance.db"]
     for db_file in db_files:
-        source = os.path.join(LOCAL_WORKSPACE, db_file)
-        target = os.path.join(target_dir, db_file)
+        source = os.path.join(LOCAL_WORKSPACE, "datas", db_file)
+        target = os.path.join(target_dir, "datas", db_file)
         
         if os.path.exists(source):
+            # 确保目标目录存在
+            os.makedirs(os.path.dirname(target), exist_ok=True)
             if not os.path.exists(target) or os.path.getmtime(source) > os.path.getmtime(target):
                 shutil.copy2(source, target)
                 total_copied += 1

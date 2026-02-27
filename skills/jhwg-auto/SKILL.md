@@ -62,7 +62,9 @@ description: |
 | `challenge` | 挑战任务 | 6,8 | 副本和挑战类任务（约2分钟） |
 | `resource` | 资源收集 | 5,7,9 | 收集各类资源的任务（约3分钟） |
 
-## 使用方法
+## 脚本路径
+
+所有脚本位于：`C:\Users\luzhe\.openclaw\workspace-main\skills\jhwg-auto\scripts\`
 
 ### 前置要求
 
@@ -73,7 +75,7 @@ description: |
 ### 使用任务管理器
 
 ```bash
-cd scripts
+cd C:\Users\luzhe\.openclaw\workspace-main\skills\jhwg-auto\scripts
 
 # 列出所有任务
 python task_manager.py --list
@@ -99,7 +101,7 @@ python task_manager.py --strategy challenge # 挑战任务
 ### 直接运行单个任务脚本
 
 ```bash
-cd scripts
+cd C:\Users\luzhe\.openclaw\workspace-main\skills\jhwg-auto\scripts
 python task_pc_reward.py
 python task_shop_free_reward.py
 python task_lifetime_card.py
@@ -141,7 +143,7 @@ python task_claim_more.py
 ## 文件结构
 
 ```
-scripts/
+skills/jhwg-auto/scripts/
 ├── config.json              # 坐标配置和策略配置
 ├── mouse_controller.py      # 鼠标控制器（贝塞尔曲线）
 ├── keyboard_listener.py     # 键盘监听器（Esc终止）

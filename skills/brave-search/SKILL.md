@@ -16,6 +16,10 @@ description: |
 
 使用 Brave Search API 进行快速、准确的网页搜索。
 
+## 脚本路径
+
+`C:\Users\luzhe\.openclaw\workspace-main\skills\brave-search\scripts\brave_search.py`
+
 ## 功能特性
 
 - 🔍 **快速搜索**：返回标题、URL 和摘要
@@ -29,13 +33,13 @@ description: |
 
 ```bash
 # 基本搜索（默认 5 条结果）
-python brave_search.py "搜索关键词"
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\brave-search\scripts\brave_search.py" "搜索关键词"
 
 # 指定结果数量
-python brave_search.py "搜索关键词" 10
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\brave-search\scripts\brave_search.py" "搜索关键词" 10
 
 # 指定语言和国家
-python brave_search.py "搜索关键词" 5 CN zh-hans
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\brave-search\scripts\brave_search.py" "搜索关键词" 5 CN zh-hans
 ```
 
 ### 参数说明

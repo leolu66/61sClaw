@@ -14,8 +14,10 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-# 配置
-API_KEY = 'BSAVcG_OLy94oPAQmb3ZpymklKZejXs'
+# 配置（优先从环境变量读取）
+API_KEY = os.environ.get('XTC_BRAVE_API_KEY', '')
+if not API_KEY:
+    raise ValueError('请设置环境变量 XTC_BRAVE_API_KEY')
 BASE_URL = 'https://api.search.brave.com/res/v1/web/search'
 
 def search(query, count=5, country='CN', search_lang='zh-hans'):

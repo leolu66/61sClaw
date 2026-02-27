@@ -23,6 +23,11 @@ triggers:
 | **搜狗搜索** | ⭐⭐ 较旧 | ❌ 不需要 | 快速查询、无需配置 |
 | **公众号后台** | ⭐⭐⭐⭐⭐ 实时 | ✅ 需要 | 完整数据、大量采集 |
 
+## 脚本路径
+
+- 搜狗方案：`C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles.py`
+- 后台方案：`C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles_v2.py`
+
 ---
 
 ## 方案1：搜狗搜索（简单快速）
@@ -32,17 +37,17 @@ triggers:
 ### 使用方法
 
 ```bash
-python scripts/fetch_articles.py <公众号名称>
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles.py" <公众号名称>
 ```
 
 ### 示例
 
 ```bash
 # 获取机器之心最近10篇文章
-python scripts/fetch_articles.py "机器之心"
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles.py" "机器之心"
 
 # 获取5篇文章并保存到文件
-python scripts/fetch_articles.py "量子位" -n 5 -o articles.json
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles.py" "量子位" -n 5 -o articles.json
 ```
 
 ---
@@ -66,68 +71,35 @@ python scripts/fetch_articles.py "量子位" -n 5 -o articles.json
 ### 使用方法
 
 ```bash
-python scripts/fetch_articles_v2.py <公众号名称> -c "cookie字符串" -t "token"
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles_v2.py" <公众号名称> -c "cookie字符串" -t "token"
 ```
 
 ### 示例
 
 ```bash
 # 获取公众号文章（使用真实凭证）
-python scripts/fetch_articles_v2.py "苏哲管理咨询" \
-  -c "wxtokenkey=xxx; wxuin=xxx; ..." \
-  -t "1234567890"
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch.py" "苏哲管理咨询" -c "wxt_articles_v2okenkey=xxx; wxuin=xxx; ..." -t "1234567890"
 
 # 保存结果
-python scripts/fetch_articles_v2.py "机器之心" -n 20 -o result.json
-```
-
-### 获取 Cookie 和 Token 步骤
-
-1. 访问 https://mp.weixin.qq.com
-2. 微信扫码登录，选择你的公众号
-3. 按 F12 打开开发者工具
-4. 切换到 Network（网络）标签
-5. 刷新页面，找到任意请求（如 `home?t=...`）
-6. 在请求头中找到 **Cookie**，复制整个字符串
-7. 在 URL 中找到 **token** 参数值
-
----
-
-## 输出格式
-
-```json
-{
-  "account": {
-    "name": "公众号名称",
-    "alias": "微信号",
-    "signature": "公众号介绍",
-    "fakeid": "内部ID"
-  },
-  "articles": [
-    {
-      "title": "文章标题",
-      "link": "https://mp.weixin.qq.com/s/...",
-      "create_time": "2024-01-15 10:30",
-      "digest": "文章摘要...",
-      "cover": "封面图URL",
-      "is_original": true
-    }
-  ]
-}
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\fetch_articles_v2.py" "机器之心" -o output.json
 ```
 
 ---
+
+## 批量获取
+
+使用 `batch_fetch.py` 批量获取多个公众号文章：
+
+```bash
+# 批量获取（搜狗方案）
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\batch_fetch.py" "公众号1" "公众号2" "公众号3"
+
+# 批量获取并保存
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\wechat-article-fetcher\scripts\batch_fetch.py" "机器之心" "量子位" -o ./output/
+```
 
 ## 注意事项
 
-- **Cookie 有效期**：通常几小时，过期后需要重新获取
-- **频率限制**：建议适当控制请求频率，避免触发限制
-- **数据版权**：获取的文章内容版权归原作者所有，请合理使用
-
----
-
-## 依赖
-
-```bash
-pip install requests
-```
+- 搜狗搜索有频率限制，建议添加延时
+- 公众号后台接口需要妥善保管 Cookie 和 Token
+- 批量获取时建议使用搜狗方案，避免频繁登录
