@@ -50,25 +50,31 @@ class LogMigrator:
 
     def _is_old_log(self, filename):
         """判断日志文件是否超过保留天数"""
-        # 直接使用文件的创建时间判断
+        # 直接使用文件的修改时间判断
         source_file = self.source_dir / filename
 
         if not source_file.exists():
             return False
 
         try:
-            # 获取文件创建时间
-            create_time = datetime.fromtimestamp(source_file.stat().st_ctime)
+            # 获取文件修改时间（最后修改时间）
+            modify_time = datetime.fromtimestamp(source_file.stat().st_mtime)
 
             # 计算截止日期
             cutoff_date = datetime.now() - timedelta(days=self.retention_days)
 
             # 返回是否需要迁移
-            return create_time < cutoff_date
+            is_old = modify_time < cutoff_date
+
+            # 调试输出
+            if is_old:
+                print(f"  📁 {filename} (修改时间: {modify_time.strftime('%Y-%m-%d %H:%M')})")
+
+            return is_old
 
         except Exception as e:
             # 获取时间失败，跳过此文件
-            print(f"  ⚠️  {filename} - 无法获取创建时间: {e}")
+            print(f"  ⚠️  {filename} - 无法获取时间: {e}")
             return False
 
     def _get_archive_path(self, filename):
