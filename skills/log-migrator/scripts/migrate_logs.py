@@ -144,7 +144,16 @@ class LogMigrator:
         print(f"📋 发现 {len(old_logs)} 个文件需要迁移:")
         print()
 
-        # 迁移文件
+        # 迁移文件（先计算总大小）
+        total_size = 0
+        for filename in old_logs:
+            file_path = self.source_dir / filename
+            if file_path.exists():
+                try:
+                    total_size += file_path.stat().st_size
+                except:
+                    pass
+
         print("📦 开始迁移...")
         print()
 
@@ -159,7 +168,6 @@ class LogMigrator:
         print(f"  错误文件: {len(self.error_files)}")
 
         # 计算节省空间
-        total_size = sum(self.source_dir.joinpath(f).stat().st_size for f in self.migrated_files)
         size_mb = total_size / 1024 / 1024
         print(f"  节省空间: {size_mb:.2f} MB")
 
