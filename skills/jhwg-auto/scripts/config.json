@@ -99,31 +99,64 @@
     "all": {
       "name": "全部任务",
       "description": "执行所有10个任务",
-      "tasks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 11],
+      "tasks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
       "delay_between": 3
     },
     "daily": {
       "name": "日常任务",
       "description": "每日必做的基础任务",
-      "tasks": [1, 2, 3, 4, 5, 7, 9, 11],
+      "tasks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9,
+        11
+      ],
       "delay_between": 2
     },
     "quick": {
       "name": "快速任务",
       "description": "耗时最短的几个任务",
-      "tasks": [1, 2, 3, 4],
+      "tasks": [
+        1,
+        2,
+        3,
+        4
+      ],
       "delay_between": 1
     },
     "challenge": {
       "name": "挑战任务",
       "description": "副本和挑战类任务",
-      "tasks": [6, 8],
+      "tasks": [
+        6,
+        8
+      ],
       "delay_between": 3
     },
     "resource": {
       "name": "资源收集",
       "description": "收集各类资源的任务",
-      "tasks": [5, 7, 9, 10],
+      "tasks": [
+        5,
+        7,
+        9,
+        10
+      ],
       "delay_between": 2
     }
   },
@@ -136,8 +169,14 @@
   },
   "coordinates": {
     "game_area": {
-      "top_left": [630, 325],
-      "bottom_right": [1295, 1520],
+      "top_left": [
+        630,
+        325
+      ],
+      "bottom_right": [
+        1295,
+        1520
+      ],
       "width": 665,
       "height": 1195,
       "description": "游戏画面区域"
@@ -149,7 +188,10 @@
     "pc_icon": {
       "screen_x": 990,
       "screen_y": 450,
-      "size": [20, 20],
+      "size": [
+        20,
+        20
+      ],
       "description": "PC端按钮中心位置 - 顶部居中"
     },
     "left_column": {
@@ -253,8 +295,11 @@
     },
     "reward_button": {
       "screen_x": 960,
-      "screen_y": 1120,
-      "size": [180, 140],
+      "screen_y": 1010,
+      "size": [
+        180,
+        140
+      ],
       "description": "领取奖励按钮中心位置"
     },
     "congrats_popup": {
@@ -263,43 +308,55 @@
       "description": "恭喜画面弹窗的Y坐标范围，点击范围外可关闭"
     },
     "close_popup": {
-      "x_range": [630, 1290],
-      "y_options": [[325, 695], [1070, 1520]],
+      "x_range": [
+        630,
+        1290
+      ],
+      "y_options": [
+        [
+          325,
+          695
+        ],
+        [
+          1070,
+          1520
+        ]
+      ],
       "description": "关闭弹窗的点击区域（Y在弹窗外，X随机）"
     },
     "shop_button": {
-      "screen_x": 690,
-      "screen_y": 530,
+      "screen_x": 730,
+      "screen_y": 500,
       "radius": 40,
-      "description": "商店按钮 - 直径80的圆，圆心(690,530)"
+      "description": "商店按钮 - 直径 80 的圆，圆心 (730,500)"
     },
     "shop_claim_button": {
-      "screen_x": 1180,
-      "screen_y": 815,
-      "description": "商店领取按钮 - 长方形，中心(1180,815)"
+      "screen_x": 1155,
+      "screen_y": 750,
+      "description": "商店领取按钮 - 长方形，中心 (1155,750)"
     },
     "shop_back_button": {
-      "screen_x": 680,
-      "screen_y": 1455,
+      "screen_x": 720,
+      "screen_y": 1300,
       "radius": 30,
-      "description": "商店返回按钮 - 直径60的圆，圆心(680,1455)"
+      "description": "商店返回按钮 - 直径 60 的圆，圆心 (720,1300)"
     },
     "playcard_button": {
-      "screen_x": 690,
-      "screen_y": 635,
-      "radius": 40,
-      "description": "畅玩卡按钮 - 直径80的圆，圆心(690,635)"
+      "screen_x": 730,
+      "screen_y": 590,
+      "radius": 30,
+      "description": "畅玩卡按钮 - 直径 60 圆，圆心 (730,590)"
     },
     "lifetime_card_button": {
-      "screen_x": 1240,
-      "screen_y": 1455,
+      "screen_x": 1200,
+      "screen_y": 1300,
       "radius": 30,
-      "description": "终身卡按钮 - 直径60的圆，圆心(1240,1455)（右下角）"
+      "description": "终身卡按钮 - 直径 60 圆，圆心 (1200,1300)"
     },
     "lifetime_claim_button": {
       "screen_x": 960,
-      "screen_y": 1360,
-      "description": "终身卡领取按钮 - 180x80长方形，中心(960,1360)"
+      "screen_y": 1220,
+      "description": "终身卡领取按钮 - 180x80 长方形，中心 (960,1220)"
     },
     "lifetime_back_button": {
       "screen_x": 680,

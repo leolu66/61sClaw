@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-键盘监听器 - 支持Esc键终止任务
+键盘监听器 - 支持 Esc 键终止任务
 """
 
 import threading
 import sys
+import io
+
+# 设置标准输出为 UTF-8 编码（兼容 Windows 控制台）
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 try:
     from pynput import keyboard
     PYNPUT_AVAILABLE = True
 except ImportError:
     PYNPUT_AVAILABLE = False
-    print("警告: pynput 模块未安装，Esc键终止功能不可用")
-    print("如需使用，请运行: pip install pynput")
+    print("警告：pynput 模块未安装，Esc 键终止功能不可用")
+    print("如需使用，请运行：pip install pynput")
 
 
 class KeyboardListener:
-    """键盘监听器，用于捕获Esc键终止任务"""
+    """键盘监听器，用于捕获 Esc 键终止任务"""
     
     def __init__(self):
         self.esc_pressed = False
@@ -29,7 +35,7 @@ class KeyboardListener:
             if key == keyboard.Key.esc:
                 with self._lock:
                     self.esc_pressed = True
-                print("\n[⚠️ 检测到Esc键，准备终止任务...]")
+                print("\n[⚠️ 检测到 Esc 键，准备终止任务...]")
                 return False  # 停止监听
         except Exception:
             pass
@@ -51,14 +57,14 @@ class KeyboardListener:
             self.listener.stop()
     
     def is_esc_pressed(self) -> bool:
-        """检查Esc键是否被按下"""
+        """检查 Esc 键是否被按下"""
         with self._lock:
             return self.esc_pressed
     
     def check_and_raise(self):
-        """检查Esc键是否被按下，如果是则抛出异常终止任务"""
+        """检查 Esc 键是否被按下，如果是则抛出异常终止任务"""
         if self.is_esc_pressed():
-            raise KeyboardInterrupt("用户按下Esc键终止任务")
+            raise KeyboardInterrupt("用户按下 Esc 键终止任务")
 
 
 # 全局监听器实例
@@ -70,7 +76,7 @@ def start_keyboard_listener() -> KeyboardListener:
     global _global_listener
     _global_listener = KeyboardListener()
     _global_listener.start()
-    print("[💡 提示: 按Esc键可随时终止任务]")
+    print("[💡 提示：按 Esc 键可随时终止任务]")
     return _global_listener
 
 
@@ -83,7 +89,7 @@ def stop_keyboard_listener():
 
 
 def check_esc_key():
-    """检查Esc键是否被按下，返回布尔值"""
+    """检查 Esc 键是否被按下，返回布尔值"""
     global _global_listener
     if _global_listener:
         return _global_listener.is_esc_pressed()
@@ -94,7 +100,7 @@ if __name__ == '__main__':
     import time
     
     print("键盘监听器测试")
-    print("按Esc键终止...")
+    print("按 Esc 键终止...")
     
     listener = start_keyboard_listener()
     
