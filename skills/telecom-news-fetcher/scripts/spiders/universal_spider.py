@@ -4,19 +4,19 @@
 使用 Playwright 浏览器自动化，更难被反爬检测
 """
 
-import asyncio
 import random
 import json
 import os
 import sys
 import io
+import time
 
 # Fix stdout encoding
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-# Playwright
-from playwright.async_api import async_playwright
+# Playwright - 使用同步版本，更简单
+from playwright.sync_api import sync_playwright
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, 'config.json')
@@ -37,29 +37,46 @@ def get_random_delay():
     return delay
 
 
-async def fetch_with_playwright(url, encoding='utf-8'):
-    """使用 Playwright 获取页面"""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
+class BrowserFetcher:
+    """浏览器爬虫类 - 复用 Playwright"""
+    
+    def __init__(self, headless=True):
+        self.headless = headless
+        self.playwright = None
+        self.browser = None
+        self.context = None
+        
+    def __enter__(self):
+        self.playwright = sync_playwright().start()
+        self.browser = self.playwright.chromium.launch(
+            headless=self.headless,
             args=['--no-sandbox', '--disable-dev-shm-usage']
         )
-        page = await browser.new_page()
+        self.context = self.browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        )
+        return self
         
+    def __exit__(self, *args):
+        if self.context:
+            self.context.close()
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+    
+    def fetch(self, url, timeout=30):
+        """获取页面内容"""
+        page = self.context.new_page()
         try:
-            await page.goto(url, timeout=30000, wait_until='networkidle')
-            
-            # 等待页面加载完成
-            await asyncio.sleep(2)
-            
-            # 获取页面内容
-            content = await page.content()
-            
-            await browser.close()
+            page.goto(url, wait_until='networkidle', timeout=timeout * 1000)
+            time.sleep(2)  # 等待动态内容
+            content = page.content()
+            page.close()
             return content
-            
         except Exception as e:
-            await browser.close()
+            page.close()
             raise e
 
 
@@ -77,6 +94,7 @@ def extract_news(soup, base_url, source_name, limit=10):
         'a[title]',
         '.news_list a',
         '.article_list a',
+        '.list a',
         'ul li a',
     ]
     
@@ -129,8 +147,8 @@ def extract_news(soup, base_url, source_name, limit=10):
     return all_news
 
 
-async def fetch_news_async(source_key, limit=10):
-    """异步获取指定新闻源"""
+def fetch_news(source_key, limit=10):
+    """获取指定新闻源"""
     from bs4 import BeautifulSoup
     
     config = load_config()
@@ -147,25 +165,26 @@ async def fetch_news_async(source_key, limit=10):
     
     all_news = []
     
-    for path in news_paths:
-        if len(all_news) >= limit:
-            break
+    with BrowserFetcher(headless=True) as fetcher:
+        for path in news_paths:
+            if len(all_news) >= limit:
+                break
+                
+            url = base_url + path
             
-        url = base_url + path
-        
-        # 随机延迟
-        await asyncio.sleep(get_random_delay())
-        
-        try:
-            content = await fetch_with_playwright(url, encoding)
-            soup = BeautifulSoup(content, 'html.parser')
-            news = extract_news(soup, base_url, source_name, limit)
-            all_news.extend(news)
-            print(f"   ✅ {source_name}: 获取到 {len(news)} 条")
+            # 随机延迟
+            time.sleep(get_random_delay())
             
-        except Exception as e:
-            print(f"   ❌ {source_name}: {str(e)[:50]}")
-            continue
+            try:
+                content = fetcher.fetch(url, timeout=30)
+                soup = BeautifulSoup(content, 'html.parser')
+                news = extract_news(soup, base_url, source_name, limit)
+                all_news.extend(news)
+                print(f"   [OK] {source_name}: {len(news)} 条")
+                
+            except Exception as e:
+                print(f"   [X] {source_name}: {str(e)[:40]}")
+                continue
     
     # 去重并返回
     seen = set()
@@ -176,11 +195,6 @@ async def fetch_news_async(source_key, limit=10):
             result.append(news)
     
     return result[:limit]
-
-
-def fetch_news(source_key, limit=10):
-    """同步包装"""
-    return asyncio.run(fetch_news_async(source_key, limit))
 
 
 # 为每个源创建函数
@@ -200,25 +214,21 @@ def fetch_ccidcom_news(source_key='ccidcom', limit=10):
     return fetch_news('ccidcom', limit)
 
 
-async def main_async():
-    source = sys.argv[1] if len(sys.argv) > 1 else 'cnii'
+def main():
+    source = sys.argv[1] if len(sys.argv) > 1 else 'c114'
     limit = int(sys.argv[2]) if len(sys.argv) > 2 else 5
     
-    print(f"🔍 正在获取 {source} 新闻 (使用 Playwright)...")
-    news = await fetch_news_async(source, limit)
+    print(f"[+] 获取 {source} 新闻 (Playwright)...")
+    news = fetch_news(source, limit)
     
     if not news:
-        print("❌ 未获取到新闻")
+        print("[-] 未获取到新闻")
         return
     
-    print(f"\n✅ 获取到 {len(news)} 条新闻:\n")
+    print(f"\n[OK] 共 {len(news)} 条:\n")
     for i, item in enumerate(news, 1):
         print(f"{i}. {item['title']}")
-        print(f"   🔗 {item['url']}\n")
-
-
-def main():
-    asyncio.run(main_async())
+        print(f"   {item['url']}\n")
 
 
 if __name__ == '__main__':
