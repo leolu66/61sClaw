@@ -54,16 +54,16 @@ class LogMigrator:
         # 先去除 .md 扩展名
         name_without_ext = filename.replace('.md', '')
 
-        # 分割文件名，取前3个部分（年-月-日）
-        parts = name_without_ext.split('-')
-
-        # 检查是否有足够的部分
-        if len(parts) < 3:
+        # 使用正则表达式提取日期部分
+        import re
+        match = re.match(r'(\d{4})-(\d{2})-(\d{2})', name_without_ext)
+        if not match:
             return False
 
         try:
-            # 拼接日期字符串（只取前3个部分）
-            date_part = f"{parts[0]}-{parts[1]}-{parts[2]}"
+            # 提取年月日
+            year, month, day = match.groups()
+            date_part = f"{year}-{month}-{day}"
 
             # 解析日期
             file_date = datetime.strptime(date_part, "%Y-%m-%d")
