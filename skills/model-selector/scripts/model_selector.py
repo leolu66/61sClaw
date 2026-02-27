@@ -44,9 +44,20 @@ DEFAULT_MODEL = "whalecloud/qwen3.5-plus"
 def get_current_model():
     """获取当前使用的模型"""
     try:
-        # 从环境变量或配置获取
-        model = os.getenv("OPENCLAW_MODEL", DEFAULT_MODEL)
-        return model
+        # 从 openclaw models status 获取当前模型
+        result = subprocess.run(
+            "openclaw models status --status-plain",
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout:
+            # 解析输出，找到 Default 行
+            for line in result.stdout.split('\n'):
+                if line.startswith('Default'):
+                    return line.split(':')[1].strip()
+        return DEFAULT_MODEL
     except:
         return DEFAULT_MODEL
 
@@ -79,16 +90,15 @@ def display_models(current_model):
 def switch_model(model_name):
     """切换模型"""
     print(f"\n🔄 正在切换到 {model_name}...")
-    
+
     try:
-        # 方法 1: 使用 session_status 工具（如果可用）
-        # 这里调用 OpenClaw 的 session_status 命令
-        cmd = f"openclaw session_status --model {model_name}"
+        # 使用 openclaw models set 命令切换模型
+        cmd = f"openclaw models set {model_name}"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
-        
+
         if result.returncode == 0:
             print(f"✅ 成功切换到 {model_name}")
-            
+
             # 重启 Gateway
             print("🔄 重启 Gateway 以使新模型生效...")
             subprocess.run("openclaw gateway restart", shell=True, capture_output=True, timeout=30)
@@ -97,13 +107,12 @@ def switch_model(model_name):
         else:
             print(f"❌ 切换失败：{result.stderr}")
             return False
-            
+
     except Exception as e:
         print(f"❌ 切换失败：{e}")
         print("\n💡 手动切换方法:")
-        print(f"   1. 编辑 openclaw.json 配置文件")
-        print(f"   2. 修改 model 字段为：{model_name}")
-        print(f"   3. 运行：openclaw gateway restart")
+        print(f"   运行命令：openclaw models set {model_name}")
+        print(f"   然后重启：openclaw gateway restart")
         return False
 
 
