@@ -51,14 +51,20 @@ class LogMigrator:
     def _is_old_log(self, filename):
         """判断日志文件是否超过保留天数"""
         # 文件名格式：YYYY-MM-DD-*.md 或 YYYY-MM-DD.md
-        parts = filename.replace('.md', '').split('-')
-        if len(parts) >= 3:
-            try:
-                file_date = datetime.strptime(f"{parts[0]}-{parts[1]}-{parts[2]}", "%Y-%m-%d")
-                cutoff_date = datetime.now() - timedelta(days=self.retention_days)
-                return file_date < cutoff_date
-            except ValueError:
-                return False
+        # 处理可能的中文字符
+        try:
+            name_without_ext = filename.replace('.md', '')
+            parts = name_without_ext.split('-')
+            if len(parts) >= 3:
+                try:
+                    file_date_str = f"{parts[0]}-{parts[1]}-{parts[2]}"
+                    file_date = datetime.strptime(file_date_str, "%Y-%m-%d")
+                    cutoff_date = datetime.now() - timedelta(days=self.retention_days)
+                    return file_date < cutoff_date
+                except ValueError:
+                    return False
+        except Exception:
+            pass
         return False
 
     def _get_archive_path(self, filename):
@@ -80,7 +86,9 @@ class LogMigrator:
             return []
 
         old_logs = []
-        for filename in sorted(os.listdir(self.source_dir)):
+        # 使用 pathlib 而不是 os.listdir，更好地处理编码
+        for file_path in sorted(self.source_dir.iterdir()):
+            filename = file_path.name
             if not filename.endswith('.md'):
                 continue
 
