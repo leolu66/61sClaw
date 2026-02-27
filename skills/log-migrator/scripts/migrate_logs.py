@@ -50,26 +50,20 @@ class LogMigrator:
 
     def _is_old_log(self, filename):
         """判断日志文件是否超过保留天数"""
-        # 文件名格式：YYYY-MM-DD-*.md 或 YYYY-MM-DD.md
+        # 文件名格式：YYYY-MM-DD-NNN-中文概述.md
         # 先去除 .md 扩展名
         name_without_ext = filename.replace('.md', '')
 
-        # 分割文件名，取第一个 "-" 前面的部分作为日期
-        if '-' in name_without_ext:
-            date_part = name_without_ext.split('-')[0]
-        else:
-            # 没有横杠，尝试直接作为日期
-            date_part = name_without_ext
+        # 分割文件名，取前3个部分（年-月-日）
+        parts = name_without_ext.split('-')
 
-        # 检查日期部分格式（必须是 YYYY-MM-DD 或 YYYYMMDD）
-        if not (date_part.replace('-', '').isdigit() or len(date_part) == 8):
+        # 检查是否有足够的部分
+        if len(parts) < 3:
             return False
 
         try:
-            # 标准化日期格式
-            if len(date_part) == 8:
-                # YYYYMMDD 格式
-                date_part = f"{date_part[:4]}-{date_part[4:6]}-{date_part[6:8]}"
+            # 拼接日期字符串（只取前3个部分）
+            date_part = f"{parts[0]}-{parts[1]}-{parts[2]}"
 
             # 解析日期
             file_date = datetime.strptime(date_part, "%Y-%m-%d")
