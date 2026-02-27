@@ -19,6 +19,8 @@ CONFIG_PATH = os.path.join(SCRIPT_DIR, 'config.json')
 # 导入爬虫
 sys.path.insert(0, os.path.join(SCRIPT_DIR, 'spiders'))
 from c114_spider import fetch_c114_news
+from cww_spider import fetch_cww_news
+from cctime_spider import fetch_cctime_news
 
 
 def load_config():
@@ -69,13 +71,9 @@ def fetch_all_news(sources=None, limit=10):
             if key == 'c114':
                 news = fetch_c114_news(key, limit)
             elif key == 'cww':
-                # 预留：通信世界网爬虫
-                news = []
-                print(f"   ⏳ 通信世界网爬虫开发中...")
+                news = fetch_cww_news(key, limit)
             elif key == 'cctime':
-                # 预留：飞象网爬虫
-                news = []
-                print(f"   ⏳ 飞象网爬虫开发中...")
+                news = fetch_cctime_news(key, limit)
             else:
                 news = []
             

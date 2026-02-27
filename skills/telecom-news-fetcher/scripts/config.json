@@ -14,19 +14,19 @@
     },
     "cww": {
       "name": "通信世界网",
-      "enabled": false,
+      "enabled": true,
       "base_url": "http://www.cww.net.cn",
       "news_paths": [
-        "/news/index.php"
+        "/news/"
       ],
       "limit": 10
     },
     "cctime": {
       "name": "飞象网",
-      "enabled": false,
+      "enabled": true,
       "base_url": "http://www.cctime.com",
       "news_paths": [
-        "/news/list.htm"
+        "/news/"
       ],
       "limit": 10
     }
