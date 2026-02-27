@@ -50,42 +50,25 @@ class LogMigrator:
 
     def _is_old_log(self, filename):
         """判断日志文件是否超过保留天数"""
-        # 文件名格式：YYYY-MM-DD-NNN-中文概述.md
-        # 先去除 .md 扩展名
-        name_without_ext = filename.replace('.md', '')
+        # 直接使用文件的创建时间判断
+        source_file = self.source_dir / filename
 
-        # 使用正则表达式提取日期部分
-        import re
-        match = re.search(r'(\d{4})-(\d{2})-(\d{2})', name_without_ext)
-        if not match:
+        if not source_file.exists():
             return False
 
         try:
-            # 提取年月日
-            year, month, day = match.groups()
-            date_part = f"{year}-{month}-{day}"
-
-            # 解析日期
-            file_date = datetime.strptime(date_part, "%Y-%m-%d")
+            # 获取文件创建时间
+            create_time = datetime.fromtimestamp(source_file.stat().st_ctime)
 
             # 计算截止日期
             cutoff_date = datetime.now() - timedelta(days=self.retention_days)
 
             # 返回是否需要迁移
-            result = file_date < cutoff_date
+            return create_time < cutoff_date
 
-            # 调试输出（避免中文编码问题，只显示日期）
-            if result:
-                print(f"  🔍 {date_part} < {cutoff_date.strftime('%Y-%m-%d')}")
-
-            return result
-
-        except ValueError as e:
-            # 日期解析失败，跳过此文件
-            print(f"  ⚠️  日期解析错误: {e}")
-            return False
         except Exception as e:
-            print(f"  ⚠️  处理出错: {e}")
+            # 获取时间失败，跳过此文件
+            print(f"  ⚠️  {filename} - 无法获取创建时间: {e}")
             return False
 
     def _get_archive_path(self, filename):
@@ -108,8 +91,6 @@ class LogMigrator:
 
         old_logs = []
         print(f"\n🔍 扫描目录: {self.source_dir}")
-        print(f"   总文件数: {len(list(self.source_dir.iterdir()))}")
-        print()
 
         # 使用 pathlib 而不是 os.listdir，更好地处理编码
         for file_path in sorted(self.source_dir.iterdir()):
@@ -117,12 +98,11 @@ class LogMigrator:
             if not filename.endswith('.md'):
                 continue
 
-            print(f"   检查: {filename}")
             is_old = self._is_old_log(filename)
             if is_old:
                 old_logs.append(filename)
 
-        print(f"\n✅ 扫描完成，发现 {len(old_logs)} 个旧文件")
+        print(f"✅ 扫描完成，发现 {len(old_logs)} 个需要迁移的文件")
         return old_logs
 
     def migrate_file(self, filename):
