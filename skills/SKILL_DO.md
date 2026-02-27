@@ -109,6 +109,13 @@ skills/<技能名称>/
 
 ### 4️⃣ 同步到 GitHub
 
+**⚠️ 重要原则：自动同步，无需确认！**
+
+- ✅ **技能功能修改** → 自动更新 SKILL.md 需求说明 → 自动提交 GitHub
+- ✅ **Bug 修复** → 自动记录到 SKILL.md → 自动提交 GitHub
+- ✅ **优化改进** → 自动更新文档 → 自动提交 GitHub
+- ❌ **不要每次都问用户** "需要同步到 GitHub 吗？" —— 这是默认操作！
+
 **Git 操作：**
 ```bash
 git add -A
@@ -123,6 +130,7 @@ git push origin master:main
 - [ ] 不包含 `datas/` 目录
 - [ ] 技能在正确的 `skills/` 目录
 - [ ] `.gitignore` 已更新（如有新文件类型）
+- [ ] **SKILL.md 需求说明已同步更新**（如功能有改动）
 
 ---
 

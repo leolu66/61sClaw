@@ -1,0 +1,401 @@
+# 技能清单 - Skills Catalog
+
+> 🧠 **小天才的技能库** | 最后更新：2026-02-27
+
+本目录包含所有可用的 OpenClaw 技能，每个技能都是独立的、可重用的自动化工具。
+
+---
+
+## 📊 技能统计
+
+| 分类 | 数量 | 技能列表 |
+|------|------|----------|
+| 🤖 AI 工具 | 3 | AI 新闻获取、Brave 搜索、模型推荐/切换 |
+| 🎮 游戏娱乐 | 2 | 五子棋、几何王国自动代玩 |
+| 📧 效率工具 | 4 | 邮件读取、工作日志、飞书通知、鼠标工具 |
+| ☁️ 云服务 | 2 | 七牛云同步、NAS 同步 |
+| 🔒 安全工具 | 2 | 密码箱、VPN 控制 |
+| 🛠️ 系统工具 | 2 | C 盘清理、天气查询 |
+| 📱 社交工具 | 1 | 微信公众号文章获取 |
+| 🎵 媒体工具 | 1 | PotPlayer 音乐播放 |
+
+**总计**: **17 个技能**
+
+---
+
+## 📚 技能详细列表
+
+### 🤖 AI 工具
+
+#### 1. AI 新闻获取 (ai-news-fetcher)
+**描述**: 获取国内权威 AI 科技网站的最新新闻，并以带摘要的卡片形式展示
+
+**触发词**:
+- "获取 AI 新闻"、"最新 AI 资讯"、"科技新闻"、"AI 动态"
+
+**支持网站**:
+- 机器之心 (jiqizhixin.com)
+- 量子位 (qbitai.com)
+- InfoQ 中国 (infoq.cn)
+- 智东西 (zhidx.com)
+- AI 科技大本营 (leiphone.com)
+
+**脚本**: `scripts/fetch_ai_news.py`
+
+---
+
+#### 2. Brave 搜索 (brave-search)
+**描述**: 使用 Brave Search API 进行网页搜索
+
+**触发词**:
+- "搜索 xxx"、"Brave Search xxx"、"web search xxx"、"百度一下 xxx"
+
+**注意**: 需要开启 VPN 才能访问 Brave Search API
+
+**脚本**: `scripts/brave_search.py`
+
+---
+
+#### 3. 模型推荐器 (model-recommender)
+**描述**: 根据用户需求推荐最合适的模型，支持按功能、价格、性能维度推荐
+
+**触发词**:
+- "推荐模型"、"用什么模型"、"哪个模型便宜"
+- "支持图片的模型"、"写文档用什么模型"
+
+**功能**:
+- 展示当前模型价格排行榜
+- 根据使用场景推荐最实惠的模型
+- 多模型对比分析
+
+---
+
+#### 4. 模型切换器 (model-switcher)
+**描述**: 根据任务复杂度自动切换快速模型 (haiku) 和强大模型 (sonnet)
+
+**触发场景**:
+- 复杂分析、代码重构、架构设计时自动切换到 sonnet
+- 简单任务、快速查询使用 haiku
+
+**模型配置**:
+- Fast: `claude-haiku-4-5` - 简单快速任务
+- Powerful: `claude-sonnet-4-5` - 复杂分析任务
+
+---
+
+### 🎮 游戏娱乐
+
+#### 5. 五子棋游戏 (gobang-game)
+**描述**: 打开五子棋游戏页面，支持双人对战和人机对战
+
+**触发词**:
+- "玩五子棋"、"打开五子棋"、"来一局五子棋"、"gobang"
+
+**功能**:
+- 棋盘大小：11×11、15×15（标准）、19×19
+- 游戏模式：双人对战 (PVP)、人机对战 (PVE)
+- 游戏功能：悔棋、提示、重新开始、胜负判定
+
+**文件**: `gobang.html`
+
+---
+
+#### 6. 几何王国自动代玩 (jhwg-auto)
+**描述**: 模拟真人鼠标操作完成几何王国游戏日常任务
+
+**触发词**:
+- "代玩几何王国"、"玩 jhwg"、"领取 PC 端奖励"
+- "领取商店福利"、"领取终生卡"、"开启自动钓鱼"
+
+**支持任务**:
+- 领取 PC 端奖励
+- 商店免费福利
+- 终生卡奖励
+- 巡逻奖励
+- 自动钓鱼
+
+**脚本**: `scripts/jhwg_auto.py`
+
+---
+
+### 📧 效率工具
+
+#### 7. 邮箱读取 (exchange-email-reader)
+**描述**: 读取 Microsoft Exchange/Outlook 邮箱中的最新邮件
+
+**触发词**:
+- "查看我的邮件"、"读取最新邮件"、"获取邮箱内容"
+
+**配置**:
+- 服务器：`mail.iwhalecloud.com`
+- 邮箱：`0027025600@iwhalecloud.com`
+
+**依赖**: `pip install exchangelib`
+
+**脚本**: `scripts/read_email.py`
+
+---
+
+#### 8. 工作日志记录器 (work-session-logger)
+**描述**: 总结当前会话内容并写入工作日志文件，自动生成分类清晰的 Markdown 日志
+
+**触发词**:
+- "记录工作日志"、"总结本次会话"、"保存工作内容"、"写入日志"
+
+**功能**:
+- 自动脱敏敏感信息（密码、API Key、手机号等）
+- 生成结构化日志（任务、问题、解决方案、决策）
+- 自动递增文件名（YYYY-MM-DD-NNN-概述.md）
+
+**存储路径**: `D:\anthropic\工作日志\`
+
+---
+
+#### 9. 飞书通知 (feishu-notifier)
+**描述**: 主动向用户发送飞书通知消息，支持文本和卡片消息
+
+**触发场景**:
+- 任务完成通知
+- 定时提醒
+- 告警消息
+
+**依赖**:
+- OpenClaw 飞书集成配置
+- `im:message:send_as_bot` 权限
+
+---
+
+#### 10. 鼠标信息工具 (mouseinfo-launcher)
+**描述**: 启动 mouseinfo 工具获取鼠标坐标和屏幕颜色
+
+**触发词**:
+- "启动 mouseinfo"、"打开 mouseinfo"、"获取鼠标坐标"、"取色器"
+
+**功能**:
+- 实时显示鼠标坐标 (X, Y)
+- 获取像素颜色值 (RGB)
+- 用于 UI 自动化和图像定位
+
+**依赖**: `pip install mouseinfo`
+
+---
+
+### ☁️ 云服务
+
+#### 11. 七牛云同步 (qiniu-sync)
+**描述**: 将 workspace 内容同步到七牛云存储空间 `61sopenclaw`
+
+**触发词**:
+- "同步到七牛云"、"七牛云同步"
+
+**同步规则**:
+| 本地目录/文件 | 七牛云目录 |
+|--------------|-----------|
+| skills/ | /skills |
+| memory/ | /logs |
+| *.db | /data |
+| 其他 | / |
+
+---
+
+#### 12. NAS 同步 (workspace-sync)
+**描述**: 将 workspace 同步到 NAS 共享目录，支持多设备协作
+
+**触发词**:
+- "同步到 NAS"、"备份到 Z 盘"、"sync to Z"
+
+**配置**:
+- 目标设备：小黑板、小白
+- 目标目录：`Z:\61sOpenClaw`
+- 增量同步，只传输修改过的文件
+
+**配置文件**: `scripts/sync_config.json`
+
+---
+
+### 🔒 安全工具
+
+#### 13. 密码箱 (vault)
+**描述**: 安全存储和查询各平台的账号、密码、API Key 等敏感信息
+
+**触发词**:
+- "vault"、"密码箱"、"凭证"
+- "查询 [平台] 密码"、"保存 [平台] 账号"
+
+**功能**:
+- 安全存储（AES-256-GCM 加密）
+- 快速查询（支持别名：gmail=google）
+- 列出所有平台
+- 更新/删除凭据
+
+**已支持平台**:
+- WhaleCloud Lab、智谱 AI、Moonshot (Kimi)
+- 阿里云、飞书、GitHub、七牛云、Brave Search
+- 公司邮箱、坚果云、Cursor、Gitee、Docker Hub
+- 微软账号、Google 账号、115、Ollama 等
+
+**脚本**: `scripts/vault.py`
+
+**查询示例**:
+```bash
+vault get-secret email      # 查询邮箱密码
+vault get-secret gmail      # 查询 Google 密码（别名）
+vault get-secret zmp        # 查询 ZMP 系统密码
+```
+
+---
+
+#### 14. VPN 控制器 (vpn-controller)
+**描述**: 控制 Clash for Windows VPN 应用，管理 Windows 代理设置
+
+**触发词**:
+- "启动 VPN"、"打开 VPN"、"开启代理"
+- "关闭 VPN"、"停止 VPN"、"禁用代理"
+
+**功能**:
+- 启动/停止 VPN
+- 检查 VPN 状态
+- 启用/禁用 Windows 代理设置
+
+**VPN 路径**: `D:\Users\luzhe\AppData\Local\Programs\Clash for Windows\Clash for Windows.exe`
+
+**脚本**: `scripts/vpn_control.py`
+
+---
+
+### 🛠️ 系统工具
+
+#### 15. C 盘清理 (disk-cleaner)
+**描述**: C 盘空间清理和分析工具，自动清理临时文件，分析占用空间大的应用
+
+**触发词**:
+- "清理 C 盘"、"分析 C 盘空间"、"C 盘满了"、"释放空间"
+
+**功能**:
+- 自动清理临时文件
+- 分析大文件和大目录
+- 提供清理建议
+
+---
+
+#### 16. 天气查询 (weather-skill)
+**描述**: 使用和风天气 API 查询实时天气和天气预报
+
+**触发词**:
+- "北京今天天气怎么样"、"查询上海未来 7 天天气"、"深圳明天会下雨吗"
+
+**功能**:
+- 实时天气查询
+- 未来 7 天天气预报
+- 支持城市名称或 Location ID
+
+**API**: 和风天气（内置 API Key）
+
+**脚本**: `scripts/weather.py`
+
+---
+
+### 📱 社交工具
+
+#### 17. 微信公众号文章获取 (wechat-article-fetcher)
+**描述**: 获取微信公众号文章列表
+
+**触发词**:
+- "获取微信公众号"、"查看公众号"、"read wechat"
+- "查询微信公众号"、"公众号文章获取"
+
+**支持方案**:
+1. **搜狗搜索**: 无需登录，数据较旧
+2. **公众号后台接口**: 需要扫码登录，数据实时完整
+
+---
+
+### 🎵 媒体工具
+
+#### 18. PotPlayer 音乐播放 (potplayer-music)
+**描述**: 使用 PotPlayer 64-bit 播放本地音乐文件
+
+**触发词**:
+- "播放音乐"、"放首歌"、"用 PotPlayer 播放"
+
+**功能**:
+- 播放指定文件
+- 播放列表管理（暂停、继续、停止、下一首、上一首）
+- 音量调节
+
+**播放器路径**: `C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe`
+**默认播放列表**: `E:\Music\精选.m3u`
+
+---
+
+## 🔧 开发规范
+
+所有技能开发遵循 **DoD (Definition of Done)** 规范：
+
+1. **SRS 文档** - SKILL.md 中包含完整的需求说明
+2. **代码规范** - 使用相对路径，配置外置，敏感信息通过环境变量
+3. **测试通过** - 功能测试 + 触发测试
+4. **GitHub 同步** - 无隐私文件，推送到 master 和 main
+
+**详细说明**: 参考 [`SKILL_DO.md`](SKILL_DO.md)
+
+---
+
+## 📁 目录结构
+
+```
+skills/
+├── ai-news-fetcher/        # AI 新闻获取
+├── brave-search/           # Brave 搜索
+├── model-recommender/      # 模型推荐
+├── model-switcher/         # 模型切换
+├── gobang-game/            # 五子棋游戏
+├── jhwg-auto/              # 几何王国代玩
+├── exchange-email-reader/  # 邮箱读取
+├── work-session-logger/    # 工作日志
+├── feishu-notifier/        # 飞书通知
+├── mouseinfo-launcher/     # 鼠标信息
+├── qiniu-sync/             # 七牛云同步
+├── workspace-sync/         # NAS 同步
+├── vault/                  # 密码箱
+├── vpn-controller/         # VPN 控制
+├── disk-cleaner/           # C 盘清理
+├── weather-skill/          # 天气查询
+├── wechat-article-fetcher/ # 微信公众号
+├── potplayer-music/        # PotPlayer 播放
+├── SKILL_DO.md             # DoD 规范
+├── SKILL_TEMPLATE.md       # 技能模板
+└── README.md               # 本文件
+```
+
+---
+
+## 🚀 快速开始
+
+### 添加新技能
+
+1. 复制模板：`cp SKILL_TEMPLATE.md new-skill/SKILL.md`
+2. 编写 SRS 文档（SKILL.md 顶部）
+3. 开发脚本（scripts/目录）
+4. 测试功能和触发
+5. 提交到 GitHub
+
+### 使用现有技能
+
+直接对助手说触发词即可，例如：
+- "查余额" → 调用 `api-balance-checker`
+- "播放音乐" → 调用 `potplayer-music`
+- "记录工作日志" → 调用 `work-session-logger`
+
+---
+
+## 📞 联系与维护
+
+- **开发者**: 小天才 🧠
+- **用户**: 六一
+- **GitHub**: https://github.com/leolu66/61sClaw
+- **最后更新**: 2026-02-27
+
+---
+
+*本技能清单会自动更新，每次新增或修改技能时同步更新此文档。*
