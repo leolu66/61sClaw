@@ -16,7 +16,7 @@ sys.path.insert(0, script_dir)
 from vault import Vault, print_credential
 
 def handle_query(vault, query: str, simple_mode: bool = True):
-    """处理查询请求 - 简化输出，只显示关键信息"""
+    """处理查询请求 - 只输出纯明文值，无任何多余信息"""
     query = query.lower().strip()
     
     # 尝试匹配平台名称
@@ -25,39 +25,46 @@ def handle_query(vault, query: str, simple_mode: bool = True):
     # 精确匹配 slug
     if query in vault.credentials:
         cred = vault.credentials[query]
-        # 简化模式：只显示关键敏感字段（如身份证号）
+        # 只显示关键敏感字段的明文值
         if simple_mode or cred.get("category") == "other":
             for field in cred["fields"]:
-                # 只显示 id_number 或 password 字段
+                # 优先显示 id_number, password, pin 等
                 if field["key"] in ["id_number", "password", "pin", "kimi_code", "license_key"]:
+                    # 直接输出明文值，无任何前缀
                     val = field["value"] if not field.get("isSensitive", False) else vault._decrypt_sensitive(field["value"])
-                    print(f"{val}")
-            return
-        else:
-            cred_display = vault.get(query, show_sensitive=False)
-            print_credential(cred_display)
+                    print(val)
+                    return
+            # 如果没有上述字段，显示第一个敏感字段
+            for field in cred["fields"]:
+                if field.get("isSensitive", False) or cred.get("category") == "other":
+                    val = field["value"] if not field.get("isSensitive", False) else vault._decrypt_sensitive(field["value"])
+                    if val:
+                        print(val)
+                        return
         return
     
     # 模糊匹配名称
     for cred_info in all_creds:
         if query in cred_info['name'].lower() or query in cred_info['slug'].lower():
             cred = vault.credentials[cred_info['slug']]
-            # 简化模式：只显示关键敏感字段
+            # 只显示关键敏感字段的明文值
             if simple_mode or cred.get("category") == "other":
                 for field in cred["fields"]:
                     if field["key"] in ["id_number", "password", "pin", "kimi_code", "license_key"]:
                         val = field["value"] if not field.get("isSensitive", False) else vault._decrypt_sensitive(field["value"])
-                        print(f"{val}")
-                return
-            else:
-                cred_display = vault.get(cred_info['slug'], show_sensitive=False)
-                print_credential(cred_display)
+                        print(val)
+                        return
+                # 如果没有上述字段，显示第一个敏感字段
+                for field in cred["fields"]:
+                    if field.get("isSensitive", False) or cred.get("category") == "other":
+                        val = field["value"] if not field.get("isSensitive", False) else vault._decrypt_sensitive(field["value"])
+                        if val:
+                            print(val)
+                            return
             return
     
-    print(f"未找到平台：{query}")
-    print("\n可用平台:")
-    for cred_info in all_creds:
-        print(f"  - {cred_info['name']} ({cred_info['slug']})")
+    # 未找到
+    print("")
 
 def handle_read(vault, query: str):
     """处理明文阅读请求 - 显示完整明文供阅读"""
@@ -139,14 +146,12 @@ def copy_to_clipboard(text: str) -> bool:
         return False
 
 def handle_copy(vault, query: str, channel: str = "webchat"):
-    """处理复制请求 - 显示明文和可点击格式，不自动复制"""
+    """处理复制请求 - 只显示纯明文值，方便复制"""
     query = query.lower().strip()
     
     # 飞书渠道：不提供复制功能
     if channel == "feishu":
-        print("📌 飞书渠道不支持剪贴板操作，请使用以下命令查看明文：")
-        print(f"   `vault read {query}`")
-        print("\n然后手动复制需要的内容。")
+        print("")
         return False
     
     # 精确匹配 slug
@@ -154,9 +159,6 @@ def handle_copy(vault, query: str, channel: str = "webchat"):
         cred = vault.credentials[query]
         # 优先显示 id_number，其次显示其他敏感字段
         primary_field = None
-        primary_label = ""
-        backup_field = None
-        backup_label = ""
         
         for field in cred["fields"]:
             is_sensitive = field.get("isSensitive", False) or cred.get("category") == "other"
@@ -165,29 +167,17 @@ def handle_copy(vault, query: str, channel: str = "webchat"):
                 # 优先保留 id_number
                 if field["key"] == "id_number":
                     primary_field = val
-                    primary_label = field["label"]
                     break
                 elif field["key"] in ["password", "pin", "kimi_code", "license_key"]:
                     if not primary_field:
                         primary_field = val
-                        primary_label = field["label"]
-                else:
-                    backup_field = val
-                    backup_label = field["label"]
-        
-        # 如果没有 id_number，使用备份字段
-        if not primary_field and backup_field:
-            primary_field = backup_field
-            primary_label = backup_label
         
         if primary_field:
-            # 显示可点击格式
-            print(f"📋 **{cred['name']} - {primary_label}**")
-            print(f"\n```\n{primary_field}\n```")
-            print(f"\n点击代码块即可复制，或手动 `Ctrl+C` 复制。")
+            # 直接输出纯文本，无任何格式
+            print(primary_field)
             return True
         else:
-            print(f"❌ 没有找到可复制的信息")
+            print("")
             return False
     
     # 模糊匹配
@@ -196,9 +186,6 @@ def handle_copy(vault, query: str, channel: str = "webchat"):
         if query in cred_info['name'].lower() or query in cred_info['slug'].lower():
             cred = vault.credentials[cred_info['slug']]
             primary_field = None
-            primary_label = ""
-            backup_field = None
-            backup_label = ""
             
             for field in cred["fields"]:
                 is_sensitive = field.get("isSensitive", False) or cred.get("category") == "other"
@@ -206,30 +193,19 @@ def handle_copy(vault, query: str, channel: str = "webchat"):
                     val = vault._decrypt_sensitive(field["value"]) if field.get("isSensitive", False) else field["value"]
                     if field["key"] == "id_number":
                         primary_field = val
-                        primary_label = field["label"]
                         break
                     elif field["key"] in ["password", "pin", "kimi_code", "license_key"]:
                         if not primary_field:
                             primary_field = val
-                            primary_label = field["label"]
-                    else:
-                        backup_field = val
-                        backup_label = field["label"]
-            
-            if not primary_field and backup_field:
-                primary_field = backup_field
-                primary_label = backup_label
             
             if primary_field:
-                print(f"📋 **{cred['name']} - {primary_label}**")
-                print(f"\n```\n{primary_field}\n```")
-                print(f"\n点击代码块即可复制，或手动 `Ctrl+C` 复制。")
+                print(primary_field)
                 return True
             else:
-                print(f"❌ 没有找到可复制的信息")
+                print("")
                 return False
     
-    print(f"未找到平台：{query}")
+    print("")
     return False
 
 def main():
