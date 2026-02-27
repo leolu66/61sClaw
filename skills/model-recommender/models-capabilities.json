@@ -9,7 +9,13 @@
       "context": "1M",
       "position": 1,
       "badge": "🥇",
-      "tags": ["性价比之王", "快速", "图像"]
+      "tags": [
+        "性价比之王",
+        "快速",
+        "图像"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "doubao-mini",
@@ -20,7 +26,12 @@
       "context": "256K",
       "position": 2,
       "badge": "🥈",
-      "tags": ["轻量快速", "最便宜"]
+      "tags": [
+        "轻量快速",
+        "最便宜"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "MiniMax-M2.5",
@@ -31,7 +42,12 @@
       "context": "200K",
       "position": 3,
       "badge": "🥉",
-      "tags": ["编程首选", "性价比"]
+      "tags": [
+        "编程首选",
+        "性价比"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "doubao-lite",
@@ -42,7 +58,11 @@
       "context": "256K",
       "position": 4,
       "badge": "4",
-      "tags": ["均衡性价比"]
+      "tags": [
+        "均衡性价比"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "qwen3.5-plus",
@@ -53,7 +73,12 @@
       "context": "1M",
       "position": 5,
       "badge": "5",
-      "tags": ["长文多模态", "1M 上下文"]
+      "tags": [
+        "长文多模态",
+        "1M 上下文"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "glm-4.7",
@@ -64,7 +89,11 @@
       "context": "200K",
       "position": 6,
       "badge": "6",
-      "tags": ["中文 Agentic"]
+      "tags": [
+        "中文 Agentic"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "glm-5",
@@ -75,7 +104,12 @@
       "context": "200K",
       "position": 7,
       "badge": "7",
-      "tags": ["旗舰编程 SOTA", "推理"]
+      "tags": [
+        "旗舰编程 SOTA",
+        "推理"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "kimi-k2.5",
@@ -86,7 +120,12 @@
       "context": "256K",
       "position": 8,
       "badge": "8",
-      "tags": ["长输出多模态", "中文"]
+      "tags": [
+        "长输出多模态",
+        "中文"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "doubao-code",
@@ -97,7 +136,12 @@
       "context": "256K",
       "position": 9,
       "badge": "9",
-      "tags": ["专业编程", "IDE 集成"]
+      "tags": [
+        "专业编程",
+        "IDE 集成"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "doubao-pro",
@@ -108,7 +152,12 @@
       "context": "256K",
       "position": 10,
       "badge": "10",
-      "tags": ["旗舰全能", "推理"]
+      "tags": [
+        "旗舰全能",
+        "推理"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
       "id": "claude-4.6-sonnet",
@@ -119,28 +168,95 @@
       "context": "200K",
       "position": 11,
       "badge": "11",
-      "tags": ["高端专业", "全栈开发"]
+      "tags": [
+        "高端专业",
+        "全栈开发"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）"
     }
   ],
   "recommendations": {
-    "日常对话": { "首选": "doubao-mini", "备选": "qwen3.5-flash" },
-    "超长文档": { "首选": "qwen3.5-flash", "备选": "qwen3.5-plus" },
-    "图像理解": { "首选": "qwen3.5-flash", "备选": "qwen3.5-plus", "高端": "kimi-k2.5" },
-    "日常编程": { "首选": "MiniMax-M2.5", "备选": "glm-4.7" },
-    "复杂系统工程": { "首选": "glm-5", "备选": "doubao-code", "高端": "claude-4.6-sonnet" },
-    "前端/IDE": { "首选": "doubao-code", "备选": "MiniMax-M2.5" },
-    "Agent 任务": { "首选": "MiniMax-M2.5", "备选": "glm-5", "高端": "doubao-pro" },
-    "长输出": { "首选": "kimi-k2.5", "备选": "glm-5" },
-    "中文写作": { "首选": "glm-4.7", "备选": "qwen3.5-plus" },
-    "复杂推理": { "首选": "doubao-pro", "备选": "claude-4.6-sonnet", "高端": "glm-5" },
-    "成本敏感": { "首选": "qwen3.5-flash", "备选": "doubao-mini" }
+    "日常对话": {
+      "首选": "doubao-mini",
+      "备选": "qwen3.5-flash"
+    },
+    "超长文档": {
+      "首选": "qwen3.5-flash",
+      "备选": "qwen3.5-plus"
+    },
+    "图像理解": {
+      "首选": "qwen3.5-flash",
+      "备选": "qwen3.5-plus",
+      "高端": "kimi-k2.5"
+    },
+    "日常编程": {
+      "首选": "MiniMax-M2.5",
+      "备选": "glm-4.7"
+    },
+    "复杂系统工程": {
+      "首选": "glm-5",
+      "备选": "doubao-code",
+      "高端": "claude-4.6-sonnet"
+    },
+    "前端/IDE": {
+      "首选": "doubao-code",
+      "备选": "MiniMax-M2.5"
+    },
+    "Agent 任务": {
+      "首选": "MiniMax-M2.5",
+      "备选": "glm-5",
+      "高端": "doubao-pro"
+    },
+    "长输出": {
+      "首选": "kimi-k2.5",
+      "备选": "glm-5"
+    },
+    "中文写作": {
+      "首选": "glm-4.7",
+      "备选": "qwen3.5-plus"
+    },
+    "复杂推理": {
+      "首选": "doubao-pro",
+      "备选": "claude-4.6-sonnet",
+      "高端": "glm-5"
+    },
+    "成本敏感": {
+      "首选": "qwen3.5-flash",
+      "备选": "doubao-mini"
+    }
   },
   "programmingModels": [
-    { "id": "MiniMax-M2.5", "output": 8.4, "定位": "性价比首选", "特点": "编程 SOTA，强制思考" },
-    { "id": "glm-4.7", "output": 16, "定位": "中文 Agentic", "特点": "中文优化，claude 格式" },
-    { "id": "glm-5", "output": 22, "定位": "旗舰编程", "特点": "逼近 Claude Opus 4.5" },
-    { "id": "doubao-code", "output": 48, "定位": "专业编程", "特点": "IDE 集成，前端优化" },
-    { "id": "claude-4.6-sonnet", "output": 120, "定位": "高端专业", "特点": "全栈开发，自适应思考" }
+    {
+      "id": "MiniMax-M2.5",
+      "output": 8.4,
+      "定位": "性价比首选",
+      "特点": "编程 SOTA，强制思考"
+    },
+    {
+      "id": "glm-4.7",
+      "output": 16,
+      "定位": "中文 Agentic",
+      "特点": "中文优化，claude 格式"
+    },
+    {
+      "id": "glm-5",
+      "output": 22,
+      "定位": "旗舰编程",
+      "特点": "逼近 Claude Opus 4.5"
+    },
+    {
+      "id": "doubao-code",
+      "output": 48,
+      "定位": "专业编程",
+      "特点": "IDE 集成，前端优化"
+    },
+    {
+      "id": "claude-4.6-sonnet",
+      "output": 120,
+      "定位": "高端专业",
+      "特点": "全栈开发，自适应思考"
+    }
   ],
   "lastUpdated": "2026-02-27"
 }
