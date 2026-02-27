@@ -77,11 +77,11 @@ python scripts/migrate_logs.py
 ```powershell
 # 创建每天凌晨 2 点运行的定时任务
 $taskName = "日志自动归档"
-$taskDescription = "每天凌晨 2 点自动迁移超过 7 天的工作日志"
+$taskDescription = "每天晚上 11:20 自动迁移超过 7 天的工作日志"
 $scriptPath = "C:\Users\luzhe\.openclaw\workspace-main\skills\log-migrator\scripts\migrate_logs.bat"
 
 $action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory "C:\Users\luzhe\.openclaw\workspace-main\skills\log-migrator\scripts"
-$trigger = New-ScheduledTaskTrigger -Daily -At "02:00"
+$trigger = New-ScheduledTaskTrigger -Daily -At "23:20"
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 $task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Description $taskDescription

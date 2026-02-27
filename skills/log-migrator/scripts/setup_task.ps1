@@ -16,8 +16,8 @@ if ($existingTask) {
 # 创建任务动作
 $action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory "C:\Users\luzhe\.openclaw\workspace-main\skills\log-migrator\scripts"
 
-# 创建任务触发器 - 每天凌晨 2 点
-$trigger = New-ScheduledTaskTrigger -Daily -At "02:00"
+# 创建任务触发器 - 每天晚上 11:20
+$trigger = New-ScheduledTaskTrigger -Daily -At "23:20"
 
 # 创建任务设置
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
