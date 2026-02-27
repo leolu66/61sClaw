@@ -56,7 +56,7 @@ class LogMigrator:
 
         # 使用正则表达式提取日期部分
         import re
-        match = re.match(r'(\d{4})-(\d{2})-(\d{2})', name_without_ext)
+        match = re.search(r'(\d{4})-(\d{2})-(\d{2})', name_without_ext)
         if not match:
             return False
 
@@ -74,18 +74,18 @@ class LogMigrator:
             # 返回是否需要迁移
             result = file_date < cutoff_date
 
-            # 调试输出
+            # 调试输出（避免中文编码问题，只显示日期）
             if result:
-                print(f"  🔍 {filename} → {date_part} < {cutoff_date.strftime('%Y-%m-%d')}")
+                print(f"  🔍 {date_part} < {cutoff_date.strftime('%Y-%m-%d')}")
 
             return result
 
         except ValueError as e:
             # 日期解析失败，跳过此文件
-            print(f"  ⚠️  {filename} - 无法解析日期: {e}")
+            print(f"  ⚠️  日期解析错误: {e}")
             return False
         except Exception as e:
-            print(f"  ⚠️  {filename} - 处理出错: {e}")
+            print(f"  ⚠️  处理出错: {e}")
             return False
 
     def _get_archive_path(self, filename):
