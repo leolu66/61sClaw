@@ -11,9 +11,40 @@ import sys
 import hashlib
 import base64
 import uuid
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+
+# 配置
+VAULT_DIR = Path.home() / ".openclaw" / "vault"
+CREDENTIALS_FILE = VAULT_DIR / "credentials.json"
+
+# 从 Windows 凭据管理器读取主密码
+def get_master_password():
+    """从 Windows 凭据管理器读取主密码"""
+    try:
+        import win32cred
+        cred = win32cred.CredRead(
+            TargetName="OpenClawVaultMasterPassword",
+            Type=win32cred.CRED_TYPE_GENERIC
+        )
+        # CredentialBlob 是 UTF-16 编码的字节串
+        password = cred.get('CredentialBlob', b'').decode('utf-16-le').rstrip('\x00')
+        if password:
+            return password
+    except Exception as e:
+        pass
+    
+    # 降级方案：尝试环境变量
+    env_password = os.getenv("VAULT_MASTER_PASSWORD")
+    if env_password:
+        return env_password
+    
+    # 最后降级：硬编码（不推荐）
+    return "768211"
+
+MASTER_PASSWORD = get_master_password()
 
 # 尝试导入加密库
 try:
@@ -23,11 +54,6 @@ except ImportError:
     CRYPTO_AVAILABLE = False
     print("警告：cryptography 库未安装，将使用 base64 编码代替加密")
     print("安装方法：pip install cryptography")
-
-# 配置
-VAULT_DIR = Path.home() / ".openclaw" / "vault"
-CREDENTIALS_FILE = VAULT_DIR / "credentials.json"
-MASTER_PASSWORD = "768211"  # 主密码
 
 # 预设平台模板
 PLATFORM_TEMPLATES = {
