@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 通用新闻爬虫 - 支持多个新闻网站
-基于配置文件动态抓取
+使用 Playwright 浏览器自动化，更难被反爬检测
 """
 
-import requests
-from bs4 import BeautifulSoup
+import asyncio
 import random
-import time
 import json
 import os
-import re
+import sys
+import io
+
+# Fix stdout encoding
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+# Playwright
+from playwright.async_api import async_playwright
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, 'config.json')
@@ -21,17 +27,46 @@ def load_config():
         return json.load(f)
 
 
-def get_random_ua(config):
-    return random.choice(config['spider']['user_agents'])
+def get_random_delay():
+    """随机延迟"""
+    config = load_config()
+    delay = random.uniform(
+        config['spider'].get('delay_min', 2),
+        config['spider'].get('delay_max', 5)
+    )
+    return delay
 
 
-def get_random_delay(config):
-    delay = random.uniform(config['spider']['delay_min'], config['spider']['delay_max'])
-    time.sleep(delay)
+async def fetch_with_playwright(url, encoding='utf-8'):
+    """使用 Playwright 获取页面"""
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=['--no-sandbox', '--disable-dev-shm-usage']
+        )
+        page = await browser.new_page()
+        
+        try:
+            await page.goto(url, timeout=30000, wait_until='networkidle')
+            
+            # 等待页面加载完成
+            await asyncio.sleep(2)
+            
+            # 获取页面内容
+            content = await page.content()
+            
+            await browser.close()
+            return content
+            
+        except Exception as e:
+            await browser.close()
+            raise e
 
 
 def extract_news(soup, base_url, source_name, limit=10):
     """从页面提取新闻链接"""
+    from bs4 import BeautifulSoup
+    
     all_news = []
     seen = set()
     
@@ -40,6 +75,9 @@ def extract_news(soup, base_url, source_name, limit=10):
         'a[href*=".html"]',
         'a[href*=".htm"]',
         'a[title]',
+        '.news_list a',
+        '.article_list a',
+        'ul li a',
     ]
     
     for selector in selectors:
@@ -62,7 +100,6 @@ def extract_news(soup, base_url, source_name, limit=10):
                 continue
             if any(x in href.lower() for x in ['javascript', 'mailto', '#', 'null', 'undefined']):
                 continue
-            # 过滤掉页内锚点链接
             if href.startswith('#'):
                 continue
                 
@@ -74,8 +111,8 @@ def extract_news(soup, base_url, source_name, limit=10):
             elif href.startswith('/'):
                 full_url = base_url + href
             elif href.startswith('http'):
-                # 只保留同域名链接
-                if base_url.replace('https://', '').replace('http://', '').split('/')[0] in href:
+                domain = base_url.replace('https://', '').replace('http://', '').split('/')[0]
+                if domain in href:
                     full_url = href
                 else:
                     continue
@@ -92,8 +129,10 @@ def extract_news(soup, base_url, source_name, limit=10):
     return all_news
 
 
-def fetch_news(source_key, limit=10):
-    """获取指定新闻源"""
+async def fetch_news_async(source_key, limit=10):
+    """异步获取指定新闻源"""
+    from bs4 import BeautifulSoup
+    
     config = load_config()
     sources = config.get('sources', {})
     source = sources.get(source_key)
@@ -106,13 +145,6 @@ def fetch_news(source_key, limit=10):
     encoding = source.get('encoding', 'utf-8')
     source_name = source['name']
     
-    headers = {
-        'User-Agent': get_random_ua(config),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-        'Accept-Encoding': 'gzip, deflate',
-    }
-    
     all_news = []
     
     for path in news_paths:
@@ -120,20 +152,19 @@ def fetch_news(source_key, limit=10):
             break
             
         url = base_url + path
-        get_random_delay(config)
+        
+        # 随机延迟
+        await asyncio.sleep(get_random_delay())
         
         try:
-            response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
-            response.encoding = encoding
-            
-            if response.status_code != 200:
-                continue
-            
-            soup = BeautifulSoup(response.text, 'html.parser')
+            content = await fetch_with_playwright(url, encoding)
+            soup = BeautifulSoup(content, 'html.parser')
             news = extract_news(soup, base_url, source_name, limit)
             all_news.extend(news)
+            print(f"   ✅ {source_name}: 获取到 {len(news)} 条")
             
         except Exception as e:
+            print(f"   ❌ {source_name}: {str(e)[:50]}")
             continue
     
     # 去重并返回
@@ -145,6 +176,11 @@ def fetch_news(source_key, limit=10):
             result.append(news)
     
     return result[:limit]
+
+
+def fetch_news(source_key, limit=10):
+    """同步包装"""
+    return asyncio.run(fetch_news_async(source_key, limit))
 
 
 # 为每个源创建函数
@@ -164,13 +200,12 @@ def fetch_ccidcom_news(source_key='ccidcom', limit=10):
     return fetch_news('ccidcom', limit)
 
 
-def main():
-    import sys
-    source = sys.argv[1] if len(sys.argv) > 1 else 'c114'
+async def main_async():
+    source = sys.argv[1] if len(sys.argv) > 1 else 'cnii'
     limit = int(sys.argv[2]) if len(sys.argv) > 2 else 5
     
-    print(f"🔍 正在获取 {source} 新闻...")
-    news = fetch_news(source, limit)
+    print(f"🔍 正在获取 {source} 新闻 (使用 Playwright)...")
+    news = await fetch_news_async(source, limit)
     
     if not news:
         print("❌ 未获取到新闻")
@@ -180,6 +215,10 @@ def main():
     for i, item in enumerate(news, 1):
         print(f"{i}. {item['title']}")
         print(f"   🔗 {item['url']}\n")
+
+
+def main():
+    asyncio.run(main_async())
 
 
 if __name__ == '__main__':
