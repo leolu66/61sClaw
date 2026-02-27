@@ -98,7 +98,11 @@
 - 输入序号即可切换模型
 - 切换后自动重启 Gateway
 
+**使用方式**:
+直接回复序号（如 `3` 或 `12`），我来帮你切换模型。
+
 **脚本**: `scripts/model_selector.py`
+**快捷启动**: `skills\model-selector\"Model Switcher.bat"`
 
 ---
 
