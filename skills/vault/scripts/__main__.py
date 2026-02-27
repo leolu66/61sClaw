@@ -7,6 +7,7 @@ Vault Skill - OpenClaw 技能入口
 
 import sys
 import os
+import subprocess
 
 # 添加脚本目录到路径
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -54,6 +55,81 @@ def handle_list(vault):
             print("-" * 40)
         print(f"  {item['icon']} {item['name']} ({item['slug']})")
 
+def copy_to_clipboard(text: str) -> bool:
+    """复制到剪贴板"""
+    try:
+        # Windows: 使用 clip 命令
+        if sys.platform == 'win32':
+            subprocess.run(['clip'], input=text.encode('utf-8'), check=True)
+            print("✅ 已复制到剪贴板！")
+            return True
+        # macOS: 使用 pbcopy
+        elif sys.platform == 'darwin':
+            subprocess.run(['pbcopy'], input=text.encode('utf-8'), check=True)
+            print("✅ 已复制到剪贴板！")
+            return True
+        # Linux: 使用 xclip 或 wl-clipboard
+        else:
+            try:
+                subprocess.run(['xclip', '-selection', 'clipboard'], input=text.encode('utf-8'), check=True)
+                print("✅ 已复制到剪贴板！")
+                return True
+            except FileNotFoundError:
+                subprocess.run(['wl-copy'], input=text.encode('utf-8'), check=True)
+                print("✅ 已复制到剪贴板！")
+                return True
+    except Exception as e:
+        print(f"❌ 复制失败：{e}")
+        return False
+
+def handle_copy(vault, query: str):
+    """处理复制请求"""
+    query = query.lower().strip()
+    
+    # 精确匹配 slug
+    if query in vault.credentials:
+        cred = vault.credentials[query]
+        # 收集所有敏感字段的值
+        values = []
+        for field in cred["fields"]:
+            if field["isSensitive"] and field["value"]:
+                decrypted = vault._decrypt_sensitive(field["value"])
+                values.append(f"{field['label']}: {decrypted}")
+        
+        if not values:
+            # 如果没有敏感字段，复制所有字段
+            for field in cred["fields"]:
+                val = field["value"] if not field["isSensitive"] else vault._decrypt_sensitive(field["value"])
+                values.append(f"{field['label']}: {val}")
+        
+        # 复制到剪贴板（最后一个值或所有值拼接）
+        text_to_copy = values[-1] if len(values) == 1 else "\n".join(values)
+        copy_to_clipboard(text_to_copy)
+        return True
+    
+    # 模糊匹配名称
+    all_creds = vault.list_all()
+    for cred_info in all_creds:
+        if query in cred_info['name'].lower() or query in cred_info['slug'].lower():
+            cred = vault.credentials[cred_info['slug']]
+            values = []
+            for field in cred["fields"]:
+                if field["isSensitive"] and field["value"]:
+                    decrypted = vault._decrypt_sensitive(field["value"])
+                    values.append(f"{field['label']}: {decrypted}")
+            
+            if not values:
+                for field in cred["fields"]:
+                    val = field["value"] if not field["isSensitive"] else vault._decrypt_sensitive(field["value"])
+                    values.append(f"{field['label']}: {val}")
+            
+            text_to_copy = values[-1] if len(values) == 1 else "\n".join(values)
+            copy_to_clipboard(text_to_copy)
+            return True
+    
+    print(f"未找到平台：{query}")
+    return False
+
 def main():
     """主函数"""
     vault = Vault()
@@ -62,6 +138,7 @@ def main():
         print("Vault - 密码箱技能")
         print("\n用法:")
         print("  vault query <平台名>     - 查询凭据")
+        print("  vault copy <平台名>      - 复制凭据到剪贴板")
         print("  vault list               - 列出所有平台")
         print("  vault save <平台> <k>=<v> - 保存凭据")
         print("  vault show-secret <平台>  - 显示敏感信息")
@@ -75,6 +152,13 @@ def main():
             return
         query = " ".join(sys.argv[2:])
         handle_query(vault, query)
+    
+    elif command == "copy":
+        if len(sys.argv) < 3:
+            print("用法：vault copy <平台名>")
+            return
+        query = " ".join(sys.argv[2:])
+        handle_copy(vault, query)
     
     elif command == "list":
         handle_list(vault)
