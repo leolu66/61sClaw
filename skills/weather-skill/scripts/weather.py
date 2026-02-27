@@ -110,19 +110,15 @@ def format_weather_now(data: dict, city_name: str = "") -> str:
     if not API_KEY:
         return """错误: 未设置 API Key
 
-请通过以下方式之一设置你的和风天气 API Key:
+请设置系统环境变量（推荐，可共享给其他应用）:
 
-方式 1 - 设置环境变量:
-  Windows: set XTC_WEATHER_API_KEY=你的APIKey
-  Linux/Mac: export XTC_WEATHER_API_KEY=你的APIKey
+Windows:
+  临时: $env:XTC_WEATHER_API_KEY = "你的APIKey"
+  永久: setx XTC_WEATHER_API_KEY "你的APIKey"
 
-方式 2 - 在 OpenClaw 配置文件中设置:
-  在 ~/.openclaw/config.json 中添加:
-  {
-    "env": {
-      "XTC_WEATHER_API_KEY": "你的APIKey"
-    }
-  }
+Linux/Mac:
+  临时: export XTC_WEATHER_API_KEY="你的APIKey"
+  永久: echo 'export XTC_WEATHER_API_KEY="你的APIKey"' >> ~/.bashrc
 
 获取 API Key: https://dev.qweather.com/"""
     
@@ -158,19 +154,15 @@ def format_forecast(data: dict, city_name: str = "") -> str:
     if not API_KEY:
         return """错误: 未设置 API Key
 
-请通过以下方式之一设置你的和风天气 API Key:
+请设置系统环境变量（推荐，可共享给其他应用）:
 
-方式 1 - 设置环境变量:
-  Windows: set XTC_WEATHER_API_KEY=你的APIKey
-  Linux/Mac: export XTC_WEATHER_API_KEY=你的APIKey
+Windows:
+  临时: $env:XTC_WEATHER_API_KEY = "你的APIKey"
+  永久: setx XTC_WEATHER_API_KEY "你的APIKey"
 
-方式 2 - 在 OpenClaw 配置文件中设置:
-  在 ~/.openclaw/config.json 中添加:
-  {
-    "env": {
-      "XTC_WEATHER_API_KEY": "你的APIKey"
-    }
-  }
+Linux/Mac:
+  临时: export XTC_WEATHER_API_KEY="你的APIKey"
+  永久: echo 'export XTC_WEATHER_API_KEY="你的APIKey"' >> ~/.bashrc
 
 获取 API Key: https://dev.qweather.com/"""
     
