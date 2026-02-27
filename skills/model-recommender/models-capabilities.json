@@ -1,0 +1,146 @@
+{
+  "models": [
+    {
+      "id": "qwen3.5-flash",
+      "name": "QWen 3.5 Flash",
+      "input": 0.8,
+      "output": 8,
+      "cache": null,
+      "context": "1M",
+      "position": 1,
+      "badge": "🥇",
+      "tags": ["性价比之王", "快速", "图像"]
+    },
+    {
+      "id": "doubao-mini",
+      "name": "Doubao Seed 2.0 Mini",
+      "input": 0.8,
+      "output": 8,
+      "cache": 0.16,
+      "context": "256K",
+      "position": 2,
+      "badge": "🥈",
+      "tags": ["轻量快速", "最便宜"]
+    },
+    {
+      "id": "MiniMax-M2.5",
+      "name": "MiniMax M2.5",
+      "input": 2.1,
+      "output": 8.4,
+      "cache": 0.3,
+      "context": "200K",
+      "position": 3,
+      "badge": "🥉",
+      "tags": ["编程首选", "性价比"]
+    },
+    {
+      "id": "doubao-lite",
+      "name": "Doubao Seed 2.0 Lite",
+      "input": 1.8,
+      "output": 10.8,
+      "cache": 0.36,
+      "context": "256K",
+      "position": 4,
+      "badge": "4",
+      "tags": ["均衡性价比"]
+    },
+    {
+      "id": "qwen3.5-plus",
+      "name": "QWen 3.5 Plus",
+      "input": 2,
+      "output": 12,
+      "cache": 0.2,
+      "context": "1M",
+      "position": 5,
+      "badge": "5",
+      "tags": ["长文多模态", "1M 上下文"]
+    },
+    {
+      "id": "glm-4.7",
+      "name": "Zhipu GLM-4.7",
+      "input": 4,
+      "output": 16,
+      "cache": 0.8,
+      "context": "200K",
+      "position": 6,
+      "badge": "6",
+      "tags": ["中文 Agentic"]
+    },
+    {
+      "id": "glm-5",
+      "name": "Zhipu GLM-5",
+      "input": 6,
+      "output": 22,
+      "cache": 1.5,
+      "context": "200K",
+      "position": 7,
+      "badge": "7",
+      "tags": ["旗舰编程 SOTA", "推理"]
+    },
+    {
+      "id": "kimi-k2.5",
+      "name": "Kimi K2.5",
+      "input": 4,
+      "output": 21,
+      "cache": 0.7,
+      "context": "256K",
+      "position": 8,
+      "badge": "8",
+      "tags": ["长输出多模态", "中文"]
+    },
+    {
+      "id": "doubao-code",
+      "name": "Doubao Seed 2.0 Code",
+      "input": 9.6,
+      "output": 48,
+      "cache": 1.92,
+      "context": "256K",
+      "position": 9,
+      "badge": "9",
+      "tags": ["专业编程", "IDE 集成"]
+    },
+    {
+      "id": "doubao-pro",
+      "name": "Doubao Seed 2.0 Pro",
+      "input": 9.6,
+      "output": 48,
+      "cache": 1.92,
+      "context": "256K",
+      "position": 10,
+      "badge": "10",
+      "tags": ["旗舰全能", "推理"]
+    },
+    {
+      "id": "claude-4.6-sonnet",
+      "name": "Claude 4.6 Sonnet",
+      "input": 24,
+      "output": 120,
+      "cache": 2.4,
+      "context": "200K",
+      "position": 11,
+      "badge": "11",
+      "tags": ["高端专业", "全栈开发"]
+    }
+  ],
+  "recommendations": {
+    "日常对话": { "首选": "doubao-mini", "备选": "qwen3.5-flash" },
+    "超长文档": { "首选": "qwen3.5-flash", "备选": "qwen3.5-plus" },
+    "图像理解": { "首选": "qwen3.5-flash", "备选": "qwen3.5-plus", "高端": "kimi-k2.5" },
+    "日常编程": { "首选": "MiniMax-M2.5", "备选": "glm-4.7" },
+    "复杂系统工程": { "首选": "glm-5", "备选": "doubao-code", "高端": "claude-4.6-sonnet" },
+    "前端/IDE": { "首选": "doubao-code", "备选": "MiniMax-M2.5" },
+    "Agent 任务": { "首选": "MiniMax-M2.5", "备选": "glm-5", "高端": "doubao-pro" },
+    "长输出": { "首选": "kimi-k2.5", "备选": "glm-5" },
+    "中文写作": { "首选": "glm-4.7", "备选": "qwen3.5-plus" },
+    "复杂推理": { "首选": "doubao-pro", "备选": "claude-4.6-sonnet", "高端": "glm-5" },
+    "成本敏感": { "首选": "qwen3.5-flash", "备选": "doubao-mini" }
+  },
+  "programmingModels": [
+    { "id": "MiniMax-M2.5", "output": 8.4, "定位": "性价比首选", "特点": "编程 SOTA，强制思考" },
+    { "id": "glm-4.7", "output": 16, "定位": "中文 Agentic", "特点": "中文优化，claude 格式" },
+    { "id": "glm-5", "output": 22, "定位": "旗舰编程", "特点": "逼近 Claude Opus 4.5" },
+    { "id": "doubao-code", "output": 48, "定位": "专业编程", "特点": "IDE 集成，前端优化" },
+    { "id": "claude-4.6-sonnet", "output": 120, "定位": "高端专业", "特点": "全栈开发，自适应思考" }
+  ],
+  "lastUpdated": "2026-02-27"
+}
