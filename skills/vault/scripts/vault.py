@@ -20,6 +20,16 @@ from typing import Dict, List, Optional, Any
 # 设置 UTF-8 编码（注释掉，避免关闭文件的问题）
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
+# 平台别名映射（用户常用名 -> 实际 slug）
+PLATFORM_ALIASES = {
+    'gmail': 'google',
+    'gmail 密码': 'google',
+    'google 密码': 'google',
+    '微软密码': 'microsoft',
+    'ms': 'microsoft',
+    'microsoft 密码': 'microsoft',
+}
+
 # 配置
 VAULT_DIR = Path.home() / ".openclaw" / "vault"
 CREDENTIALS_FILE = VAULT_DIR / "credentials.json"
@@ -616,7 +626,10 @@ def main():
         if len(sys.argv) < 3:
             print("用法：vault get-secret <slug>")
             return
-        slug = sys.argv[2]
+        
+        # 处理别名
+        raw_slug = sys.argv[2]
+        slug = PLATFORM_ALIASES.get(raw_slug.lower(), raw_slug)
         
         # 直接读取原始数据，匹配 key 而不是 label
         from vault import CREDENTIALS_FILE
