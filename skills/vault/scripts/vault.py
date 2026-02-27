@@ -121,6 +121,135 @@ PLATFORM_TEMPLATES = {
         "fields": [
             {"key": "api_key", "label": "API Key", "type": "token", "isSensitive": True, "isRequired": True}
         ]
+    },
+    "email": {
+        "name": "公司邮箱",
+        "category": "email",
+        "icon": "📧",
+        "fields": [
+            {"key": "email", "label": "邮箱地址", "type": "email", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "邮箱密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "smtp_server", "label": "SMTP 服务器", "type": "text", "isSensitive": False, "isRequired": False},
+            {"key": "imap_server", "label": "IMAP 服务器", "type": "text", "isSensitive": False, "isRequired": False}
+        ]
+    },
+    "ngrok": {
+        "name": "ngrok",
+        "category": "cloud",
+        "icon": "🔗",
+        "fields": [
+            {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "authtoken", "label": "Auth Token", "type": "token", "isSensitive": True, "isRequired": False}
+        ]
+    },
+    "jianguoyun": {
+        "name": "坚果云",
+        "category": "cloud",
+        "icon": "☁️",
+        "fields": [
+            {"key": "email", "label": "邮箱", "type": "email", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "app_password", "label": "应用密码", "type": "token", "isSensitive": True, "isRequired": False}
+        ]
+    },
+    "cursor": {
+        "name": "Cursor",
+        "category": "code",
+        "icon": "💻",
+        "fields": [
+            {"key": "email", "label": "邮箱", "type": "email", "isSensitive": False, "isRequired": True},
+            {"key": "license_key", "label": "License Key", "type": "token", "isSensitive": True, "isRequired": True}
+        ]
+    },
+    "gitee": {
+        "name": "Gitee",
+        "category": "code",
+        "icon": "🐵",
+        "fields": [
+            {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "token", "label": "Private Token", "type": "token", "isSensitive": True, "isRequired": False}
+        ]
+    },
+    "dockerhub": {
+        "name": "Docker Hub",
+        "category": "code",
+        "icon": "🐳",
+        "fields": [
+            {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "access_token", "label": "Access Token", "type": "token", "isSensitive": True, "isRequired": False}
+        ]
+    },
+    "cutecloud": {
+        "name": "CuteCloud",
+        "category": "cloud",
+        "icon": "🌸",
+        "fields": [
+            {"key": "email", "label": "邮箱", "type": "email", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "url", "label": "控制台地址", "type": "url", "isSensitive": False, "isRequired": False}
+        ]
+    },
+    "115": {
+        "name": "115 网站",
+        "category": "cloud",
+        "icon": "📁",
+        "fields": [
+            {"key": "phone", "label": "手机号", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
+        ]
+    },
+    "ollama": {
+        "name": "Ollama",
+        "category": "llm",
+        "icon": "🦙",
+        "fields": [
+            {"key": "email", "label": "邮箱", "type": "email", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
+        ]
+    },
+    "personal": {
+        "name": "个人信息",
+        "category": "other",
+        "icon": "👤",
+        "fields": [
+            {"key": "name", "label": "姓名", "type": "text", "isSensitive": True, "isRequired": True},
+            {"key": "id_number", "label": "身份证号", "type": "text", "isSensitive": True, "isRequired": True},
+            {"key": "phone", "label": "手机号", "type": "text", "isSensitive": True, "isRequired": False},
+            {"key": "relation", "label": "关系", "type": "text", "isSensitive": False, "isRequired": False}
+        ]
+    },
+    "yinxiang": {
+        "name": "印象笔记",
+        "category": "api",
+        "icon": "🐘",
+        "fields": [
+            {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
+        ]
+    },
+    "appleid": {
+        "name": "Apple ID",
+        "category": "other",
+        "icon": "🍎",
+        "fields": [
+            {"key": "email", "label": "Apple ID", "type": "email", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
+        ]
+    },
+    "device": {
+        "name": "设备密码",
+        "category": "other",
+        "icon": "📱",
+        "fields": [
+            {"key": "device_name", "label": "设备名称", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "锁屏密码", "type": "password", "isSensitive": True, "isRequired": True},
+            {"key": "pin", "label": "PIN 码", "type": "password", "isSensitive": True, "isRequired": False},
+            {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": False},
+            {"key": "device_type", "label": "设备类型", "type": "text", "isSensitive": False, "isRequired": False}
+        ]
     }
 }
 
