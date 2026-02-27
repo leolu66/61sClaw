@@ -84,8 +84,13 @@ class LogMigrator:
         if len(parts) >= 2:
             year = parts[0]
             month = parts[1]
+            # 只用年月，避免中文问题
             archive_dir = self.archive_base / year / month
-            archive_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                archive_dir.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                print(f"  ⚠️  创建归档目录失败: {archive_dir} - {e}")
+                return self.archive_base / filename
             return archive_dir / filename
         return self.archive_base / filename
 
