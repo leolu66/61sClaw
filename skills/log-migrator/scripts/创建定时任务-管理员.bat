@@ -12,8 +12,8 @@ echo.
 
 cd /d "%~dp0"
 
-:: =E4=BD=BF=E7=94=A8 PowerShell =E7=9A=84 -File =E5=8F=82=E6=95=B0=E8=A1=90=E8=84=A7=E7=90=86=E7=9B=BB
-powershell -ExecutionPolicy Bypass -File create_task.py
+:: =E7=9B=B4=E6=8E=A5=E6=89=A7=E8=B0=A8 python =E6=89=A7=E6=89=A7=E6=8A=A7=E5=9F=B9=E6=9C=AC=E6=8C=89=E5=9C=B0=E5=88=9B=E6=88=90
+python create_task.py
 
 echo.
 if %errorlevel% equ 0 (
