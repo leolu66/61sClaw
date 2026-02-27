@@ -174,6 +174,22 @@
       ],
       "source": "whalecloud",
       "source_name": "WhaleCloud 代理（公司结算）"
+    },
+    {
+      "id": "zhipu/glm-4.7",
+      "name": "Zhipu GLM-4.7 (智谱直连)",
+      "input": 4,
+      "output": 16,
+      "cache": 0.8,
+      "context": "200K",
+      "position": 99,
+      "badge": "直连",
+      "tags": [
+        "中文 Agentic",
+        "智谱官方 API"
+      ],
+      "source": "external",
+      "source_name": "外部直连（自费）"
     }
   ],
   "recommendations": {

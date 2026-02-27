@@ -16,6 +16,7 @@ MODELS_FILE = Path(__file__).parent.parent / "model-recommender" / "models-capab
 
 # 模型配置（完整版，包含所有可用模型）
 MODELS = [
+    # WhaleCloud 代理（公司结算）- 🏢
     {"name": "qwen3.5-flash", "alias": "QWen-Flash", "input": 0.8, "output": 8, "context": "1M", "tag": "性价比之王 🥇", "source": "whalecloud"},
     {"name": "doubao-seed-2.0-mini", "alias": "Doubao-Mini", "input": 0.8, "output": 8, "context": "256K", "tag": "轻量快速 🥈", "source": "whalecloud"},
     {"name": "MiniMax-M2.5", "alias": "MiniMax-M2.5", "input": 2.1, "output": 8.4, "context": "200K", "tag": "编程首选 🥉", "source": "whalecloud"},
@@ -31,10 +32,9 @@ MODELS = [
     {"name": "qwen3.5-max", "alias": "QWen-Max", "input": 16, "output": 48, "context": "256K", "tag": "QWen 旗舰", "source": "whalecloud"},
     {"name": "doubao-vision-pro", "alias": "Doubao-Vision-Pro", "input": 12, "output": 48, "context": "256K", "tag": "视觉理解", "source": "whalecloud"},
     {"name": "doubao-vision-lite", "alias": "Doubao-Vision-Lite", "input": 3, "output": 12, "context": "256K", "tag": "视觉性价比", "source": "whalecloud"},
-    # 外部直连模型（自费）
+    # 外部直连（自费）- 🌐
     {"name": "moonshot/kimi-k2.5", "alias": "Kimi-K2.5 (Moonshot 直连)", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "external"},
     {"name": "zhipu/glm-4.7", "alias": "GLM-4.7 (智谱直连)", "input": 4, "output": 16, "context": "200K", "tag": "中文 Agentic", "source": "external"},
-    {"name": "zhipu/glm-5", "alias": "GLM-5 (智谱直连)", "input": 6, "output": 22, "context": "200K", "tag": "旗舰编程 SOTA", "source": "external"},
 ]
 
 # 默认模型
@@ -53,22 +53,22 @@ def get_current_model():
 
 def display_models(current_model):
     """显示模型列表"""
-    print("\n" + "="*120)
+    print("\n" + "="*100)
     print("🧠 可用模型列表\n")
-    print(f"{'序号':<6} {'模型名称':<35} {'价格 (输入/输出)':<20} {'上下文':<10} {'来源':<18} {'定位':<20}")
-    print("-"*120)
+    print(f"{'序号':<6} {'模型名称':<35} {'价格 (I/O)':<16} {'上下文':<10} {'来源':<8} {'定位':<20}")
+    print("-"*100)
     
     for i, model in enumerate(MODELS, 1):
         price = f"¥{model['input']} / ¥{model['output']}"
         current_marker = " [当前使用]" if model['name'] in current_model or model['alias'] in current_model else ""
-        source_icon = "🌐 外部直连" if model.get('source') == 'external' else "🏢 WhaleCloud"
-        print(f"{i:<6} {model['alias']:<35} {price:<20} {model['context']:<10} {source_icon:<18} {model['tag']:<20}{current_marker}")
+        source_icon = "🌐" if model.get('source') == 'external' else "🏢"
+        print(f"{i:<6} {model['alias']:<35} {price:<16} {model['context']:<10} {source_icon:<8} {model['tag']:<20}{current_marker}")
     
-    print("-"*120)
+    print("-"*100)
     print(f"\n**当前使用**: {current_model}")
     print("\n💡 **提示**: 直接回复序号 (如 `5`) 即可切换模型")
     print("🏢 = WhaleCloud 代理（公司结算） | 🌐 = 外部直连（自费）")
-    print("="*120)
+    print("="*100)
 
 
 def switch_model(model_name):
