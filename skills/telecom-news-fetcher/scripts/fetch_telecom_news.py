@@ -4,10 +4,14 @@
 支持获取C114、通信世界网等网站新闻，以及微信公众号文章
 """
 
+import sys
+import io
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 import argparse
 import json
 import os
-import sys
 import random
 import time
 from datetime import datetime
@@ -18,9 +22,7 @@ CONFIG_PATH = os.path.join(SCRIPT_DIR, 'config.json')
 
 # 导入爬虫
 sys.path.insert(0, os.path.join(SCRIPT_DIR, 'spiders'))
-from c114_spider import fetch_c114_news
-from cww_spider import fetch_cww_news
-from cctime_spider import fetch_cctime_news
+from universal_spider import fetch_c114_news, fetch_cnii_news, fetch_cfyys_news, fetch_cww_news, fetch_ccidcom_news
 
 
 def load_config():
@@ -70,10 +72,14 @@ def fetch_all_news(sources=None, limit=10):
         try:
             if key == 'c114':
                 news = fetch_c114_news(key, limit)
+            elif key == 'cnii':
+                news = fetch_cnii_news(key, limit)
+            elif key == 'cfyys':
+                news = fetch_cfyys_news(key, limit)
             elif key == 'cww':
                 news = fetch_cww_news(key, limit)
-            elif key == 'cctime':
-                news = fetch_cctime_news(key, limit)
+            elif key == 'ccidcom':
+                news = fetch_ccidcom_news(key, limit)
             else:
                 news = []
             

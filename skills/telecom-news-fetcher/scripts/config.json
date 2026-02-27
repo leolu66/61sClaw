@@ -4,30 +4,40 @@
       "name": "C114通信网",
       "enabled": true,
       "base_url": "https://www.c114.com.cn",
-      "news_paths": [
-        "/news/roll.asp",
-        "/news/118/",
-        "/news/117/",
-        "/news/119/"
-      ],
+      "news_paths": ["/news/roll.asp"],
+      "encoding": "gbk",
+      "limit": 10
+    },
+    "cnii": {
+      "name": "中国工信新闻网",
+      "enabled": true,
+      "base_url": "https://www.cnii.com.cn",
+      "news_paths": ["/news/", "/gjxw/"],
+      "encoding": "utf-8",
+      "limit": 10
+    },
+    "cfyys": {
+      "name": "运营商财经网",
+      "enabled": true,
+      "base_url": "https://www.cfyys.com.cn",
+      "news_paths": ["/news/", "/yunying/"],
+      "encoding": "utf-8",
       "limit": 10
     },
     "cww": {
       "name": "通信世界网",
-      "enabled": true,
-      "base_url": "http://www.cww.net.cn",
-      "news_paths": [
-        "/news/"
-      ],
+      "enabled": false,
+      "base_url": "https://www.cww.net.cn",
+      "news_paths": ["/newscenter/"],
+      "encoding": "utf-8",
       "limit": 10
     },
-    "cctime": {
-      "name": "飞象网",
+    "ccidcom": {
+      "name": "通信产业网",
       "enabled": true,
-      "base_url": "http://www.cctime.com",
-      "news_paths": [
-        "/news/"
-      ],
+      "base_url": "https://www.ccidcom.com",
+      "news_paths": ["/news/", "/yunwei/"],
+      "encoding": "utf-8",
       "limit": 10
     }
   },
