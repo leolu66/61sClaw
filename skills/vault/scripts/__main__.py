@@ -89,22 +89,25 @@ def handle_copy(vault, query: str):
     # 精确匹配 slug
     if query in vault.credentials:
         cred = vault.credentials[query]
-        # 收集所有敏感字段的值
+        # 收集所有敏感字段的值（纯值，无前缀）
         values = []
         for field in cred["fields"]:
             if field["isSensitive"] and field["value"]:
                 decrypted = vault._decrypt_sensitive(field["value"])
-                values.append(f"{field['label']}: {decrypted}")
+                values.append(decrypted)
         
         if not values:
-            # 如果没有敏感字段，复制所有字段
+            # 如果没有敏感字段，复制所有字段（纯值）
             for field in cred["fields"]:
                 val = field["value"] if not field["isSensitive"] else vault._decrypt_sensitive(field["value"])
-                values.append(f"{field['label']}: {val}")
+                values.append(val)
         
-        # 复制到剪贴板（最后一个值或所有值拼接）
-        text_to_copy = values[-1] if len(values) == 1 else "\n".join(values)
-        copy_to_clipboard(text_to_copy)
+        # 复制到剪贴板（只复制最后一个值，通常是主要凭据）
+        text_to_copy = values[-1] if values else ""
+        if text_to_copy:
+            copy_to_clipboard(text_to_copy)
+        else:
+            print("❌ 没有可复制的凭据")
         return True
     
     # 模糊匹配名称
@@ -116,15 +119,18 @@ def handle_copy(vault, query: str):
             for field in cred["fields"]:
                 if field["isSensitive"] and field["value"]:
                     decrypted = vault._decrypt_sensitive(field["value"])
-                    values.append(f"{field['label']}: {decrypted}")
+                    values.append(decrypted)
             
             if not values:
                 for field in cred["fields"]:
                     val = field["value"] if not field["isSensitive"] else vault._decrypt_sensitive(field["value"])
-                    values.append(f"{field['label']}: {val}")
+                    values.append(val)
             
-            text_to_copy = values[-1] if len(values) == 1 else "\n".join(values)
-            copy_to_clipboard(text_to_copy)
+            text_to_copy = values[-1] if values else ""
+            if text_to_copy:
+                copy_to_clipboard(text_to_copy)
+            else:
+                print("❌ 没有可复制的凭据")
             return True
     
     print(f"未找到平台：{query}")
