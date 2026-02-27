@@ -13,12 +13,9 @@ import urllib.parse
 from urllib.error import HTTPError, URLError
 
 # API 配置
-# 用户可以通过环境变量 WEATHER_API_KEY 设置自己的 API Key
-# 或在此直接修改
+# 支持多种环境变量名称，兼容不同配置方式
 import os
-API_KEY = os.environ.get("XTC_WEATHER_API_KEY", "")
-if not API_KEY:
-    raise ValueError('请设置环境变量 XTC_WEATHER_API_KEY')
+API_KEY = os.environ.get("XTC_WEATHER_API_KEY") or os.environ.get("WEATHER_API_KEY", "")
 BASE_URL = "https://devapi.qweather.com/v7/weather"
 GEO_URL = "https://geoapi.qweather.com/v2/city/lookup"
 
@@ -110,12 +107,22 @@ def get_weather_forecast(location: str, days: int = 3) -> dict:
 
 def format_weather_now(data: dict, city_name: str = "") -> str:
     """格式化实时天气输出"""
-    if API_KEY == "YOUR_API_KEY_HERE":
+    if not API_KEY:
         return """错误: 未设置 API Key
 
 请通过以下方式之一设置你的和风天气 API Key:
-1. 设置环境变量: set WEATHER_API_KEY=你的APIKey
-2. 修改脚本中的 API_KEY 变量
+
+方式 1 - 设置环境变量:
+  Windows: set XTC_WEATHER_API_KEY=你的APIKey
+  Linux/Mac: export XTC_WEATHER_API_KEY=你的APIKey
+
+方式 2 - 在 OpenClaw 配置文件中设置:
+  在 ~/.openclaw/config.json 中添加:
+  {
+    "env": {
+      "XTC_WEATHER_API_KEY": "你的APIKey"
+    }
+  }
 
 获取 API Key: https://dev.qweather.com/"""
     
@@ -148,12 +155,22 @@ def format_weather_now(data: dict, city_name: str = "") -> str:
 
 def format_forecast(data: dict, city_name: str = "") -> str:
     """格式化天气预报输出"""
-    if API_KEY == "YOUR_API_KEY_HERE":
+    if not API_KEY:
         return """错误: 未设置 API Key
 
 请通过以下方式之一设置你的和风天气 API Key:
-1. 设置环境变量: set WEATHER_API_KEY=你的APIKey
-2. 修改脚本中的 API_KEY 变量
+
+方式 1 - 设置环境变量:
+  Windows: set XTC_WEATHER_API_KEY=你的APIKey
+  Linux/Mac: export XTC_WEATHER_API_KEY=你的APIKey
+
+方式 2 - 在 OpenClaw 配置文件中设置:
+  在 ~/.openclaw/config.json 中添加:
+  {
+    "env": {
+      "XTC_WEATHER_API_KEY": "你的APIKey"
+    }
+  }
 
 获取 API Key: https://dev.qweather.com/"""
     
