@@ -2,9 +2,9 @@
 chcp 65001 >nul
 echo.
 echo ================================================================================
-echo   Model Switcher - 交互式模型选择器（快捷方式）
+echo   Model Switcher - 交互式模型选择器
 echo ================================================================================
 echo.
-python "%~dp0..\skills\model-selector\scripts\model_selector.py" %*
+python "%~dp0scripts\model_selector.py" %*
 echo.
 pause

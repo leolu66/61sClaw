@@ -27,18 +27,19 @@ if sys.platform == 'win32':
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
-# 可用模型列表（完整名称）
+# 可用模型列表（完整名称）- 按价格排序
 AVAILABLE_MODELS = [
-    {"id": "whalecloud/MiniMax-M2.5", "name": "WhaleCloud MiniMax-M2.5"},
-    {"id": "moonshot/kimi-k2.5", "name": "Moonshot Kimi-K2.5"},
-    {"id": "whalecloud/glm-4.7", "name": "WhaleCloud GLM-4.7"},
-    {"id": "whalecloud/kimi-k2.5", "name": "WhaleCloud Kimi-K2.5"},
-    {"id": "whalecloud/doubao-seed-2.0-pro", "name": "WhaleCloud Doubao-Pro"},
-    {"id": "whalecloud/doubao-seed-2.0-mini", "name": "WhaleCloud Doubao-Mini"},
-    {"id": "whalecloud/doubao-seed-2.0-lite", "name": "WhaleCloud Doubao-Lite"},
-    {"id": "whalecloud/claude-4.5-sonnet", "name": "WhaleCloud Claude-4.5-Sonnet"},
-    {"id": "whalecloud/claude-4.5-haiku", "name": "WhaleCloud Claude-4.5-Haiku"},
-    {"id": "zhipu/glm-4.7", "name": "Zhipu GLM-4.7"},
+    {"id": "whalecloud/qwen3.5-flash", "name": "WhaleCloud QWen-Flash (性价比之王)"},
+    {"id": "whalecloud/doubao-seed-2.0-mini", "name": "WhaleCloud Doubao-Mini (轻量快速)"},
+    {"id": "whalecloud/MiniMax-M2.5", "name": "WhaleCloud MiniMax-M2.5 (编程首选)"},
+    {"id": "whalecloud/glm-4.7", "name": "WhaleCloud GLM-4.7 (平衡之选)"},
+    {"id": "whalecloud/qwen3.5-plus", "name": "WhaleCloud QWen-Plus (均衡 Qwen)"},
+    {"id": "whalecloud/kimi-k2.5", "name": "WhaleCloud Kimi-K2.5 (长文本)"},
+    {"id": "moonshot/kimi-k2.5", "name": "Moonshot Kimi-K2.5 (原生 Kimi)"},
+    {"id": "zhipu/glm-4.7", "name": "Zhipu GLM-4.7 (原生智谱)"},
+    {"id": "whalecloud/doubao-seed-2.0-pro", "name": "WhaleCloud Doubao-Pro (高端选择)"},
+    {"id": "whalecloud/claude-4.5-haiku", "name": "WhaleCloud Claude-4.5-Haiku (快速 Claude)"},
+    {"id": "whalecloud/claude-4.5-sonnet", "name": "WhaleCloud Claude-4.5-Sonnet (最强 Claude)"},
 ]
 
 
