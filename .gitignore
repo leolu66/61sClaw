@@ -30,7 +30,13 @@ Thumbs.db
 *.log
 *.tmp
 
-# AI特有文件（不同设备不同，不上传GitHub）
+# AI 特有文件（不同设备不同，不上传 GitHub）
 SOUL.md
 IDENTITY.md
 USER.md
+MEMORY.md
+TOOLS.md
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+CORE_PRINCIPLES.md
