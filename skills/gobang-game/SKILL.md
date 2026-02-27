@@ -30,7 +30,7 @@ python scripts/open_gobang.py
 
 ## 游戏文件位置
 
-`C:\Users\luzhe\.openclaw\workspace\gobang.html`
+`skills/gobang-game/gobang.html` 或工作区根目录 `gobang.html`
 
 ## 操作说明
 
