@@ -1,0 +1,7 @@
+{
+  "retention_days": 7,
+  "source_dir": "logs/daily",
+  "archive_base": "D:\\\\openclaw\\\\logs\\\\daily\\\\archive",
+  "log_dir": "logs/errors",
+  "dry_run": false
+}
