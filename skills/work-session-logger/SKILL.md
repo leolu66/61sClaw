@@ -68,22 +68,41 @@ version: 1.0
 
 示例：
 ```
-2026-02-13-001-修复MCP+访问邮件+写日志.md
-2026-02-13-002-创建自动化脚本+测试游戏.md
-2026-02-14-001-重构代码+优化性能.md
+logs/daily/2026-02-13-001-修复MCP+访问邮件+写日志.md
+logs/daily/2026-02-13-002-创建自动化脚本+测试游戏.md
+logs/daily/2026-02-14-001-重构代码+优化性能.md
 ```
 
 ### 4. 存储路径
 
-默认保存到：`D:\anthropic\工作日志`
+保存到工作区内的日志目录（符合 OpenClaw 路径安全限制）：
+- 日常日志：`logs/daily/`
+- 任务日志：`logs/tasks/`
+- 错误记录：`logs/errors/`
+- 阶段总结：`logs/summary/`
 
-（可根据实际情况调整）
+## 日志目录结构
 
-### 快速访问
+工作区日志目录结构如下：
 
-日志目录：`D:\anthropic\工作日志`
+```
+workspace-main/
+├── logs/              # 日志根目录
+│   ├── daily/         # 每日会话总结
+│   ├── tasks/         # 任务执行日志
+│   ├── errors/        # 错误反思记录
+│   └── summary/       # 阶段性总结
+├── skills/
+└── datas/
+```
 
-## 日志模板
+各子目录用途：
+- `daily/` - 每日会话总结（YYYY-MM-DD-NNN-简短概述.md）
+- `tasks/` - 任务执行日志（任务名-时间戳.md）
+- `errors/` - 错误反思记录（错误类型-日期.md）
+- `summary/` - 阶段性总结（YYYY-MM-周报.md）
+
+**重要**：日志保存在工作区内，符合 OpenClaw 路径安全限制
 
 生成的Markdown文件包含以下结构：
 
@@ -153,27 +172,32 @@ version: 1.0
 import os
 import re
 from datetime import datetime
+from pathlib import Path
 
-def get_next_log_filename(summary="", log_dir=r"D:\anthropic\工作日志"):
+def get_next_log_filename(summary="", log_dir="logs/daily"):
     """
     生成下一个工作日志文件名
     
     Args:
         summary: 简短概述（2-4个关键词，用+连接）
-        log_dir: 日志存放目录
+        log_dir: 日志存放目录（相对路径）
     
     Returns:
         (filepath, filename): 完整路径和文件名
     """
+    # 获取工作区根目录
+    workspace_dir = Path(__file__).parent.parent.parent
+    full_log_dir = workspace_dir / log_dir
+    
     # 确保目录存在
-    os.makedirs(log_dir, exist_ok=True)
+    full_log_dir.mkdir(parents=True, exist_ok=True)
     
     # 获取当前日期
     today = datetime.now().strftime("%Y-%m-%d")
     
     # 扫描现有文件，找到当天的最大序号
     max_seq = 0
-    for filename in os.listdir(log_dir):
+    for filename in os.listdir(full_log_dir):
         if filename.startswith(today) and filename.endswith('.md'):
             try:
                 parts = filename.replace('.md', '').split('-')
@@ -196,8 +220,8 @@ def get_next_log_filename(summary="", log_dir=r"D:\anthropic\工作日志"):
     else:
         filename = f"{today}-{next_seq:03d}.md"
     
-    filepath = os.path.join(log_dir, filename)
-    return filepath, filename
+    filepath = full_log_dir / filename
+    return str(filepath), filename
 ```
 
 ## 使用示例
