@@ -51,21 +51,42 @@ class LogMigrator:
     def _is_old_log(self, filename):
         """判断日志文件是否超过保留天数"""
         # 文件名格式：YYYY-MM-DD-*.md 或 YYYY-MM-DD.md
-        # 处理可能的中文字符
+        # 先去除 .md 扩展名
+        name_without_ext = filename.replace('.md', '')
+
+        # 分割文件名，取前3个部分（年-月-日）
+        parts = name_without_ext.split('-')
+
+        # 检查是否有足够的部分
+        if len(parts) < 3:
+            return False
+
         try:
-            name_without_ext = filename.replace('.md', '')
-            parts = name_without_ext.split('-')
-            if len(parts) >= 3:
-                try:
-                    file_date_str = f"{parts[0]}-{parts[1]}-{parts[2]}"
-                    file_date = datetime.strptime(file_date_str, "%Y-%m-%d")
-                    cutoff_date = datetime.now() - timedelta(days=self.retention_days)
-                    return file_date < cutoff_date
-                except ValueError:
-                    return False
-        except Exception:
-            pass
-        return False
+            # 拼接日期字符串
+            file_date_str = f"{parts[0]}-{parts[1]}-{parts[2]}"
+
+            # 尝试解析日期
+            file_date = datetime.strptime(file_date_str, "%Y-%m-%d")
+
+            # 计算截止日期
+            cutoff_date = datetime.now() - timedelta(days=self.retention_days)
+
+            # 返回是否需要迁移
+            result = file_date < cutoff_date
+
+            # 调试输出
+            if result:
+                print(f"  🔍 {filename} → {file_date_str} < {cutoff_date.strftime('%Y-%m-%d')}")
+
+            return result
+
+        except ValueError as e:
+            # 日期解析失败，跳过此文件
+            print(f"  ⚠️  {filename} - 无法解析日期: {e}")
+            return False
+        except Exception as e:
+            print(f"  ⚠️  {filename} - 处理出错: {e}")
+            return False
 
     def _get_archive_path(self, filename):
         """获取归档路径（按年/月组织）"""
