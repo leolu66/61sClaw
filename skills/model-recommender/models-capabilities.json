@@ -93,7 +93,8 @@
         "中文 Agentic"
       ],
       "source": "whalecloud",
-      "source_name": "WhaleCloud 代理（公司结算）"
+      "source_name": "WhaleCloud 代理（公司结算）",
+      "warning": "⚠️ 指令遵循不好，费用增长很快，不建议选择"
     },
     {
       "id": "glm-5",
@@ -189,7 +190,8 @@
         "智谱官方 API"
       ],
       "source": "external",
-      "source_name": "外部直连（自费）"
+      "source_name": "外部直连（自费）",
+      "warning": "⚠️ 指令遵循不好，费用增长很快，不建议选择"
     }
   ],
   "recommendations": {

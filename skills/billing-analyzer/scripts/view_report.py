@@ -143,30 +143,39 @@ def main():
     主函数
 
     命令行参数：
-    - 无参数：默认用系统默认应用打开报告（WebChat/计算机渠道）
+    - 无参数：默认用系统默认应用打开报告（WebChat/本地渠道）
     - --list：列出所有账单报告
     - --summarize：读取并输出报告内容（飞书渠道）
+    - --channel <channel>：指定渠道（webchat/feishu），自动选择行为
     """
+    channel = None
+    
     if len(sys.argv) > 1:
         if sys.argv[1] == '--list':
             # 列出所有报告
             list_reports()
+            return
         elif sys.argv[1] == '--summarize':
-            # 总结报告内容（飞书渠道）
+            # 强制总结模式
             success, result = view_report(open_file=False, summarize=True)
             if success:
                 print(result)
             else:
                 print(f"❌ {result}")
+            return
+        elif sys.argv[1] == '--channel' and len(sys.argv) > 2:
+            channel = sys.argv[2].lower()
+    
+    # 根据渠道自动选择行为
+    if channel == 'feishu':
+        # 飞书渠道：读取并输出报告内容
+        success, result = view_report(open_file=False, summarize=True)
+        if success:
+            print(result)
         else:
-            # 默认：打开报告
-            success, result = view_report(open_file=True, summarize=False)
-            if success:
-                print(result)
-            else:
-                print(f"❌ {result}")
+            print(f"❌ {result}")
     else:
-        # 默认：打开报告（WebChat/计算机渠道）
+        # 默认（WebChat/本地）：直接打开文件
         success, result = view_report(open_file=True, summarize=False)
         if success:
             print(result)
