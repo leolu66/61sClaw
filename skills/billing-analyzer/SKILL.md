@@ -1,18 +1,33 @@
 ---
 name: billing-analyzer
-description: 模型账单自动分析工具。自动分析模型消费CSV账单，生成多维度数据分析、可视化图表和专业分析报告。当用户提供账单文件，需要分析模型消费情况、成本优化建议时使用此技能。
+description: 模型账单自动分析工具。自动分析模型消费 CSV 账单，生成多维度数据分析、可视化图表和专业分析报告。
 triggers:
   - 分析账单
   - 账单分析
   - 生成账单报告
   - 模型消费分析
   - 成本分析
-  - 查看账单
 ---
 
 # 模型账单分析技能
 
-自动处理模型消费账单CSV文件，一站式生成分析报告和可视化图表。
+自动处理模型消费账单 CSV 文件，一站式生成分析报告和可视化图表。
+
+**重要：区分两个不同意图：**
+
+1. **生成账单报告** - 用户想分析新的账单数据，运行完整分析流程（加载→分析→生成图表→生成报告）
+2. **查看账单** - 用户想看已有的账单报告，直接显示报告内容，如果不存在则提示
+
+## 意图识别
+
+| 用户意图 | 典型表述 | 处理逻辑 |
+|---------|---------|---------|
+| 生成报告 | "生成账单报告"、"分析账单"、"账单分析"、"生成报告" | 运行完整分析流程 |
+| 查看报告 | "看账单"、"查看账单"、"显示账单"、"账单呢" | 直接读取并显示报告文件 |
+
+---
+
+## 功能说明
 
 ## 脚本路径
 
@@ -26,55 +41,120 @@ pip install pandas matplotlib scikit-learn
 
 ## 使用方法
 
-### 快速使用
-```bash
-python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\billing_analyzer.py" <账单文件名>
-```
+### 生成账单报告（完整分析）
 
-### 指定报告名称
 ```bash
+# 快速分析
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\billing_analyzer.py" <账单文件名>
+
+# 指定报告名称
 python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\billing_analyzer.py" <账单文件名> <报告名称>
 ```
 
-### 示例
+**示例：**
 ```bash
-# 分析2月账单，自动生成报告
+# 分析 2 月账单，自动生成报告
 python billing_analyzer.py billing_2026-02-01_2026-02-26.csv
 
 # 自定义报告名称
-python billing_analyzer.py billing_2026-02.csv 2026年2月账单分析报告.md
+python billing_analyzer.py billing_2026-02.csv 2026 年 2 月账单分析报告.md
 ```
 
+### 查看账单报告（读取已有报告）
+
+**渠道区分处理：**
+
+```bash
+# 方式 1：使用 --channel 参数（推荐，自动区分）
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\view_report.py" --channel webchat
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\view_report.py" --channel feishu
+
+# 方式 2：手动指定行为（兼容旧用法）
+# WebChat/计算机渠道：直接用系统默认应用打开报告
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\view_report.py"
+
+# 飞书渠道：读取并输出报告内容（用于总结）
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\view_report.py" --summarize
+
+# 列出所有报告
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\billing-analyzer\scripts\view_report.py" --list
+```
+
+**处理逻辑：**
+
+1. **WebChat/计算机渠道**（`--channel webchat` 或无参数）：
+   - 直接用系统默认应用打开报告文件（.md 用 Markdown 编辑器打开）
+   - 输出：`✅ 已打开账单报告：<文件名>`
+
+2. **飞书渠道**（`--channel feishu` 或 `--summarize`）：
+   - 读取报告文件内容
+   - 总结报告要点，组织成易读的文本格式
+   - 输出完整报告内容供用户查看
+   - 如果不存在则提示
+
+3. **无报告时**：
+   - 提示用户需要先生成报告
+
+**输出示例（WebChat 渠道）：**
+```
+✅ 已打开账单报告：billing_2026-02-01_2026-02-27 (1)_分析报告.md
+```
+
+**输出示例（飞书渠道）：**
+```
+[完整报告内容...]
+```
+
+**输出示例（无报告时）：**
+```
+❌ 报告目录中没有找到账单报告文件
+```
+
+---
+
 ## 输出内容
+
+### 生成报告输出
+
 分析完成后自动生成以下内容：
-1. **分析报告**：Markdown格式的专业分析报告，包含概览、可视化图表、核心分析、优化建议
-2. **可视化图表**：3张核心分析图表
+1. **分析报告**：Markdown 格式的专业分析报告，包含概览、可视化图表、核心分析、优化建议
+2. **可视化图表**：3 张核心分析图表
    - 1_模型费用占比.png
-   - 2_用量趋势标准化.png
+   - 2_用量趋势标准化.png - 四指标趋势（调用次数、输入 Token、输出 Token、费用）
    - 3_模型三指标对比.png
 3. **自动打开**：报告生成后自动在默认编辑器打开
 
-## 支持的CSV格式
-账单CSV需要包含以下字段：
+**图表说明：**
+- **用量趋势标准化图**：展示调用次数、输入 Token、输出 Token、费用四个指标的标准化趋势（0-1）。纵坐标已标准化，不同量级的指标在同一区段内，便于对比趋势变化。输入/输出分开显示，可清晰看出两者使用情况。
+
+### 查看报告输出
+
+- 如果存在最新报告：显示报告完整内容
+- 如果不存在报告：提示用户需要先生成报告
+
+## 支持的 CSV 格式
+账单 CSV 需要包含以下字段：
 | 字段名 | 类型 | 说明 |
 |--------|------|------|
 | 日期 | 字符串 | 格式：YYYY-MM-DD |
 | 模型 | 字符串 | 模型名称 |
 | 请求次数 | 整数 | 该日该模型调用次数 |
-| 输入Token | 整数 | 输入Token总量 |
-| 输出Token | 整数 | 输出Token总量 |
-| 总Token | 整数 | 总Token量 |
-| 费用(元) | 浮点数 | 消费金额 |
+| 输入 Token | 整数 | 输入 Token 总量 |
+| 输出 Token | 整数 | 输出 Token 总量 |
+| 总 Token | 整数 | 总 Token 量 |
+| 费用 (元) | 浮点数 | 消费金额 |
 
 ## 分析维度
-1. **概览统计**：总费用、总调用次数、总Tokens、输入输出比
+1. **概览统计**：总费用、总调用次数、总 Tokens、输入输出比
 2. **模型维度分析**：各模型费用占比、调用次数、单位成本、性价比评级
 3. **时间维度分析**：每日消费趋势、峰值分析
-4. **效率分析**：单次调用成本、单位Token成本、优化空间
+4. **效率分析**：单次调用成本、单位 Token 成本、优化空间
 5. **优化建议**：模型分层使用策略、成本优化方案
 
 ## 输出路径
-所有分析结果保存在：`./scripts/output/` 目录下
+所有分析结果保存在：`./agfiles/billing_report/` 目录下
+- 分析报告：`./agfiles/billing_report/<报告名称>_分析报告.md`
+- 可视化图表：`./agfiles/billing_report/charts/`
 
 ## 示例输出
 ```
@@ -82,9 +162,9 @@ python billing_analyzer.py billing_2026-02.csv 2026年2月账单分析报告.md
 🔍 正在执行数据分析...
 ✅ 数据分析完成
 📊 正在生成图表...
-✅ 图表生成完成，已保存到: ./output/charts
+✅ 图表生成完成，已保存到：./output/charts
 📝 正在生成分析报告...
-✅ 报告生成完成: ./output/billing_2026-02_分析报告.md
+✅ 报告生成完成：./output/billing_2026-02_分析报告.md
 
-🎉 全流程分析完成！报告路径: ./output/billing_2026-02_分析报告.md
+🎉 全流程分析完成！报告路径：./output/billing_2026-02_分析报告.md
 ```
