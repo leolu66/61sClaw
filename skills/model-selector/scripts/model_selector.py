@@ -15,26 +15,29 @@ from pathlib import Path
 MODELS_FILE = Path(__file__).parent.parent / "model-recommender" / "models-capabilities.json"
 
 # 模型配置（完整版，包含所有可用模型）
+# 数据来源：OpenClaw system prompt 模型别名 + models-capabilities.json
 MODELS = [
     # WhaleCloud 代理（公司结算）- 🏢
     {"name": "qwen3.5-flash", "alias": "QWen-Flash", "input": 0.8, "output": 8, "context": "1M", "tag": "性价比之王 🥇", "source": "whalecloud"},
     {"name": "doubao-seed-2.0-mini", "alias": "Doubao-Mini", "input": 0.8, "output": 8, "context": "256K", "tag": "轻量快速 🥈", "source": "whalecloud"},
-    {"name": "MiniMax-M2.5", "alias": "MiniMax-M2.5", "input": 2.1, "output": 8.4, "context": "200K", "tag": "编程首选 🥉", "source": "whalecloud"},
     {"name": "doubao-seed-2.0-lite", "alias": "Doubao-Lite", "input": 1.8, "output": 10.8, "context": "256K", "tag": "均衡性价比", "source": "whalecloud"},
+    {"name": "MiniMax-M2.5", "alias": "MiniMax-M2.5", "input": 2.1, "output": 8.4, "context": "200K", "tag": "编程首选 🥉", "source": "whalecloud"},
     {"name": "qwen3.5-plus", "alias": "QWen-Plus", "input": 2, "output": 12, "context": "1M", "tag": "长文多模态", "source": "whalecloud"},
     {"name": "glm-4.7", "alias": "GLM-4.7", "input": 4, "output": 16, "context": "200K", "tag": "中文 Agentic", "source": "whalecloud"},
-    {"name": "glm-5", "alias": "GLM-5", "input": 6, "output": 22, "context": "200K", "tag": "旗舰编程 SOTA", "source": "whalecloud"},
     {"name": "kimi-k2.5", "alias": "Kimi-K2.5", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "whalecloud"},
+    {"name": "glm-5", "alias": "GLM-5", "input": 6, "output": 22, "context": "200K", "tag": "旗舰编程 SOTA", "source": "whalecloud"},
     {"name": "doubao-seed-2.0-code", "alias": "Doubao-Code", "input": 9.6, "output": 48, "context": "256K", "tag": "专业编程", "source": "whalecloud"},
-    {"name": "doubao-seed-2.0-pro", "alias": "Doubao-Pro", "input": 20, "output": 80, "context": "256K", "tag": "高端选择", "source": "whalecloud"},
+    {"name": "doubao-seed-2.0-pro", "alias": "Doubao-Pro", "input": 9.6, "output": 48, "context": "256K", "tag": "旗舰全能", "source": "whalecloud"},
+    {"name": "doubao-vision-lite", "alias": "Doubao-Vision-Lite", "input": 3, "output": 12, "context": "256K", "tag": "视觉性价比", "source": "whalecloud"},
+    {"name": "doubao-vision-pro", "alias": "Doubao-Vision-Pro", "input": 12, "output": 48, "context": "256K", "tag": "视觉理解", "source": "whalecloud"},
+    {"name": "qwen3.5-max", "alias": "QWen-Max", "input": 16, "output": 48, "context": "256K", "tag": "QWen 旗舰", "source": "whalecloud"},
     {"name": "claude-4.5-haiku", "alias": "Claude-4.5-Haiku", "input": 30, "output": 120, "context": "200K", "tag": "快速 Claude", "source": "whalecloud"},
     {"name": "claude-4.5-sonnet", "alias": "Claude-4.5-Sonnet", "input": 60, "output": 240, "context": "200K", "tag": "最强 Claude", "source": "whalecloud"},
-    {"name": "qwen3.5-max", "alias": "QWen-Max", "input": 16, "output": 48, "context": "256K", "tag": "QWen 旗舰", "source": "whalecloud"},
-    {"name": "doubao-vision-pro", "alias": "Doubao-Vision-Pro", "input": 12, "output": 48, "context": "256K", "tag": "视觉理解", "source": "whalecloud"},
-    {"name": "doubao-vision-lite", "alias": "Doubao-Vision-Lite", "input": 3, "output": 12, "context": "256K", "tag": "视觉性价比", "source": "whalecloud"},
+    {"name": "claude-4.6-sonnet", "alias": "Claude-4.6-Sonnet", "input": 24, "output": 120, "context": "200K", "tag": "高端专业", "source": "whalecloud"},
     # 外部直连（自费）- 🌐
-    {"name": "moonshot/kimi-k2.5", "alias": "Kimi-K2.5 (Moonshot 直连)", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "external"},
+    {"name": "moonshot/kimi-k2.5", "alias": "Kimi (Moonshot 直连)", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "external"},
     {"name": "zhipu/glm-4.7", "alias": "GLM-4.7 (智谱直连)", "input": None, "output": None, "context": "200K", "tag": "资源包已购", "source": "external"},
+    {"name": "zhipu/glm-5", "alias": "GLM-5 (智谱直连)", "input": None, "output": None, "context": "256K", "tag": "资源包/自费", "source": "external"},
 ]
 
 # 默认模型
