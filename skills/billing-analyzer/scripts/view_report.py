@@ -51,52 +51,52 @@ def format_mtime(mtime):
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
-def view_report():
-    """查看最新账单报告"""
+def view_report(open_file=False, summarize=False):
+    """
+    查看最新账单报告
+
+    Args:
+        open_file: 是否直接用系统默认应用打开文件（WebChat/计算机渠道）
+        summarize: 是否总结报告内容（飞书渠道）
+    """
     # 报告目录
     script_path = os.path.abspath(__file__)
     workspace_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(script_path))))
     report_dir = os.path.join(workspace_root, 'agfiles', 'billing_report')
-
-    print("="*60)
-    print("📊 查看账单报告")
-    print("="*60)
 
     # 查找最新报告
     filepath, filename, mtime = find_latest_report(report_dir)
 
     if filepath is None:
         if not os.path.exists(report_dir):
-            print(f"\n❌ 报告目录不存在: {report_dir}")
+            return False, f"报告目录不存在: {report_dir}"
         else:
-            print(f"\n❌ 报告目录中没有找到账单报告文件")
-        print("\n💡 提示：")
-        print("   1. 请先生成账单报告：")
-        print("      python billing_analyzer.py <账单文件名>")
-        print("   2. 或提供账单文件路径，我可以帮你生成报告")
-        print("="*60)
-        return False
+            return False, "报告目录中没有找到账单报告文件"
 
-    # 读取报告内容
-    print(f"\n📁 最新报告文件: {filename}")
-    print(f"🕒 修改时间: {format_mtime(mtime)}")
-    print("="*60)
+    # 如果是 WebChat/计算机渠道，直接打开文件
+    if open_file:
+        try:
+            if sys.platform.startswith('win'):
+                os.startfile(filepath)
+            elif sys.platform.startswith('darwin'):
+                os.system(f'open "{filepath}"')
+            else:
+                os.system(f'xdg-open "{filepath}"')
+            return True, f"✅ 已打开账单报告: {filename}"
+        except Exception as e:
+            return False, f"打开报告失败: {str(e)}"
 
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
+    # 如果是飞书渠道，读取并总结内容
+    if summarize:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return True, content
+        except Exception as e:
+            return False, f"读取报告失败: {str(e)}"
 
-        print("\n" + content)
-        print("="*60)
-        print(f"\n📍 报告路径: {filepath}")
-        print("✅ 查看完成")
-
-        return True
-
-    except Exception as e:
-        print(f"\n❌ 读取报告失败: {str(e)}")
-        print(f"📍 文件路径: {filepath}")
-        return False
+    # 默认：直接打开文件
+    return view_report(open_file=True, summarize=False)
 
 
 def list_reports():
@@ -139,13 +139,39 @@ def list_reports():
 
 
 def main():
-    """主函数"""
-    if len(sys.argv) > 1 and sys.argv[1] == '--list':
-        # 列出所有报告
-        list_reports()
+    """
+    主函数
+
+    命令行参数：
+    - 无参数：默认用系统默认应用打开报告（WebChat/计算机渠道）
+    - --list：列出所有账单报告
+    - --summarize：读取并输出报告内容（飞书渠道）
+    """
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '--list':
+            # 列出所有报告
+            list_reports()
+        elif sys.argv[1] == '--summarize':
+            # 总结报告内容（飞书渠道）
+            success, result = view_report(open_file=False, summarize=True)
+            if success:
+                print(result)
+            else:
+                print(f"❌ {result}")
+        else:
+            # 默认：打开报告
+            success, result = view_report(open_file=True, summarize=False)
+            if success:
+                print(result)
+            else:
+                print(f"❌ {result}")
     else:
-        # 查看最新报告
-        view_report()
+        # 默认：打开报告（WebChat/计算机渠道）
+        success, result = view_report(open_file=True, summarize=False)
+        if success:
+            print(result)
+        else:
+            print(f"❌ {result}")
 
 
 if __name__ == '__main__':
