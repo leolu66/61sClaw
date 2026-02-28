@@ -216,9 +216,9 @@ class BillingAnalyzer:
             offset = 0.05
         elif max_cost_idx == max_req_idx:
             offset = 0.05
-        plt.text(max_cost_idx, max_cost_val + offset, f'¥{max_cost_raw:.2f}',
-                fontsize=9, color='#F18F01', fontweight='bold',
-                ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+        plt.text(max_cost_idx, max_cost_val + offset, f'CNY {max_cost_raw:.2f}',
+                fontsize=10, color='#FF0000', fontweight='bold',
+                ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.4', facecolor='white', alpha=0.9))
 
         plt.title('用量趋势图（标准化）', fontsize=16, fontweight='bold')
         plt.xlabel('日期', fontsize=13)
