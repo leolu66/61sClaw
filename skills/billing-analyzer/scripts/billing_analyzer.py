@@ -165,11 +165,11 @@ class BillingAnalyzer:
         line1, = plt.plot(normalized_df.index, normalized_df['调用次数_标准化'],
                        marker='o', linewidth=2, label='调用次数', color='#2E86AB', alpha=0.8)
         line2, = plt.plot(normalized_df.index, normalized_df['输入Token_标准化'],
-                       marker='s', linewidth=2, label='输入Token', color='#A23B72', alpha=0.8)
+                       marker='s', linewidth=2, label='输入Token(百万)', color='#A23B72', alpha=0.8)
         line3, = plt.plot(normalized_df.index, normalized_df['输出Token_标准化'],
-                       marker='^', linewidth=2, label='输出Token', color='#FF6B6B', alpha=0.8)
+                       marker='^', linewidth=2, label='输出Token(百万)', color='#FF6B6B', alpha=0.8)
         line4, = plt.plot(normalized_df.index, normalized_df['费用_标准化'],
-                       marker='d', linewidth=2, label='费用', color='#F18F01', alpha=0.8)
+                       marker='d', linewidth=2, label='费用(元)', color='#F18F01', alpha=0.8)
 
         # 在最高点添加数值标注
         # 调用次数
@@ -180,27 +180,27 @@ class BillingAnalyzer:
                 fontsize=9, color='#2E86AB', fontweight='bold',
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
-        # 输入Token
+        # 输入Token（以百万为单位）
         max_input_idx = normalized_df['输入Token_标准化'].idxmax()
         max_input_val = normalized_df['输入Token_标准化'].max()
-        max_input_raw = daily_stats.loc[max_input_idx, '输入Token']
+        max_input_raw = daily_stats.loc[max_input_idx, '输入Token'] / 1_000_000  # 转换为百万
         # 避免与调用次数重叠，适当上移
         offset = 0.05 if max_input_idx == max_req_idx else 0
-        plt.text(max_input_idx, max_input_val + offset, f'{max_input_raw:,.0f}',
+        plt.text(max_input_idx, max_input_val + offset, f'{max_input_raw:.1f}M',
                 fontsize=9, color='#A23B72', fontweight='bold',
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
-        # 输出Token
+        # 输出Token（以百万为单位）
         max_output_idx = normalized_df['输出Token_标准化'].idxmax()
         max_output_val = normalized_df['输出Token_标准化'].max()
-        max_output_raw = daily_stats.loc[max_output_idx, '输出Token']
+        max_output_raw = daily_stats.loc[max_output_idx, '输出Token'] / 1_000_000  # 转换为百万
         # 避免重叠，检查是否与其他最高点接近
         offset = 0
         if max_output_idx == max_input_idx:
             offset = 0.10
         elif max_output_idx == max_req_idx:
             offset = 0.10
-        plt.text(max_output_idx, max_output_val + offset, f'{max_output_raw:,.0f}',
+        plt.text(max_output_idx, max_output_val + offset, f'{max_output_raw:.1f}M',
                 fontsize=9, color='#FF6B6B', fontweight='bold',
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
