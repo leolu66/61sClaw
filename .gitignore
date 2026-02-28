@@ -50,5 +50,11 @@ datas/
 # 工作日志（本地记录，不同设备不同）
 logs/
 
+# 记忆目录（本地记录，不同设备不同）
+memory/
+
 # 过程性文件（分析报告、图表等，自动生成）
-agfiles/
+agfiles/*.md
+agfiles/*.png
+agfiles/*.jpg
+agfiles/billing_charts/
