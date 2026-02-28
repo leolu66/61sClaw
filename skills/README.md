@@ -1,6 +1,6 @@
 # 技能清单 - Skills Catalog
 
-> 🧠 **小天才的技能库** | 最后更新：2026-02-27
+> 🧠 **小天才的技能库** | 最后更新：2026-03-01
 
 本目录包含所有可用的 OpenClaw 技能，每个技能都是独立的、可重用的自动化工具。
 
@@ -277,6 +277,66 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 **VPN 路径**: `D:\Users\luzhe\AppData\Local\Programs\Clash for Windows\Clash for Windows.exe`
 
 **脚本**: `scripts/vpn_control.py`
+
+---
+
+### 🔒 安全工具（续）
+
+#### 14B. API 余额查询 (api-balance-checker)
+**描述**: 查询多个 API 平台的余额和用量信息，支持 WhaleCloud Lab（鲸云实验室）
+
+**触发词**:
+- "查余额"、"查 API 余额"、"余额查询"
+- "查全部余额"、"查所有余额"
+
+**功能**:
+- 自动从 vault 读取 API Key 并登录
+- 智能判断页面状态（已登录则直接查询）
+- 与上次记录对比（费用差额、次数差额、相隔时间）
+- 跨天时期初自动重置为 0
+- 保存历史记录供后续对比
+
+**查询结果示例**:
+| 项目 | 金额/数量 |
+|------|----------|
+| 剩余额度 | ¥90.66 |
+| 已使用费用 | ¥109.34 |
+| 请求次数 | 989 次 |
+
+**对比功能**:
+- 费用增加：¥0.54
+- 次数增加：4 次
+- 相隔时间：1 分钟
+
+**脚本**: `scripts/auto_login.py`、`scripts/query_basic.py`
+
+---
+
+### 📧 效率工具（续）
+
+#### 18B. 待办事项管理 (todo-manager)
+**描述**: 任务管理、智能提醒、CLI 命令行工具
+
+**触发词**:
+- "添加待办"、"创建任务"、"提醒我"
+- "todo"、"待办事项"、"任务管理"
+
+**功能**:
+- 任务创建、编辑、删除
+- 智能提醒系统（支持多种策略）
+- CLI 命令行工具
+- 自然语言时间解析
+
+**核心模块**:
+- `src/cli.js` - 命令行工具
+- `src/core/task-manager.js` - 任务管理核心
+- `src/core/time-parser.js` - 时间解析
+- `src/reminder/reminder-checker.js` - 提醒检查
+- `src/reminder/strategy-engine.js` - 提醒策略引擎
+
+**依赖**: Node.js + npm
+
+**安装**: `npm install`（首次使用）
 
 ---
 
