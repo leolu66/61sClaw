@@ -1,0 +1,13 @@
+{
+  "name": "todo-manager",
+  "version": "1.0.0",
+  "description": "任务管理工具 - 支持策略化提醒",
+  "main": "index.js",
+  "scripts": {
+    "check": "node scripts/heartbeat-check.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.10",
+    "uuid": "^9.0.1"
+  }
+}
