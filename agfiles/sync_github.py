@@ -30,9 +30,21 @@ SYNC_DIRS = ['skills', 'agfiles']
 
 # 要忽略的文件/目录
 IGNORE_PATTERNS = [
-    '__pycache__', '.git', '.pyc', 
+    '__pycache__', '.git', '.pyc', '.pyo', '.exe', '.dll',
     'passwords.json.encrypted', 'master.key',
-    'MEMORY.md', 'TOOLS.md', 'USER.md', 'IDENTITY.md'
+    'MEMORY.md', 'TOOLS.md', 'USER.md', 'IDENTITY.md',
+    'logs'  # logs 目录不上传
+]
+
+# agfiles 目录中只允许上传的文件类型
+AGFILES_ALLOWED_EXTENSIONS = ['.py', '.ps1', '.bat']
+
+# 需要排除的文件类型（报告、图片等）
+AGFILES_EXCLUDE_EXTENSIONS = [
+    '.md', '.txt', '.log',  # 文档类
+    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg', '.webp',  # 图片
+    '.csv', '.xlsx', '.xls',  # 数据文件
+    '.json', '.yaml', '.yml',  # 配置文件（可选排除）
 ]
 
 API_URL = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}'
@@ -53,8 +65,30 @@ def should_ignore(filepath):
     return False
 
 
-def get_local_files(base_dir):
-    """获取本地所有要同步的文件"""
+def should_sync_agfile(filename):
+    """检查 agfiles 目录中的文件是否应该同步"""
+    # 获取文件扩展名（小写）
+    ext = os.path.splitext(filename)[1].lower()
+    
+    # 只允许指定的文件类型
+    if ext in AGFILES_ALLOWED_EXTENSIONS:
+        return True
+    
+    # 排除报告、图片等文件类型
+    if ext in AGFILES_EXCLUDE_EXTENSIONS:
+        return False
+    
+    # 其他未明确允许的文件类型也排除
+    return False
+
+
+def get_local_files(base_dir, parent_dir=''):
+    """获取本地所有要同步的文件
+    
+    Args:
+        base_dir: 基础目录路径
+        parent_dir: 父目录名称（如 'agfiles', 'skills'）
+    """
     files = []
     for root, dirs, filenames in os.walk(base_dir):
         # 跳过忽略的目录
@@ -62,6 +96,10 @@ def get_local_files(base_dir):
         
         for filename in filenames:
             if should_ignore(filename):
+                continue
+            
+            # 特殊处理 agfiles 目录：只同步 py、ps1、bat 文件
+            if parent_dir == 'agfiles' and not should_sync_agfile(filename):
                 continue
             
             full_path = os.path.join(root, filename)
@@ -89,12 +127,19 @@ def get_remote_files():
     return files
 
 
-def upload_file(filepath, content, message='Update via GitHub API'):
-    """上传文件到 GitHub"""
+def upload_file(filepath, content, message='Update via GitHub API', already_encoded=False):
+    """上传文件到 GitHub
+    
+    Args:
+        filepath: 文件路径
+        content: 文件内容（文本或已编码的 base64）
+        message: commit message
+        already_encoded: content 是否已经是 base64 编码
+    """
     url = f'{API_URL}/contents/{filepath}'
     data = {
         'message': message,
-        'content': base64.b64encode(content.encode('utf-8')).decode('utf-8')
+        'content': content if already_encoded else base64.b64encode(content.encode('utf-8')).decode('utf-8')
     }
     
     # 检查文件是否已存在
@@ -120,7 +165,7 @@ def sync_to_github():
     for sync_dir in SYNC_DIRS:
         dir_path = os.path.join(BASE_PATH, sync_dir)
         if os.path.exists(dir_path):
-            files = get_local_files(dir_path)
+            files = get_local_files(dir_path, parent_dir=sync_dir)
             for f in files:
                 f['path'] = f"{sync_dir}/{f['path']}"
             all_files.extend(files)
@@ -132,12 +177,24 @@ def sync_to_github():
     success = 0
     failed = 0
     
+    # 二进制文件扩展名
+    BINARY_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp', '.svg', '.exe', '.dll']
+    
     for f in all_files:
         try:
-            with open(f['full_path'], 'r', encoding='utf-8', errors='ignore') as fp:
-                content = fp.read()
+            # 判断是否为二进制文件
+            ext = os.path.splitext(f['full_path'])[1].lower()
+            if ext in BINARY_EXTS:
+                with open(f['full_path'], 'rb') as fp:
+                    content = fp.read()
+                # 二进制内容直接 base64
+                b64content = base64.b64encode(content).decode('utf-8')
+            else:
+                with open(f['full_path'], 'r', encoding='utf-8', errors='ignore') as fp:
+                    content = fp.read()
+                b64content = base64.b64encode(content.encode('utf-8')).decode('utf-8')
             
-            if upload_file(f['path'], content):
+            if upload_file(f['path'], b64content, already_encoded=True):
                 success += 1
                 print(f'  ✅ {f["path"]}')
             else:
@@ -158,7 +215,7 @@ if __name__ == '__main__':
         for sync_dir in SYNC_DIRS:
             dir_path = os.path.join(BASE_PATH, sync_dir)
             if os.path.exists(dir_path):
-                files = get_local_files(dir_path)
-                print(f'📂 {sync_dir}: {len(files)} 个文件')
+                files = get_local_files(dir_path, parent_dir=sync_dir)
+                print(f'  {sync_dir}: {len(files)} 个文件')
     else:
         sync_to_github()
