@@ -74,7 +74,9 @@ python billing_analyzer.py billing_2026-02.csv 2026年2月账单分析报告.md
 5. **优化建议**：模型分层使用策略、成本优化方案
 
 ## 输出路径
-所有分析结果保存在：`./scripts/output/` 目录下
+所有分析结果保存在：`./agfiles/billing_report/` 目录下
+- 分析报告：`./agfiles/billing_report/<报告名称>_分析报告.md`
+- 可视化图表：`./agfiles/billing_report/charts/`
 
 ## 示例输出
 ```

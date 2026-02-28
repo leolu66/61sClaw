@@ -28,15 +28,16 @@ class BillingAnalyzer:
         初始化分析器
         :param filename: 账单CSV文件名
         :param datas_dir: 数据文件目录，默认: ../datas/
-        :param output_dir: 输出目录，默认: ./output/
+        :param output_dir: 输出目录，默认: ../../../agfiles/billing_report/
         """
         self.filename = filename
         # 默认datas目录在workspace根目录下
         self.datas_dir = datas_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'datas')
-        self.output_dir = output_dir or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+        # 默认输出目录在workspace根目录的agfiles/billing_report下
+        self.output_dir = output_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'agfiles', 'billing_report')
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(os.path.join(self.output_dir, 'charts'), exist_ok=True)
-        
+
         self.df = None
         self.analysis_results = {}
         
@@ -192,11 +193,13 @@ class BillingAnalyzer:
         overview = self.analysis_results['overview']
         model_stats = self.analysis_results['model_stats']
         efficiency = self.analysis_results['efficiency']
-        
+
         # 报告名称
         if not report_name:
-            report_name = f"{self.filename.replace('.csv', '')}_分析报告.md"
-            
+            # 只使用文件名，不包含路径
+            filename_only = os.path.basename(self.filename).replace('.csv', '')
+            report_name = f"{filename_only}_分析报告.md"
+
         report_path = os.path.join(self.output_dir, report_name)
         
         # 生成报告内容
