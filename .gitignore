@@ -58,3 +58,4 @@ agfiles/*.md
 agfiles/*.png
 agfiles/*.jpg
 agfiles/billing_charts/
+agfiles/billing_report/
