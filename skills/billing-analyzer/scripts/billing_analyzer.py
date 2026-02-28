@@ -28,15 +28,16 @@ class BillingAnalyzer:
         初始化分析器
         :param filename: 账单CSV文件名
         :param datas_dir: 数据文件目录，默认: ../datas/
-        :param output_dir: 输出目录，默认: ./output/
+        :param output_dir: 输出目录，默认: ../../../agfiles/billing_report/
         """
         self.filename = filename
         # 默认datas目录在workspace根目录下
         self.datas_dir = datas_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'datas')
-        self.output_dir = output_dir or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+        # 默认输出目录在workspace根目录的agfiles/billing_report下
+        self.output_dir = output_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'agfiles', 'billing_report')
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(os.path.join(self.output_dir, 'charts'), exist_ok=True)
-        
+
         self.df = None
         self.analysis_results = {}
         
@@ -92,6 +93,8 @@ class BillingAnalyzer:
         daily_stats = self.df.groupby('日期').agg({
             '费用(元)': 'sum',
             '请求次数': 'sum',
+            '输入Token': 'sum',
+            '输出Token': 'sum',
             '总Token': 'sum'
         }).sort_index()
         
@@ -135,26 +138,96 @@ class BillingAnalyzer:
         plt.savefig(os.path.join(charts_dir, '1_模型费用占比.png'), dpi=100, bbox_inches='tight')
         plt.close()
         
-        # 2. 三指标标准化趋势图
-        plt.figure(figsize=(12, 6))
+        # 2. 四指标标准化趋势图（输入/输出分开）
+        plt.figure(figsize=(14, 7))
+
+        # 分别归一化每个指标（避免相互影响）
+        scaler_cost = MinMaxScaler()
+        scaler_req = MinMaxScaler()
+        scaler_input = MinMaxScaler()
+        scaler_output = MinMaxScaler()
+
         # 归一化
-        scaler = MinMaxScaler()
-        daily_normalized = scaler.fit_transform(daily_stats)
-        normalized_df = pd.DataFrame(daily_normalized, 
-                                     columns=['费用_标准化', '调用次数_标准化', '总Token_标准化'],
-                                     index=daily_stats.index)
-        
-        plt.plot(normalized_df.index, normalized_df['调用次数_标准化'], marker='o', linewidth=2, label='调用次数', color='#2E86AB')
-        plt.plot(normalized_df.index, normalized_df['总Token_标准化'], marker='s', linewidth=2, label='Tokens总量', color='#A23B72')
-        plt.plot(normalized_df.index, normalized_df['费用_标准化'], marker='^', linewidth=2, label='费用', color='#F18F01')
-        
-        plt.title('用量趋势图（标准化）', fontsize=14)
-        plt.xlabel('日期', fontsize=12)
-        plt.ylabel('标准化值 (0-1)', fontsize=12)
-        plt.xticks(rotation=45)
-        plt.legend(fontsize=12)
-        plt.grid(alpha=0.3)
-        plt.savefig(os.path.join(charts_dir, '2_用量趋势标准化.png'), dpi=100, bbox_inches='tight')
+        cost_norm = scaler_cost.fit_transform(daily_stats[['费用(元)']]).flatten()
+        req_norm = scaler_req.fit_transform(daily_stats[['请求次数']]).flatten()
+        input_norm = scaler_input.fit_transform(daily_stats[['输入Token']]).flatten()
+        output_norm = scaler_output.fit_transform(daily_stats[['输出Token']]).flatten()
+
+        # 创建归一化后的DataFrame
+        normalized_df = pd.DataFrame({
+            '费用_标准化': cost_norm,
+            '调用次数_标准化': req_norm,
+            '输入Token_标准化': input_norm,
+            '输出Token_标准化': output_norm
+        }, index=daily_stats.index)
+
+        # 绘制四条曲线
+        line1, = plt.plot(normalized_df.index, normalized_df['调用次数_标准化'],
+                       marker='o', linewidth=2, label='调用次数', color='#2E86AB', alpha=0.8)
+        line2, = plt.plot(normalized_df.index, normalized_df['输入Token_标准化'],
+                       marker='s', linewidth=2, label='输入Token(百万)', color='#A23B72', alpha=0.8)
+        line3, = plt.plot(normalized_df.index, normalized_df['输出Token_标准化'],
+                       marker='^', linewidth=2, label='输出Token(百万)', color='#FF6B6B', alpha=0.8)
+        line4, = plt.plot(normalized_df.index, normalized_df['费用_标准化'],
+                       marker='d', linewidth=2, label='费用(元)', color='#F18F01', alpha=0.8)
+
+        # 在最高点添加数值标注
+        # 调用次数
+        max_req_idx = normalized_df['调用次数_标准化'].idxmax()
+        max_req_val = normalized_df['调用次数_标准化'].max()
+        max_req_raw = daily_stats.loc[max_req_idx, '请求次数']
+        plt.text(max_req_idx, max_req_val, f'{max_req_raw:,.0f}',
+                fontsize=9, color='#2E86AB', fontweight='bold',
+                ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+
+        # 输入Token（以百万为单位）
+        max_input_idx = normalized_df['输入Token_标准化'].idxmax()
+        max_input_val = normalized_df['输入Token_标准化'].max()
+        max_input_raw = daily_stats.loc[max_input_idx, '输入Token'] / 1_000_000  # 转换为百万
+        # 避免与调用次数重叠，适当上移
+        offset = 0.05 if max_input_idx == max_req_idx else 0
+        plt.text(max_input_idx, max_input_val + offset, f'{max_input_raw:.1f}M',
+                fontsize=9, color='#A23B72', fontweight='bold',
+                ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+
+        # 输出Token（以百万为单位）
+        max_output_idx = normalized_df['输出Token_标准化'].idxmax()
+        max_output_val = normalized_df['输出Token_标准化'].max()
+        max_output_raw = daily_stats.loc[max_output_idx, '输出Token'] / 1_000_000  # 转换为百万
+        # 避免重叠，检查是否与其他最高点接近
+        offset = 0
+        if max_output_idx == max_input_idx:
+            offset = 0.10
+        elif max_output_idx == max_req_idx:
+            offset = 0.10
+        plt.text(max_output_idx, max_output_val + offset, f'{max_output_raw:.1f}M',
+                fontsize=9, color='#FF6B6B', fontweight='bold',
+                ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+
+        # 费用
+        max_cost_idx = normalized_df['费用_标准化'].idxmax()
+        max_cost_val = normalized_df['费用_标准化'].max()
+        max_cost_raw = daily_stats.loc[max_cost_idx, '费用(元)']
+        # 避免重叠
+        offset = 0
+        if max_cost_idx == max_output_idx:
+            offset = 0.05
+        elif max_cost_idx == max_input_idx:
+            offset = 0.05
+        elif max_cost_idx == max_req_idx:
+            offset = 0.05
+        plt.text(max_cost_idx, max_cost_val + offset, f'CNY {max_cost_raw:.2f}',
+                fontsize=10, color='#FF0000', fontweight='bold',
+                ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.4', facecolor='white', alpha=0.9))
+
+        plt.title('用量趋势图（标准化）', fontsize=16, fontweight='bold')
+        plt.xlabel('日期', fontsize=13)
+        plt.ylabel('标准化值 (0-1)', fontsize=13)
+        plt.xticks(rotation=45, ha='right')
+        plt.legend(fontsize=11, loc='best', framealpha=0.9)
+        plt.grid(alpha=0.3, linestyle='--')
+        plt.tight_layout()
+        plt.savefig(os.path.join(charts_dir, '2_用量趋势标准化.png'), dpi=120, bbox_inches='tight')
         plt.close()
         
         # 3. 模型维度三指标对比图
@@ -192,11 +265,13 @@ class BillingAnalyzer:
         overview = self.analysis_results['overview']
         model_stats = self.analysis_results['model_stats']
         efficiency = self.analysis_results['efficiency']
-        
+
         # 报告名称
         if not report_name:
-            report_name = f"{self.filename.replace('.csv', '')}_分析报告.md"
-            
+            # 只使用文件名，不包含路径
+            filename_only = os.path.basename(self.filename).replace('.csv', '')
+            report_name = f"{filename_only}_分析报告.md"
+
         report_path = os.path.join(self.output_dir, report_name)
         
         # 生成报告内容
@@ -225,7 +300,7 @@ class BillingAnalyzer:
 
 ### 2. 用量趋势标准化图
 ![用量趋势标准化](./charts/2_用量趋势标准化.png)
-> **说明：** 调用次数、Tokens总量、费用三者趋势高度一致说明费用与用量匹配，无异常浪费。
+> **说明：** 展示调用次数、输入Token、输出Token、费用四个指标的标准化趋势。纵坐标已标准化（0-1），不同量级的指标在同一区段内，便于对比趋势变化。输入/输出分开显示，可清晰看出两者使用情况。
 
 ---
 
