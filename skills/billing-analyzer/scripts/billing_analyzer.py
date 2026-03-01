@@ -238,7 +238,10 @@ class BillingAnalyzer:
 
         print("📊 正在生成图表...")
 
-        charts_dir = os.path.join(self.output_dir, 'charts')
+        # 生成日期戳
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        charts_dir = os.path.join(self.output_dir, 'charts', timestamp)
+        os.makedirs(charts_dir, exist_ok=True)
 
         model_stats = self.analysis_results['model_stats']
 
@@ -272,7 +275,7 @@ class BillingAnalyzer:
 
         plt.axis('equal')
 
-        plt.savefig(os.path.join(charts_dir, '1_模型费用占比.png'), dpi=100, bbox_inches='tight')
+        plt.savefig(os.path.join(charts_dir, f'1_模型费用占比_{timestamp}.png'), dpi=100, bbox_inches='tight')
 
         plt.close()
 
@@ -456,7 +459,7 @@ class BillingAnalyzer:
 
         plt.tight_layout()
 
-        plt.savefig(os.path.join(charts_dir, '2_用量趋势标准化.png'), dpi=120, bbox_inches='tight')
+        plt.savefig(os.path.join(charts_dir, f'2_用量趋势标准化_{timestamp}.png'), dpi=120, bbox_inches='tight')
 
         plt.close()
 
@@ -502,7 +505,7 @@ class BillingAnalyzer:
 
         plt.grid(axis='y', alpha=0.3)
 
-        plt.savefig(os.path.join(charts_dir, '3_模型三指标对比.png'), dpi=120, bbox_inches='tight')
+        plt.savefig(os.path.join(charts_dir, f'3_模型三指标对比_{timestamp}.png'), dpi=120, bbox_inches='tight')
 
         plt.close()
 
@@ -514,7 +517,7 @@ class BillingAnalyzer:
 
         
 
-    def generate_report(self, report_name=None):
+    def generate_report(self, report_name=None, timestamp=None):
 
         """生成分析报告"""
 
@@ -526,6 +529,9 @@ class BillingAnalyzer:
 
         print("📝 正在生成分析报告...")
 
+        if timestamp is None:
+            timestamp = getattr(self, 'timestamp', datetime.now().strftime('%Y%m%d_%H%M%S'))
+        
         overview = self.analysis_results['overview']
 
         model_stats = self.analysis_results['model_stats']
@@ -581,7 +587,7 @@ class BillingAnalyzer:
 
 ### 1. 各模型费用占比分析
 
-![各模型费用占比](./charts/1_模型费用占比.png)
+![各模型费用占比](./charts/{timestamp}/1_模型费用占比_{timestamp}.png)
 
 > **说明：** MiniMax和Kimi通常是成本主要构成，可查看占比判断结构是否合理。
 
@@ -593,7 +599,7 @@ class BillingAnalyzer:
 
 ### 2. 用量趋势标准化图
 
-![用量趋势标准化](./charts/2_用量趋势标准化.png)
+![用量趋势标准化](./charts/{timestamp}/2_用量趋势标准化_{timestamp}.png)
 
 > **说明：** 展示调用次数、输入Token、输出Token、费用四个指标的标准化趋势。纵坐标已标准化（0-1），不同量级的指标在同一区段内，便于对比趋势变化。输入/输出分开显示，可清晰看出两者使用情况。
 
@@ -605,7 +611,7 @@ class BillingAnalyzer:
 
 ### 3. 模型维度三指标对比图
 
-![模型三指标对比](./charts/3_模型三指标对比.png)
+![模型三指标对比](./charts/{timestamp}/3_模型三指标对比_{timestamp}.png)
 
 > **说明：** 每个模型三根柱子（左：调用次数，中：Tokens总量，右：费用），对比可直观判断模型性价比。
 
@@ -724,6 +730,9 @@ class BillingAnalyzer:
 
 
 
+        # 替换时间戳占位符
+        content = content.replace('{timestamp}', timestamp)
+
         # 写入文件
 
         with open(report_path, 'w', encoding='utf-8') as f:
@@ -747,8 +756,9 @@ class BillingAnalyzer:
         self.analyze()
 
         self.generate_charts()
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-        report_path = self.generate_report(report_name)
+        report_path = self.generate_report(report_name, self.timestamp)
 
         return report_path
 
@@ -788,7 +798,7 @@ def main():
 
         if sys.platform.startswith('win'):
             pass  # 不自动打开报告
-#             os.startfile(report_path)
+            pass  # os.startfile(report_path)
 
         elif sys.platform.startswith('darwin'):
             pass  # 不自动打开报告
