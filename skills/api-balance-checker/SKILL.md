@@ -4,12 +4,10 @@ description: |
   查询多个 API 平台的余额和用量信息。支持通过已登录的 Chrome 浏览器访问各平台 Dashboard 获取数据。
   
   **重要：每次查询都是实时的！** 直接从各平台 Dashboard 获取最新数据，本地数据库仅用于历史对比。
-  
-  **基本查询**（查余额、查 wc 余额、查鲸云余额、查基本余额、公司余额）：
-  - 只查询 WhaleCloud Lab（鲸云实验室）的余额
-  
-  **全部查询**（查全部余额、查所有余额）：
-  - 查询 WhaleCloud Lab、智谱 AI（Zhipu）、Moonshot（Kimi）全部平台的余额
+
+  **触发指令：**
+  - `查余额`、`查 wc 余额`、`查鲸云余额` → 只查询 WhaleCloud Lab
+  - `查全部余额`、`查所有余额` → 查询全部平台（WhaleCloud + 智谱 AI + Moonshot）
 ---
 
 # API Balance Checker
@@ -33,56 +31,26 @@ description: |
 | Zhipu (智谱 AI) | 智谱 AI GLM 系列模型 |
 | Moonshot (月之暗面) | Kimi 系列模型 |
 
-## 前置条件
-
-1. **启动 Chrome 调试模式**：
-   ```bash
-   python C:\Users\luzhe\.openclaw\skills\api-balance-checker\scripts\launch_chrome.py
-   ```
-   或手动启动：
-   ```
-   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
-   ```
-
-2. **在 Chrome 中登录各平台**（需要先手动登录一次）：
-   - WhaleCloud: https://lab.iwhalecloud.com/gpt-proxy/console/dashboard
-   - 智谱 AI: https://open.bigmodel.cn/
-   - Moonshot: https://platform.moonshot.cn/
-
 ## 使用方法
 
-### 基本查询（仅 WhaleCloud Lab）
+### 查询 WhaleCloud 余额
 
 ```bash
-python C:\Users\luzhe\.openclaw\skills\api-balance-checker\scripts\query_balance.py whalecloud
+python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\scripts\query_balance.py whalecloud
 ```
 
-或使用简化入口：
-```bash
-python C:\Users\luzhe\.openclaw\skills\api-balance-checker\scripts\query_basic.py
-```
-
-### 全部查询（全部平台）
+### 查询全部平台余额
 
 ```bash
-python C:\Users\luzhe\.openclaw\skills\api-balance-checker\scripts\query_balance.py whalecloud zhipu moonshot
+python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\scripts\query_balance.py whalecloud zhipu moonshot
 ```
 
-或使用简化入口：
-```bash
-python C:\Users\luzhe\.openclaw\skills\api-balance-checker\scripts\query_all.py
-```
+## 登录状态
 
-## 触发指令
-
-- **基本查询**：`查余额`、`查 wc 余额`、`查鲸云余额`、`查基本余额`、`公司余额` → 只查询 WhaleCloud Lab
-- **全部查询**：`查全部余额`、`查所有余额` → 查询全部平台（WhaleCloud + 智谱 AI + Moonshot）
+首次查询时，脚本会自动打开 Chrome 并进入登录页面，请登录各平台。登录状态会保留，下次查询无需重新登录。
 
 ## 注意事项
 
 - Chrome 调试端口默认为 9222
-- 首次使用需要先手动登录各平台
-- 如果登录状态失效，需要重新手动登录
+- 登录状态失效后，需要重新手动登录
 - 查询结果会保存到 `C:/Users/luzhe/Pictures/api_balances.json`
-- **每次查询都是实时的，不会使用缓存**
-
