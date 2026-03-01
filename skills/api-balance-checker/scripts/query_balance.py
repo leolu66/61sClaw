@@ -73,6 +73,22 @@ def format_time_diff(minutes):
         return f"{int(minutes/1440)}天前"
 
 
+def format_time_diff_detailed(minutes):
+    """格式化时间差（详细）"""
+    if minutes < 1:
+        seconds = int(minutes * 60)
+        return f"{seconds}秒"
+    elif minutes < 60:
+        return f"{int(minutes)}分钟"
+    else:
+        hours = int(minutes // 60)
+        mins = int(minutes % 60)
+        if mins > 0:
+            return f"{hours}小时{mins}分钟"
+        else:
+            return f"{hours}小时"
+
+
 def print_comparison(result):
     """打印对比"""
     platform_key = result.get("platform_key", "")
@@ -86,44 +102,77 @@ def print_comparison(result):
             last_time_dt = datetime.now()
         
         time_diff_minutes = (datetime.now() - last_time_dt).total_seconds() / 60
+        
+        # ========== 当前余额 ==========
+        current_remaining = result.get("remaining", "未知")
+        current_used = result.get("used", "未知")
+        current_requests = result.get("requests", "未知")
+        
+        # 解析金额
+        remaining_val = parse_amount(current_remaining)
+        used_val = parse_amount(current_used)
+        
+        print("## 当前余额")
+        print("| 已使用费用 | 剩余额度 | 请求次数 |")
+        print("| ---------- | -------- | -------- |")
+        print(f"| **\${used_val}** | **\${remaining_val}** | **{current_requests}** |")
+        
+        # ========== 与上次对比 ==========
         is_different_day = (last_time_dt.date() != datetime.now().date())
         baseline = 100.0 if is_different_day and platform_key == "whalecloud" else (parse_amount(last_remaining) or 100.0)
         
-        print("[对比] 与上次查询:")
+        print()
+        print("## 与上次对比")
         
-        # 时间差
-        print(f"   时间：{format_time_diff(time_diff_minutes)}")
+        # 时间间隔
+        time_str = format_time_diff_detailed(time_diff_minutes)
+        print(f"- **时间间隔**：{time_str}")
         
         # 余额差
         if is_different_day and platform_key == "whalecloud":
-            print("   [系统] 自动充值：基准余额 ￥100")
+            print(f"- **系统充值**：基准 \$100（每日重置）")
         
-        current = parse_amount(result.get("remaining"))
-        if current and baseline:
-            diff = current - baseline
+        if remaining_val and baseline:
+            diff = remaining_val - baseline
             if diff < 0:
-                print(f"   余额：-￥{abs(diff):.2f} (￥{baseline:.2f} -> ￥{current:.2f})")
+                print(f"- **余额**：- \${abs(diff):.2f}")
             elif diff > 0:
-                print(f"   余额：+￥{diff:.2f}")
+                print(f"- **余额**：+ \${diff:.2f}")
             else:
-                print(f"   余额：不变 (￥{current:.2f})")
+                print(f"- **余额**：不变")
         
         # 调用次数差
-        current_requests = result.get("requests")
+        current_requests_num = current_requests
         last_requests_num = last_requests
-        if current_requests != "未知" and last_requests_num != "未知":
+        if current_requests_num != "未知" and last_requests_num != "未知":
             try:
-                diff_requests = int(current_requests) - int(last_requests_num)
+                diff_requests = int(current_requests_num) - int(last_requests_num)
                 if diff_requests > 0:
-                    print(f"   调用：+{diff_requests} 次")
+                    print(f"- **调用**：+ {diff_requests} 次")
                 elif diff_requests < 0:
-                    print(f"   调用：{diff_requests} 次")
+                    print(f"- **调用**：{diff_requests} 次")
                 else:
-                    print(f"   调用：不变")
+                    print(f"- **调用**：不变")
             except:
                 pass
     else:
-        print("[对比] 首次查询，无历史记录")
+        # 首次查询
+        current_remaining = result.get("remaining", "未知")
+        current_used = result.get("used", "未知")
+        current_requests = result.get("requests", "未知")
+        
+        remaining_val = parse_amount(current_remaining)
+        used_val = parse_amount(current_used)
+        
+        print("## 当前余额")
+        print("| 已使用费用 | 剩余额度 | 请求次数 |")
+        print("| ---------- | -------- | -------- |")
+        print(f"| **\${used_val}** | **\${remaining_val}** | **{current_requests}** |")
+        print()
+        print("## 与上次对比")
+        print("- **时间间隔**：首次查询")
+        print("- **余额**：-")
+        print("- **调用**：-")
 
 
 def run_query(platform):
