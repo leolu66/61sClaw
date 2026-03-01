@@ -89,8 +89,12 @@ def print_comparison(result):
         is_different_day = (last_time_dt.date() != datetime.now().date())
         baseline = 100.0 if is_different_day and platform_key == "whalecloud" else (parse_amount(last_remaining) or 100.0)
         
-        print(f"\n[对比] 与上次查询 ({format_time_diff(time_diff_minutes)}):")
+        print("[对比] 与上次查询:")
         
+        # 时间差
+        print(f"   时间：{format_time_diff(time_diff_minutes)}")
+        
+        # 余额差
         if is_different_day and platform_key == "whalecloud":
             print("   [系统] 自动充值：基准余额 ￥100")
         
@@ -98,13 +102,28 @@ def print_comparison(result):
         if current and baseline:
             diff = current - baseline
             if diff < 0:
-                print(f"   [余额] 减少：￥{abs(diff):.2f} (￥{baseline:.2f} -> ￥{current:.2f})")
+                print(f"   余额：-￥{abs(diff):.2f} (￥{baseline:.2f} -> ￥{current:.2f})")
             elif diff > 0:
-                print(f"   [余额] 增加：￥{diff:.2f}")
+                print(f"   余额：+￥{diff:.2f}")
             else:
-                print(f"   [余额] 不变：￥{current:.2f}")
+                print(f"   余额：不变 (￥{current:.2f})")
+        
+        # 调用次数差
+        current_requests = result.get("requests")
+        last_requests_num = last_requests
+        if current_requests != "未知" and last_requests_num != "未知":
+            try:
+                diff_requests = int(current_requests) - int(last_requests_num)
+                if diff_requests > 0:
+                    print(f"   调用：+{diff_requests} 次")
+                elif diff_requests < 0:
+                    print(f"   调用：{diff_requests} 次")
+                else:
+                    print(f"   调用：不变")
+            except:
+                pass
     else:
-        print("\n[对比] 首次查询，无历史记录")
+        print("[对比] 首次查询，无历史记录")
 
 
 def run_query(platform):
@@ -193,22 +212,8 @@ def main():
     # 对比第一个成功的结果
     first_success = next((r for r in all_results if r["status"] == "success"), None)
     if first_success:
+        print()
         print_comparison(first_success)
-    
-    if result["status"] == "success":
-        print("=" * 60)
-        print("[成功] 查询完成")
-        print("=" * 60)
-        print(f"   剩余：{result['remaining']}")
-        print(f"   已用：{result['used']}")
-        print(f"   请求：{result['requests']}次")
-        print_comparison(result)
-    else:
-        print("=" * 60)
-        print("[失败] 查询失败")
-        print("=" * 60)
-        print("   请检查登录状态或网络连接")
-        print(f"   Dashboard: https://lab.iwhalecloud.com/gpt-proxy/console/dashboard")
 
 
 if __name__ == "__main__":
