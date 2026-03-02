@@ -1,627 +1,661 @@
 # -*- coding: utf-8 -*-
 
 """
-
-模型账单分析工具
+模型账单分析工具（完整版）
 
 自动分析模型消费账单，生成分析报告和可视化图表
+包含：基础分析 + 深度洞察
 
 """
 
 import os
-
 import sys
-
 import io
-
 import pandas as pd
-
 import matplotlib.pyplot as plt
-
 import numpy as np
-
 from sklearn.preprocessing import MinMaxScaler
-
 from datetime import datetime
 
-
-
 # 解决中文显示问题
-
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
-
 plt.rcParams['axes.unicode_minus'] = False
 
-
-
-# 修复stdout编码
-
+# 修复 stdout 编码
 if sys.stdout.encoding != 'utf-8':
-
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-
 if sys.stderr.encoding != 'utf-8':
-
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
-
 class BillingAnalyzer:
-
     def __init__(self, filename, datas_dir=None, output_dir=None):
-
         """
-
         初始化分析器
-
-        :param filename: 账单CSV文件名
-
-        :param datas_dir: 数据文件目录，默认: ../datas/
-
-        :param output_dir: 输出目录，默认: ../../../agfiles/billing_report/
-
+        :param filename: 账单 CSV 文件名
+        :param datas_dir: 数据文件目录，默认：../datas/
+        :param output_dir: 输出目录，默认：../../../agfiles/billing_report/
         """
-
         self.filename = filename
-
-        # 默认datas目录在workspace根目录下
-
-        self.datas_dir = datas_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'datas')
-
-        # 默认输出目录在workspace根目录的agfiles/billing_report下
-
-        self.output_dir = output_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'agfiles', 'billing_report')
-
+        workspace_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        self.datas_dir = datas_dir or os.path.join(workspace_root, 'datas')
+        self.output_dir = output_dir or os.path.join(workspace_root, 'agfiles', 'billing_report')
         os.makedirs(self.output_dir, exist_ok=True)
-
         os.makedirs(os.path.join(self.output_dir, 'charts'), exist_ok=True)
 
-
-
         self.df = None
-
         self.analysis_results = {}
-
+        self.timestamp = None
         
-
     def load_data(self):
-
-        """加载CSV数据"""
-
+        """加载 CSV 数据"""
         file_path = os.path.join(self.datas_dir, self.filename)
-
         if not os.path.exists(file_path):
-
-            raise FileNotFoundError(f"账单文件不存在: {file_path}")
-
+            raise FileNotFoundError(f"账单文件不存在：{file_path}")
             
-
-        self.df = pd.read_csv(file_path)
-
-        print(f"✅ 加载数据成功，共 {len(self.df)} 条记录")
-
-        return True
-
+        self.df = pd.read_csv(file_path, encoding='utf-8-sig')
         
-
+        # 重命名列（按位置映射）
+        expected_cols = ['日期', '模型', '请求次数', '输入 Token', '输出 Token', '总 Token', '计费方式', '价格详情', '费用 (元)']
+        if len(self.df.columns) == len(expected_cols):
+            self.df.columns = expected_cols
+        elif len(self.df.columns) >= 9:
+            # 至少有 9 列，映射前 9 列
+            self.df = self.df.iloc[:, :9]
+            self.df.columns = expected_cols
+        
+        print(f"[OK] 加载数据成功，共 {len(self.df)} 条记录")
+        return True
+        
     def analyze(self):
-
-        """执行全量分析"""
-
+        """执行全量分析（基础 + 深度）"""
         if self.df is None:
-
             raise ValueError("请先加载数据")
-
-            
-
-        print("🔍 正在执行数据分析...")
-
         
-
-        # 总统计
-
-        total_cost = self.df['费用(元)'].sum()
-
+        # 统一日期格式为 datetime
+        self.df['日期'] = pd.to_datetime(self.df['日期'])
+            
+        print("正在执行数据分析...")
+        
+        # ========== 基础分析 ==========
+        total_cost = self.df['费用 (元)'].sum()
         total_requests = self.df['请求次数'].sum()
-
-        total_input_tokens = self.df['输入Token'].sum()
-
-        total_output_tokens = self.df['输出Token'].sum()
-
-        total_tokens = self.df['总Token'].sum()
-
+        total_input_tokens = self.df['输入 Token'].sum()
+        total_output_tokens = self.df['输出 Token'].sum()
+        total_tokens = self.df['总 Token'].sum()
         
-
         self.analysis_results['overview'] = {
-
             'total_cost': total_cost,
-
             'total_requests': total_requests,
-
             'total_input_tokens': total_input_tokens,
-
             'total_output_tokens': total_output_tokens,
-
             'total_tokens': total_tokens,
-
             'io_ratio': round(total_input_tokens / total_output_tokens, 1) if total_output_tokens > 0 else 0,
-
             'date_range': f"{self.df['日期'].min()} 到 {self.df['日期'].max()}"
-
         }
-
         
-
-        # 模型维度统计
-
         model_stats = self.df.groupby('模型').agg({
-
-            '费用(元)': 'sum',
-
+            '费用 (元)': 'sum',
             '请求次数': 'sum',
-
-            '输入Token': 'sum',
-
-            '输出Token': 'sum',
-
-            '总Token': 'sum'
-
-        }).sort_values('费用(元)', ascending=False)
-
+            '输入 Token': 'sum',
+            '输出 Token': 'sum',
+            '总 Token': 'sum'
+        }).sort_values('费用 (元)', ascending=False)
         
-
-        model_stats['占比'] = (model_stats['费用(元)'] / total_cost * 100).round(1)
-
-        model_stats['单位成本(元/百万)'] = (model_stats['费用(元)'] / (model_stats['总Token'] / 1_000_000)).round(2)
-
+        model_stats['占比'] = (model_stats['费用 (元)'] / total_cost * 100).round(1)
+        model_stats['单位成本 (元/百万)'] = (model_stats['费用 (元)'] / (model_stats['总 Token'] / 1_000_000)).round(2)
         
-
         self.analysis_results['model_stats'] = model_stats
-
         
-
-        # 日期维度统计
-
         daily_stats = self.df.groupby('日期').agg({
-
-            '费用(元)': 'sum',
-
+            '费用 (元)': 'sum',
             '请求次数': 'sum',
-
-            '输入Token': 'sum',
-
-            '输出Token': 'sum',
-
-            '总Token': 'sum'
-
+            '输入 Token': 'sum',
+            '输出 Token': 'sum',
+            '总 Token': 'sum'
         }).sort_index()
-
         
-
         self.analysis_results['daily_stats'] = daily_stats
-
         
-
-        # 效率指标
-
         self.analysis_results['efficiency'] = {
-
             'avg_cost_per_request': round(total_cost / total_requests, 3),
-
             'avg_cost_per_million_tokens': round(total_cost / (total_tokens / 1_000_000), 2),
-
             'avg_tokens_per_request': round(total_tokens / total_requests),
-
-            'industry_avg_cost': 7.0,  # 行业平均单位成本
-
+            'industry_avg_cost': 7.0,
             'cost_saving_potential': round((7.0 - (total_cost / (total_tokens / 1_000_000))) / 7.0 * 100, 1)
-
         }
-
         
-
-        print("✅ 数据分析完成")
-
-        return True
-
+        # ========== 深度洞察 ==========
+        print("正在执行深度分析...")
         
-
-    def generate_charts(self):
-
-        """生成可视化图表"""
-
-        if not self.analysis_results:
-
-            raise ValueError("请先执行分析")
-
+        # 1. Top 5 高峰日
+        daily_with_date = daily_stats.reset_index()
+        daily_with_date['日期'] = pd.to_datetime(daily_with_date['日期'])
+        avg_cost = daily_with_date['费用 (元)'].mean()
+        peak_days = daily_with_date.nlargest(5, '费用 (元)')
+        
+        peak_days_data = []
+        for _, row in peak_days.iterrows():
+            io_ratio = row['输入 Token'] / row['输出 Token'] if row['输出 Token'] > 0 else 0
+            day_data = self.df[self.df['日期'] == row['日期']]
+            top_model = day_data.groupby('模型')['费用 (元)'].sum().idxmax() if len(day_data) > 0 else 'N/A'
             
-
-        print("📊 正在生成图表...")
-
-        # 生成日期戳
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        charts_dir = os.path.join(self.output_dir, 'charts', timestamp)
+            peak_days_data.append({
+                '日期': row['日期'].strftime('%Y-%m-%d'),
+                '费用': row['费用 (元)'],
+                '偏差%': round((row['费用 (元)'] - avg_cost) / avg_cost * 100, 1),
+                '次数': int(row['请求次数']),
+                'IO 比': round(io_ratio, 1),
+                '主要模型': top_model
+            })
+        
+        self.analysis_results['peak_days'] = peak_days_data
+        
+        # 1.5 异常日检测（费用跃迁，只统计增长超过60%的，减少的去掉）
+        daily_with_date_sorted = daily_with_date.sort_values('日期')
+        daily_with_date_sorted['费用变化率'] = daily_with_date_sorted['费用 (元)'].pct_change() * 100
+        
+        # 找出异常跃迁（日费用增长超过60%）
+        anomaly_days = daily_with_date_sorted[daily_with_date_sorted['费用变化率'] > 60]
+        
+        anomaly_data = []
+        for _, row in anomaly_days.iterrows():
+            prev_day = daily_with_date_sorted[daily_with_date_sorted['日期'] == row['日期'] - pd.Timedelta(days=1)]
+            if len(prev_day) > 0 and prev_day['费用 (元)'].values[0] > 0:
+                prev_cost = prev_day['费用 (元)'].values[0]
+                prev_tokens = prev_day['总 Token'].values[0] if '总 Token' in prev_day.columns else (prev_day['输入 Token'].values[0] + prev_day['输出 Token'].values[0])
+                
+                day_data = self.df[self.df['日期'] == row['日期']]
+                if len(day_data) > 0:
+                    model_cost = day_data.groupby('模型')['费用 (元)'].sum().sort_values(ascending=False)
+                    if len(model_cost) > 0:
+                        top_model = model_cost.index[0]  # 取费用最高的模型
+                    else:
+                        top_model = 'N/A'
+                    
+                    # 计算 I/O 总量
+                    day_tokens = day_data['输入 Token'].sum() + day_data['输出 Token'].sum()
+                    prev_tokens = prev_day['输入 Token'].values[0] + prev_day['输出 Token'].values[0]
+                    
+                    # 计算增长幅度
+                    cost_growth = row['费用变化率']
+                    token_growth = ((day_tokens - prev_tokens) / prev_tokens * 100) if prev_tokens > 0 else 0
+                    
+                    # 判断原因：I/O 增长幅度小于价格增长幅度 → 模型切换；反之 → 使用量增加
+                    if cost_growth > token_growth * 1.5:
+                        reason = '模型切换'
+                    else:
+                        reason = '使用量增加'
+                else:
+                    top_model = 'N/A'
+                    reason = '未知'
+                
+                anomaly_data.append({
+                    '日期': row['日期'].strftime('%Y-%m-%d'),
+                    '费用': round(row['费用 (元)'], 2),
+                    '前日费用': round(prev_cost, 2),
+                    '增长幅度': round(row['费用变化率'], 1),
+                    '主要模型': top_model,
+                    '原因': reason
+                })
+        
+        self.analysis_results['anomaly_days'] = anomaly_data
+        
+        # 1.6 量纲极值分析（只分析最大值，包含日期和当日最大模型）
+        extreme_analysis = {}
+        
+        # 费用最大值
+        max_cost_day = daily_with_date.loc[daily_with_date['费用 (元)'].idxmax()]
+        max_cost_day_data = self.df[self.df['日期'] == max_cost_day['日期']]
+        if len(max_cost_day_data) > 0:
+            cost_models = max_cost_day_data.groupby('模型')['费用 (元)'].sum().sort_values(ascending=False)
+            top_cost_models = ', '.join(cost_models.head(2).index.tolist())
+        else:
+            top_cost_models = 'N/A'
+        
+        extreme_analysis['费用'] = {
+            'max': {
+                '模型': top_cost_models,
+                '值': round(max_cost_day['费用 (元)'], 2),
+                '日期': max_cost_day['日期'].strftime('%Y-%m-%d')
+            }
+        }
+        
+        # 调用次数最大值
+        max_req_day = daily_with_date.loc[daily_with_date['请求次数'].idxmax()]
+        max_req_day_data = self.df[self.df['日期'] == max_req_day['日期']]
+        if len(max_req_day_data) > 0:
+            req_models = max_req_day_data.groupby('模型')['请求次数'].sum().sort_values(ascending=False)
+            top_req_models = ', '.join(req_models.head(2).index.tolist())
+        else:
+            top_req_models = 'N/A'
+        
+        extreme_analysis['调用次数'] = {
+            'max': {
+                '模型': top_req_models,
+                '值': int(max_req_day['请求次数']),
+                '日期': max_req_day['日期'].strftime('%Y-%m-%d')
+            }
+        }
+        
+        # 输入Token最大值
+        max_input_day = daily_with_date.loc[daily_with_date['输入 Token'].idxmax()]
+        max_input_day_data = self.df[self.df['日期'] == max_input_day['日期']]
+        if len(max_input_day_data) > 0:
+            input_models = max_input_day_data.groupby('模型')['输入 Token'].sum().sort_values(ascending=False)
+            top_input_models = ', '.join(input_models.head(2).index.tolist())
+        else:
+            top_input_models = 'N/A'
+        
+        extreme_analysis['输入Token'] = {
+            'max': {
+                '模型': top_input_models,
+                '值': int(max_input_day['输入 Token']),
+                '日期': max_input_day['日期'].strftime('%Y-%m-%d')
+            }
+        }
+        
+        # 输出Token最大值
+        max_output_day = daily_with_date.loc[daily_with_date['输出 Token'].idxmax()]
+        max_output_day_data = self.df[self.df['日期'] == max_output_day['日期']]
+        if len(max_output_day_data) > 0:
+            output_models = max_output_day_data.groupby('模型')['输出 Token'].sum().sort_values(ascending=False)
+            top_output_models = ', '.join(output_models.head(2).index.tolist())
+        else:
+            top_output_models = 'N/A'
+        
+        extreme_analysis['输出Token'] = {
+            'max': {
+                '模型': top_output_models,
+                '值': int(max_output_day['输出 Token']),
+                '日期': max_output_day['日期'].strftime('%Y-%m-%d')
+            }
+        }
+        
+        self.analysis_results['extreme_analysis'] = extreme_analysis
+        
+        # 2. IO 比趋势分析
+        daily_with_io = self.df.groupby('日期').agg({
+            '输入 Token': 'sum', '输出 Token': 'sum', '费用 (元)': 'sum'
+        }).reset_index()
+        daily_with_io['IO 比'] = (daily_with_io['输入 Token'] / daily_with_io['输出 Token']).round(3)
+        daily_with_io['日期'] = pd.to_datetime(daily_with_io['日期'])
+        daily_with_io = daily_with_io.sort_values('日期')
+        
+        n = len(daily_with_io)
+        if n >= 4:
+            early_io = daily_with_io.head(n//2)['IO 比'].mean()
+            late_io = daily_with_io.tail(n//2)['IO 比'].mean()
+            if late_io > early_io * 1.3:
+                trend = '显著上升（转向阅读/分析型任务）'
+            elif late_io < early_io * 0.7:
+                trend = '显著下降（转向生成/输出型任务）'
+            elif late_io > early_io * 1.1:
+                trend = '小幅上升'
+            elif late_io < early_io * 0.9:
+                trend = '小幅下降'
+            else:
+                trend = '基本平稳'
+        else:
+            early_io = late_io = daily_with_io['IO 比'].mean()
+            trend = '数据不足'
+        
+        self.analysis_results['io_trend'] = {
+            'early_avg': round(early_io, 1),
+            'late_avg': round(late_io, 1),
+            'trend': trend,
+            'daily': daily_with_io
+        }
+        
+        # 3. 模型归因分析
+        total_cost = self.df['费用 (元)'].sum()
+        total_requests = self.df['请求次数'].sum()
+        total_input = self.df['输入 Token'].sum()
+        total_output = self.df['输出 Token'].sum()
+        
+        model_analysis = []
+        for model in self.df['模型'].unique():
+            model_data = self.df[self.df['模型'] == model]
+            model_io = model_data['输入 Token'].sum() / model_data['输出 Token'].sum() if model_data['输出 Token'].sum() > 0 else 0
+            model_unit_cost = model_data['费用 (元)'].sum() / (model_data['总 Token'].sum() / 1_000_000)
+            
+            model_analysis.append({
+                '模型': model,
+                '费用占比': round((model_data['费用 (元)'].sum() / total_cost * 100), 1),
+                '调用量占比': round((model_data['请求次数'].sum() / total_requests * 100), 1),
+                '输入占比': round((model_data['输入 Token'].sum() / total_input * 100), 1),
+                '输出占比': round((model_data['输出 Token'].sum() / total_output * 100), 1),
+                'IO 比': round(model_io, 1),
+                '单位成本': round(model_unit_cost, 2)
+            })
+        
+        self.analysis_results['model_attribution'] = pd.DataFrame(model_analysis).sort_values('费用占比', ascending=False)
+        
+        # 4. 模型驱动因素分析（只有费用占比 >= 5% 的模型才做判断）
+        total_cost = self.df['费用 (元)'].sum()
+        model_io_profile = self.df.groupby('模型').apply(
+            lambda x: pd.Series({
+                '平均 IO 比': x['输入 Token'].sum() / x['输出 Token'].sum() if x['输出 Token'].sum() > 0 else 0,
+                'IO 标准差': (x['输入 Token'].std() / x['输出 Token'].std()) if x['输出 Token'].std() > 0 and x['输出 Token'].std() != 0 else 0,
+                '费用': x['费用 (元)'].sum(),
+                '费用占比': x['费用 (元)'].sum() / total_cost * 100
+            }),
+            include_groups=False
+        ).reset_index()
+        
+        # 只有费用占比 >= 5% 的模型才做主导因素判断
+        model_io_profile['主导因素'] = model_io_profile.apply(
+            lambda row: '数据不足' if row['费用占比'] < 5 else 
+                       ('模型特性' if row['IO 标准差'] < row['平均 IO 比'] * 0.5 else '用户习惯'),
+            axis=1
+        )
+        
+        self.analysis_results['model_driver'] = model_io_profile
+        
+        # 5. 周模式分析
+        self.df['星期数字'] = pd.to_datetime(self.df['日期']).dt.dayofweek
+        weekly = self.df.groupby('星期数字').agg({
+            '费用 (元)': ['sum', 'mean'], 
+            '请求次数': 'sum'
+        }).reset_index()
+        weekly.columns = ['星期', '总费用', '平均费用', '总次数']
+        weekly['星期名'] = weekly['星期'].apply(lambda x: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][x])
+        self.analysis_results['weekly'] = weekly.sort_values('星期')
+        
+        print("[OK] 数据分析完成（基础 + 深度）")
+        return True
+        
+    def generate_charts(self):
+        """生成可视化图表（基础 3 张 + 深度 4 张）"""
+        if not self.analysis_results:
+            raise ValueError("请先执行分析")
+            
+        print("正在生成图表...")
+        
+        if self.timestamp is None:
+            self.timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+        
+        charts_dir = os.path.join(self.output_dir, 'charts', self.timestamp)
         os.makedirs(charts_dir, exist_ok=True)
 
         model_stats = self.analysis_results['model_stats']
-
         daily_stats = self.analysis_results['daily_stats']
-
         
-
+        # ========== 基础图表 ==========
         # 1. 模型费用占比饼图
-
         plt.figure(figsize=(8, 8))
-
-        # 合并占比小于3%的模型
-
         total_cost = self.analysis_results['overview']['total_cost']
-
-        mask = model_stats['费用(元)'] / total_cost < 0.03
-
-        other_cost = model_stats[mask]['费用(元)'].sum()
-
-        main_stats = model_stats[~mask]
-
+        mask = model_stats['费用 (元)'] / total_cost < 0.03
+        other_cost = model_stats[mask]['费用 (元)'].sum()
+        main_stats = model_stats[~mask].copy()
         if other_cost > 0:
-
-            main_stats.loc['其他'] = {'费用(元)': other_cost}
-
+            other_row = pd.DataFrame({'费用 (元)': [other_cost]}, index=['其他'])
+            main_stats = pd.concat([main_stats, other_row])
             
-
-        plt.pie(main_stats['费用(元)'].values, labels=main_stats.index, autopct='%1.1f%%', startangle=90)
-
+        plt.pie(main_stats['费用 (元)'].values, labels=main_stats.index, autopct='%1.1f%%', startangle=90)
         plt.title('各模型费用占比', fontsize=14)
-
         plt.axis('equal')
-
-        plt.savefig(os.path.join(charts_dir, f'1_模型费用占比_{timestamp}.png'), dpi=100, bbox_inches='tight')
-
+        plt.savefig(os.path.join(charts_dir, f'1_模型费用占比_{self.timestamp}.png'), dpi=100, bbox_inches='tight')
         plt.close()
-
         
-
-        # 2. 四指标标准化趋势图（输入/输出分开）
-
+        # 2. 四指标标准化趋势图
         plt.figure(figsize=(14, 7))
 
-
-
-        # 分别归一化每个指标（避免相互影响）
-
         scaler_cost = MinMaxScaler()
-
         scaler_req = MinMaxScaler()
-
         scaler_input = MinMaxScaler()
-
         scaler_output = MinMaxScaler()
 
-
-
-        # 归一化
-
-        cost_norm = scaler_cost.fit_transform(daily_stats[['费用(元)']]).flatten()
-
+        cost_norm = scaler_cost.fit_transform(daily_stats[['费用 (元)']]).flatten()
         req_norm = scaler_req.fit_transform(daily_stats[['请求次数']]).flatten()
-
-        input_norm = scaler_input.fit_transform(daily_stats[['输入Token']]).flatten()
-
-        output_norm = scaler_output.fit_transform(daily_stats[['输出Token']]).flatten()
-
-
-
-        # 创建归一化后的DataFrame
+        input_norm = scaler_input.fit_transform(daily_stats[['输入 Token']]).flatten()
+        output_norm = scaler_output.fit_transform(daily_stats[['输出 Token']]).flatten()
 
         normalized_df = pd.DataFrame({
-
             '费用_标准化': cost_norm,
-
             '调用次数_标准化': req_norm,
-
-            '输入Token_标准化': input_norm,
-
-            '输出Token_标准化': output_norm
-
+            '输入 Token_标准化': input_norm,
+            '输出 Token_标准化': output_norm
         }, index=daily_stats.index)
 
+        plt.plot(normalized_df.index, normalized_df['调用次数_标准化'],
+                marker='o', linewidth=2, label='调用次数', color='#2E86AB', alpha=0.8)
+        plt.plot(normalized_df.index, normalized_df['输入 Token_标准化'],
+                marker='s', linewidth=2, label='输入 Token(百万)', color='#A23B72', alpha=0.8)
+        plt.plot(normalized_df.index, normalized_df['输出 Token_标准化'],
+                marker='^', linewidth=2, label='输出 Token(百万)', color='#FF6B6B', alpha=0.8)
+        plt.plot(normalized_df.index, normalized_df['费用_标准化'],
+                marker='d', linewidth=2, label='费用 (元)', color='#F18F01', alpha=0.8)
 
-
-        # 绘制四条曲线
-
-        line1, = plt.plot(normalized_df.index, normalized_df['调用次数_标准化'],
-
-                       marker='o', linewidth=2, label='调用次数', color='#2E86AB', alpha=0.8)
-
-        line2, = plt.plot(normalized_df.index, normalized_df['输入Token_标准化'],
-
-                       marker='s', linewidth=2, label='输入Token(百万)', color='#A23B72', alpha=0.8)
-
-        line3, = plt.plot(normalized_df.index, normalized_df['输出Token_标准化'],
-
-                       marker='^', linewidth=2, label='输出Token(百万)', color='#FF6B6B', alpha=0.8)
-
-        line4, = plt.plot(normalized_df.index, normalized_df['费用_标准化'],
-
-                       marker='d', linewidth=2, label='费用(元)', color='#F18F01', alpha=0.8)
-
-
-
-        # 在最高点添加数值标注
-
-        # 调用次数
-
+        # 标注最高点
         max_req_idx = normalized_df['调用次数_标准化'].idxmax()
-
         max_req_val = normalized_df['调用次数_标准化'].max()
-
         max_req_raw = daily_stats.loc[max_req_idx, '请求次数']
-
         plt.text(max_req_idx, max_req_val, f'{max_req_raw:,.0f}',
-
                 fontsize=9, color='#2E86AB', fontweight='bold',
-
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
-
-
-        # 输入Token（以百万为单位）
-
-        max_input_idx = normalized_df['输入Token_标准化'].idxmax()
-
-        max_input_val = normalized_df['输入Token_标准化'].max()
-
-        max_input_raw = daily_stats.loc[max_input_idx, '输入Token'] / 1_000_000  # 转换为百万
-
-        # 避免与调用次数重叠，适当上移
-
+        max_input_idx = normalized_df['输入 Token_标准化'].idxmax()
+        max_input_val = normalized_df['输入 Token_标准化'].max()
+        max_input_raw = daily_stats.loc[max_input_idx, '输入 Token'] / 1_000_000
         offset = 0.05 if max_input_idx == max_req_idx else 0
-
         plt.text(max_input_idx, max_input_val + offset, f'{max_input_raw:.1f}M',
-
                 fontsize=9, color='#A23B72', fontweight='bold',
-
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
-
-
-        # 输出Token（以百万为单位）
-
-        max_output_idx = normalized_df['输出Token_标准化'].idxmax()
-
-        max_output_val = normalized_df['输出Token_标准化'].max()
-
-        max_output_raw = daily_stats.loc[max_output_idx, '输出Token'] / 1_000_000  # 转换为百万
-
-        # 避免重叠，检查是否与其他最高点接近
-
-        offset = 0
-
-        if max_output_idx == max_input_idx:
-
-            offset = 0.10
-
-        elif max_output_idx == max_req_idx:
-
-            offset = 0.10
-
+        max_output_idx = normalized_df['输出 Token_标准化'].idxmax()
+        max_output_val = normalized_df['输出 Token_标准化'].max()
+        max_output_raw = daily_stats.loc[max_output_idx, '输出 Token'] / 1_000_000
+        offset = 0.10 if max_output_idx in [max_input_idx, max_req_idx] else 0
         plt.text(max_output_idx, max_output_val + offset, f'{max_output_raw:.1f}M',
-
                 fontsize=9, color='#FF6B6B', fontweight='bold',
-
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
-
-
-
-        # 费用
 
         max_cost_idx = normalized_df['费用_标准化'].idxmax()
-
         max_cost_val = normalized_df['费用_标准化'].max()
-
-        max_cost_raw = daily_stats.loc[max_cost_idx, '费用(元)']
-
-        # 避免重叠
-
-        offset = 0
-
-        if max_cost_idx == max_output_idx:
-
-            offset = 0.05
-
-        elif max_cost_idx == max_input_idx:
-
-            offset = 0.05
-
-        elif max_cost_idx == max_req_idx:
-
-            offset = 0.05
-
+        max_cost_raw = daily_stats.loc[max_cost_idx, '费用 (元)']
+        offset = 0.05 if max_cost_idx in [max_output_idx, max_input_idx, max_req_idx] else 0
         plt.text(max_cost_idx, max_cost_val + offset, f'CNY {max_cost_raw:.2f}',
-
                 fontsize=10, color='#FF0000', fontweight='bold',
-
                 ha='center', va='bottom', bbox=dict(boxstyle='round,pad=0.4', facecolor='white', alpha=0.9))
 
-
-
         plt.title('用量趋势图（标准化）', fontsize=16, fontweight='bold')
-
         plt.xlabel('日期', fontsize=13)
-
         plt.ylabel('标准化值 (0-1)', fontsize=13)
-
         plt.xticks(rotation=45, ha='right')
-
         plt.legend(fontsize=11, loc='best', framealpha=0.9)
-
         plt.grid(alpha=0.3, linestyle='--')
-
         plt.tight_layout()
-
-        plt.savefig(os.path.join(charts_dir, f'2_用量趋势标准化_{timestamp}.png'), dpi=120, bbox_inches='tight')
-
+        plt.savefig(os.path.join(charts_dir, f'2_用量趋势标准化_{self.timestamp}.png'), dpi=120, bbox_inches='tight')
         plt.close()
-
         
-
         # 3. 模型维度三指标对比图
-
         plt.figure(figsize=(14, 8))
-
-        # 模型维度归一化
-
-        model_3d = model_stats[['请求次数', '总Token', '费用(元)']]
-
+        model_3d = model_stats[['请求次数', '总 Token', '费用 (元)']]
         scaler = MinMaxScaler()
-
         model_3d_normalized = scaler.fit_transform(model_3d)
-
         
-
         bar_width = 0.25
-
         x = np.arange(len(model_3d.index))
-
         
-
         plt.bar(x - bar_width, model_3d_normalized[:, 0], width=bar_width, label='调用次数', color='#2E86AB', alpha=0.8)
-
-        plt.bar(x, model_3d_normalized[:, 1], width=bar_width, label='Tokens总量', color='#A23B72', alpha=0.8)
-
+        plt.bar(x, model_3d_normalized[:, 1], width=bar_width, label='Tokens 总量', color='#A23B72', alpha=0.8)
         plt.bar(x + bar_width, model_3d_normalized[:, 2], width=bar_width, label='费用', color='#F18F01', alpha=0.8)
-
         
-
         plt.title('模型维度三指标对比图（标准化）', fontsize=16)
-
         plt.xlabel('模型名称', fontsize=12)
-
         plt.ylabel('标准化值 (0-1)', fontsize=12)
-
         plt.xticks(x, model_3d.index, rotation=45)
-
         plt.legend(fontsize=12)
-
         plt.grid(axis='y', alpha=0.3)
-
-        plt.savefig(os.path.join(charts_dir, f'3_模型三指标对比_{timestamp}.png'), dpi=120, bbox_inches='tight')
-
+        plt.savefig(os.path.join(charts_dir, f'3_模型三指标对比_{self.timestamp}.png'), dpi=120, bbox_inches='tight')
         plt.close()
-
         
-
-        print(f"✅ 图表生成完成，已保存到: {charts_dir}")
-
-        return True
-
-        
-
-    def generate_report(self, report_name=None, timestamp=None):
-
-        """生成分析报告"""
-
-        if not self.analysis_results:
-
-            raise ValueError("请先执行分析")
-
+        # ========== 深度图表 ==========
+        # 4. Top 5 高峰日
+        if self.analysis_results.get('peak_days'):
+            plt.figure(figsize=(10, 6))
+            peak_df = pd.DataFrame(self.analysis_results['peak_days'])
+            bars = plt.bar(range(len(peak_df)), peak_df['费用'], color='#FF6B6B', alpha=0.8)
+            plt.xticks(range(len(peak_df)), peak_df['日期'], rotation=30, ha='right')
+            plt.title('Top 5 消费高峰日', fontsize=14, fontweight='bold')
+            plt.ylabel('费用 (CNY)', fontsize=12)
+            plt.grid(axis='y', alpha=0.3)
             
-
-        print("📝 正在生成分析报告...")
-
-        if timestamp is None:
-            timestamp = getattr(self, 'timestamp', datetime.now().strftime('%Y%m%d_%H%M%S'))
+            for bar, val in zip(bars, peak_df['费用']):
+                plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
+                        f'{val:.1f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+            
+            plt.tight_layout()
+            plt.savefig(os.path.join(charts_dir, f'4_Top5 高峰日_{self.timestamp}.png'), dpi=150, bbox_inches='tight')
+            plt.close()
+        
+        # 5. IO 比趋势图
+        if self.analysis_results.get('io_trend') and self.analysis_results['io_trend']['daily'] is not None:
+            daily_df = self.analysis_results['io_trend']['daily']
+            fig, ax1 = plt.subplots(figsize=(12, 6))
+            
+            color1 = '#2E86AB'
+            ax1.set_xlabel('日期', fontsize=12)
+            ax1.set_ylabel('IO 比', color=color1, fontsize=12)
+            ax1.plot(daily_df['日期'], daily_df['IO 比'], marker='o', color=color1, linewidth=2, label='IO 比')
+            ax1.tick_params(axis='y', labelcolor=color1)
+            ax1.axhline(y=self.analysis_results['io_trend']['early_avg'], color=color1, linestyle='--', alpha=0.5, label=f'前半均值{self.analysis_results["io_trend"]["early_avg"]:.1f}')
+            ax1.axhline(y=self.analysis_results['io_trend']['late_avg'], color='#FF6B6B', linestyle='--', alpha=0.5, label=f'后半均值{self.analysis_results["io_trend"]["late_avg"]:.1f}')
+            
+            ax2 = ax1.twinx()
+            color2 = '#F18F01'
+            ax2.set_ylabel('费用 (CNY)', color=color2, fontsize=12)
+            ax2.bar(daily_df['日期'], daily_df['费用 (元)'], alpha=0.3, color=color2, label='日费用')
+            ax2.tick_params(axis='y', labelcolor=color2)
+            
+            plt.title(f'IO 比趋势（{self.analysis_results["io_trend"]["trend"]}）', fontsize=14, fontweight='bold')
+            fig.tight_layout()
+            plt.legend(loc='upper left')
+            plt.savefig(os.path.join(charts_dir, f'5_IO 比趋势_{self.timestamp}.png'), dpi=150, bbox_inches='tight')
+            plt.close()
+        
+        # 6. 模型归因分析
+        if self.analysis_results.get('model_attribution') is not None:
+            attr_df = self.analysis_results['model_attribution']
+            main_models = attr_df[attr_df['费用占比'] > 1].sort_values('费用占比', ascending=False)
+            
+            if len(main_models) > 0:
+                x = range(len(main_models))
+                width = 0.2
+                
+                fig, ax = plt.subplots(figsize=(14, 7))
+                
+                ax.bar([i - 1.5*width for i in x], main_models['费用占比'], width, label='费用%', color='#F18F01')
+                ax.bar([i - 0.5*width for i in x], main_models['调用量占比'], width, label='调用量%', color='#2E86AB')
+                ax.bar([i + 0.5*width for i in x], main_models['输入占比'], width, label='输入%', color='#A23B72')
+                ax.bar([i + 1.5*width for i in x], main_models['输出占比'], width, label='输出%', color='#06A77D')
+                
+                ax.set_xlabel('模型', fontsize=12)
+                ax.set_ylabel('占比 (%)', fontsize=12)
+                ax.set_title('模型选择对 4 个量纲的影响', fontsize=14, fontweight='bold')
+                ax.set_xticks(x)
+                ax.set_xticklabels([m[:15] for m in main_models['模型']], rotation=30, ha='right')
+                ax.legend()
+                ax.grid(axis='y', alpha=0.3)
+                
+                plt.tight_layout()
+                plt.savefig(os.path.join(charts_dir, f'6_模型归因_{self.timestamp}.png'), dpi=150, bbox_inches='tight')
+                plt.close()
+        
+        # 7. 周模式
+        if self.analysis_results.get('weekly') is not None:
+            weekly_df = self.analysis_results['weekly']
+            plt.figure(figsize=(10, 5))
+            
+            bars = plt.bar(weekly_df['星期名'], weekly_df['平均费用'],
+                          color=plt.cm.RdYlGn(weekly_df['平均费用']/weekly_df['平均费用'].max()),
+                          alpha=0.8)
+            
+            plt.title('周消费模式', fontsize=14, fontweight='bold')
+            plt.ylabel('日均费用 (CNY)', fontsize=12)
+            plt.xticks(rotation=30)
+            plt.grid(axis='y', alpha=0.3)
+            
+            for bar, val in zip(bars, weekly_df['平均费用']):
+                plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.2,
+                        f'{val:.1f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+            
+            plt.tight_layout()
+            plt.savefig(os.path.join(charts_dir, f'7_周模式_{self.timestamp}.png'), dpi=150, bbox_inches='tight')
+            plt.close()
+        
+        print(f"[OK] 图表生成完成（7 张），已保存到：{charts_dir}")
+        return True
+        
+    def generate_report(self, report_name=None):
+        """生成分析报告（包含深度洞察）"""
+        if not self.analysis_results:
+            raise ValueError("请先执行分析")
+            
+        print("正在生成分析报告...")
+        
+        if self.timestamp is None:
+            self.timestamp = datetime.now().strftime('%Y%m%d_%H%M')
         
         overview = self.analysis_results['overview']
-
         model_stats = self.analysis_results['model_stats']
-
         efficiency = self.analysis_results['efficiency']
 
-
-
-        # 报告名称
-
         if not report_name:
-
-            # 只使用文件名，不包含路径
-
             filename_only = os.path.basename(self.filename).replace('.csv', '')
-
             report_name = f"{filename_only}_分析报告.md"
 
-
-
         report_path = os.path.join(self.output_dir, report_name)
-
         
-
-        # 生成报告内容
-
-        content = f"""# 📊 模型账单分析报告
+        content = f"""# 模型账单分析报告
 
 ---
 
-
-
-## 🔍 报告概览
+## 报告概览
 
 **统计周期**: {overview['date_range']}
 
 | 项目 | 值 | 单位 |
 |------|-----|------|
-| **总费用** | ¥{overview['total_cost']:.2f} | 元 |
+| **总费用** | CNY {overview['total_cost']:.2f} | 元 |
 | **总调用次数** | {overview['total_requests']:,} | 次 |
 | **总输入 Tokens** | {overview['total_input_tokens']/1_000_000:.2f} | 百万 Tokens |
 | **总输出 Tokens** | {overview['total_output_tokens']/1_000_000:.2f} | 百万 Tokens |
 | **总 Tokens 用量** | {overview['total_tokens']/1_000_000:.2f} | 百万 Tokens |
 | **输入输出比** | {overview['io_ratio']} | |
 
-
+> 注：单位成本行业平均约 7 元/百万 Tokens，成本优化空间{efficiency['cost_saving_potential']}%。
 
 ---
 
-
-
-## 📈 可视化分析
+## 可视化分析
 
 ### 1. 各模型费用占比分析
 
-![各模型费用占比](./charts/{timestamp}/1_模型费用占比_{timestamp}.png)
+![各模型费用占比](./charts/{self.timestamp}/1_模型费用占比_{self.timestamp}.png)
 
-> **说明：** MiniMax和Kimi通常是成本主要构成，可查看占比判断结构是否合理。
-
-
+> 说明：MiniMax 和 Kimi 通常是成本主要构成，可查看占比判断结构是否合理。
 
 ---
-
-
 
 ### 2. 用量趋势标准化图
 
-![用量趋势标准化](./charts/{timestamp}/2_用量趋势标准化_{timestamp}.png)
+![用量趋势标准化](./charts/{self.timestamp}/2_用量趋势标准化_{self.timestamp}.png)
 
-> **说明：** 展示调用次数、输入Token、输出Token、费用四个指标的标准化趋势。纵坐标已标准化（0-1），不同量级的指标在同一区段内，便于对比趋势变化。输入/输出分开显示，可清晰看出两者使用情况。
-
-
+> 说明：展示调用次数、输入 Token、输出 Token、费用四个指标的标准化趋势。
 
 ---
-
-
 
 ### 3. 模型维度三指标对比图
 
-![模型三指标对比](./charts/{timestamp}/3_模型三指标对比_{timestamp}.png)
+![模型三指标对比](./charts/{self.timestamp}/3_模型三指标对比_{self.timestamp}.png)
 
-> **说明：** 每个模型三根柱子（左：调用次数，中：Tokens总量，右：费用），对比可直观判断模型性价比。
-
-
+> 说明：每个模型三根柱子（左：调用次数，中：Tokens 总量，右：费用）。
 
 ---
 
-
-
-## 📊 核心分析
+## 核心分析
 
 ### 1. 费用结构分析
 
@@ -629,198 +663,232 @@ class BillingAnalyzer:
 |----------|------------|---------|----------|----------------|--------------|------------------|------------|
 """
 
-
-
-        # 添加模型表格（仅 Top 5）
-
-        
-
         top5_stats = model_stats.head(5)
-
         for model, row in top5_stats.iterrows():
-
-            cost = row['费用(元)']
-
+            cost = row['费用 (元)']
             pct = row['占比']
-
             req = row['请求次数']
-
-            tokens = row['总Token'] / 1_000_000
-
-            unit_cost = row['单位成本(元/百万)']
-
+            tokens = row['总 Token'] / 1_000_000
+            unit_cost = row['单位成本 (元/百万)']
             
-
-            # 性价比评级
-
             if unit_cost <= 3:
-
-                rating = "🟢 最优"
-
+                rating = "[OK] 最优"
             elif unit_cost <= 8:
-
-                rating = "🟡 良好"
-
+                rating = "[INFO] 良好"
             else:
-
-                rating = "🔴 偏低"
-
+                rating = "[WARN] 偏低"
                 
-
-            cost_per_call = (cost * 100) / req if req > 0 else 0
-            cost_per_call = (cost * 100) / req if req > 0 else 0
             cost_per_call = (cost * 100) / req if req > 0 else 0
             content += f"| **{model}** | {cost:.2f} | {pct} | {int(req):,} | {cost_per_call:.2f} | {tokens:.2f} | {unit_cost:.2f} | {rating} |\n"
-
-
-
-        # 效率分析
 
         content += f"""
 
 ---
 
-
-
 ### 2. 效率分析
 
 | 指标 | 值 | 说明 |
 |------|-----|------|
-| **单次调用平均成本** | ¥{efficiency['avg_cost_per_request']:.3f} | 越低越好 |
-| **平均单位成本** | ¥{efficiency['avg_cost_per_million_tokens']:.2f}元/百万Tokens | 行业平均约7元 |
-| **单次调用平均Token** | {efficiency['avg_tokens_per_request']:,} | 反映任务类型 |
+| **单次调用平均成本** | CNY {efficiency['avg_cost_per_request']:.3f} | 越低越好 |
+| **平均单位成本** | CNY {efficiency['avg_cost_per_million_tokens']:.2f}元/百万 Tokens | 行业平均约 7 元 |
+| **单次调用平均 Token** | {efficiency['avg_tokens_per_request']:,} | 反映任务类型 |
 | **成本优化空间** | {efficiency['cost_saving_potential']}% | 对比行业平均 |
 
-
+> 注：效率分析展示了整体成本效益，根据任务类型选择合适的模型，可节省 30-50% 成本。
 
 ---
 
+## 优化建议
 
-
-## 💡 优化建议
-
-### 🔥 模型分层使用策略
+### 模型分层使用策略
 
 | 任务类型 | 推荐模型 | 优势 |
 |----------|----------|------|
-| 简单任务（聊天、检索、摘要） | Qwen3.5-flash/plus | 性价比最高，节省70%+成本 |
+| 简单任务（聊天、检索、摘要） | Qwen3.5-flash/plus | 性价比最高，节省 70%+ 成本 |
 | 普通复杂任务（编程、分析） | MiniMax-M2.5 | 能力强，成本低 |
-| 长文本任务（>100万Token） | Kimi-K2.5 | 长上下文能力独一档 |
+| 长文本任务（>100 万 Token） | Kimi-K2.5 | 长上下文能力独一档 |
 | 特殊复杂推理任务 | Claude/GPT | 能力最强，按需使用 |
 
-
+> 注：下表仅列出费用 Top 5 模型，完整模型列表见深度洞察章节。
 
 ---
 
+## 深度洞察
 
+### Top 5 消费高峰日
 
-## 🎯 总结
+![高峰日](./charts/{self.timestamp}/4_Top5 高峰日_{self.timestamp}.png)
 
-本次账单分析已完成，可根据以上分析优化模型使用策略，预计可降低30%+成本。
+"""
+        
+        if self.analysis_results.get('peak_days'):
+            peak_df = pd.DataFrame(self.analysis_results['peak_days'])
+            content += "**关键发现**：\n\n"
+            content += f"- 高峰日平均 **CNY {peak_df['费用'].mean():.1f}**，比日均高 **{peak_df['偏差%'].mean():+.1f}%**\n"
+            content += f"- 最高峰：**{peak_df.iloc[0]['日期']}**（CNY {peak_df.iloc[0]['费用']:.1f}）\n"
+            content += f"- 主要驱动模型：**{peak_df.iloc[0]['主要模型']}**\n\n"
+        
+        content += f"""
+### 用户习惯演变（IO 比趋势）
 
+![IO 比趋势](./charts/{self.timestamp}/5_IO 比趋势_{self.timestamp}.png)
 
+"""
+        
+        if self.analysis_results.get('io_trend'):
+            io = self.analysis_results['io_trend']
+            content += "**关键发现**：\n\n"
+            content += f"- IO 比从 **{io['early_avg']:.1f}** 变化到 **{io['late_avg']:.1f}**\n"
+            content += f"- 趋势：**{io['trend']}**\n"
+            
+            if '阅读' in io['trend'] or '上升' in io['trend']:
+                content += "- [INFO] **解读**：IO 比上升说明输入增多，用户更多在进行文档阅读、代码审查、资料分析等任务\n"
+            elif '生成' in io['trend'] or '下降' in io['trend']:
+                content += "- [INFO] **解读**：IO 比下降说明输出增多，用户更多在进行代码生成、内容创作、批量输出等任务\n"
+            else:
+                content += "- [INFO] **解读**：IO 比平稳说明用户任务类型保持稳定\n"
+            content += "\n"
+        
+        content += f"""
+### 模型选择的多维影响
+
+![模型归因](./charts/{self.timestamp}/6_模型归因_{self.timestamp}.png)
+
+"""
+        
+        if self.analysis_results.get('model_attribution') is not None:
+            attr_df = self.analysis_results['model_attribution']
+            main_models = attr_df[attr_df['费用占比'] > 5]
+            
+            content += "**关键发现**：\n\n"
+            
+            for _, row in main_models.iterrows():
+                if abs(row['费用占比'] - row['调用量占比']) < 5:
+                    pattern = '线性'
+                    desc = '费用与调用量成正比，属于常规使用'
+                elif row['费用占比'] > row['调用量占比'] * 1.5:
+                    pattern = '高成本'
+                    desc = '单位成本高，建议优化'
+                else:
+                    pattern = '低成本'
+                    desc = '单位成本低，性价比高'
+                
+                content += f"- **{row['模型']}**：费用{row['费用占比']}%，调用{row['调用量占比']}%，IO 比{row['IO 比']} -> **{pattern}模式**（{desc}）\n"
+            
+            content += "\n**模型切换 vs 用户习惯**：\n\n"
+            
+            if self.analysis_results.get('model_driver') is not None:
+                driver_df = self.analysis_results['model_driver']
+                model_driven = driver_df[driver_df['主导因素'] == '模型特性']['模型'].tolist()
+                habit_driven = driver_df[driver_df['主导因素'] == '用户习惯']['模型'].tolist()
+                data_insufficient = driver_df[driver_df['主导因素'] == '数据不足']['模型'].tolist()
+                
+                if model_driven:
+                    content += f"- [INFO] **模型特性主导**：{', '.join(model_driven[:5])}（IO 比稳定，由模型能力决定）\n"
+                if habit_driven:
+                    content += f"- [INFO] **用户习惯主导**：{', '.join(habit_driven[:5])}（IO 比波动大，反映任务类型变化）\n"
+                if data_insufficient:
+                    content += f"- [INFO] **数据不足**：{', '.join(data_insufficient[:5])}（调用次数 < 10，无法判断）\n"
+            
+            # 异常日检测
+            if self.analysis_results.get('anomaly_days'):
+                content += "\n### 异常费用跃迁\n\n"
+                for anomaly in self.analysis_results['anomaly_days']:
+                    reason = anomaly.get('原因', '未知')
+                    content += f"- **{anomaly['日期']}**：费用 CNY {anomaly['费用']}（+{anomaly['增长幅度']}%，前日 CNY {anomaly['前日费用']}），主要模型：{anomaly['主要模型']}，原因：{reason}\n"
+                content += "\n"
+            
+            # 量纲极值分析（只显示最大值）
+            if self.analysis_results.get('extreme_analysis'):
+                content += "### 各维度最大值\n\n"
+                content += "| 维度 | 日期 | 使用模型 | 最大值 |\n"
+                content += "|------|------|----------|--------|\n"
+                
+                extreme = self.analysis_results['extreme_analysis']
+                for dim, data in extreme.items():
+                    content += f"| {dim} | {data['max']['日期']} | {data['max']['模型']} | {data['max']['值']:,} |\n"
+                
+                content += "\n"
+            
+            content += "\n"
+        
+        content += f"""
+### 周消费模式
+
+![周模式](./charts/{self.timestamp}/7_周模式_{self.timestamp}.png)
+
+"""
+
+        if self.analysis_results.get('weekly') is not None:
+            weekly_df = self.analysis_results['weekly']
+            busiest = weekly_df.loc[weekly_df['平均费用'].idxmax()]
+            quietest = weekly_df.loc[weekly_df['平均费用'].idxmin()]
+            
+            content += "**关键发现**：\n\n"
+            content += f"- 最忙：**{busiest['星期名']}**（日均 CNY {busiest['平均费用']:.1f}）\n"
+            content += f"- 最闲：**{quietest['星期名']}**（日均 CNY {quietest['平均费用']:.1f}）\n\n"
+        
+        content += """
+### 行动建议
+
+1. **模型优化**：将高成本模型的部分任务迁移到 QWen-Plus/MiniMax-M2.5
+2. **习惯调整**：
+"""
+        if self.analysis_results.get('io_trend') and '上升' in self.analysis_results['io_trend'].get('trend', ''):
+            content += "   - IO 比上升期：优先使用 QWen-Plus（阅读型任务性价比高）\n"
+        else:
+            content += "   - 生成型任务：使用 MiniMax-M2.5（生成能力强，成本低）\n"
+        content += "3. **监控告警**：单日>CNY 100 时检查异常批量任务\n\n"
+        
+        content += f"""
+---
+
+## 总结
+
+本次账单分析已完成，包含基础分析和深度洞察。可根据以上分析优化模型使用策略，预计可降低 30%+ 成本。
 
 ---
 
 *报告生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}*
-
-*生成工具：OpenClaw Billing Analyzer 技能*
-
+*生成工具：OpenClaw Billing Analyzer 技能（完整版）*
 """
 
-
-
-        # 替换时间戳占位符
-        content = content.replace('{timestamp}', timestamp)
-
-        # 写入文件
-
         with open(report_path, 'w', encoding='utf-8') as f:
-
             f.write(content)
-
             
-
-        print(f"✅ 报告生成完成: {report_path}")
-
+        print(f"[OK] 报告生成完成：{report_path}")
         return report_path
-
         
-
     def run_full_analysis(self, report_name=None):
-
         """执行全流程分析：加载→分析→生成图表→生成报告"""
-
         self.load_data()
-
         self.analyze()
-
         self.generate_charts()
-        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-
-        report_path = self.generate_report(report_name, self.timestamp)
-
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+        report_path = self.generate_report(report_name)
         return report_path
-
-
-
 
 
 def main():
-
     if len(sys.argv) < 2:
-
-        print("使用方法: python billing_analyzer.py <账单文件名> [报告名称]")
-
-        print("示例: python billing_analyzer.py billing_2026-02.csv")
-
+        print("使用方法：python billing_analyzer.py <账单文件名> [报告名称]")
+        print("示例：python billing_analyzer.py billing_2026-02-09_2026-02-28.csv")
         sys.exit(1)
-
         
-
     filename = sys.argv[1]
-
     report_name = sys.argv[2] if len(sys.argv) > 2 else None
-
     
-
     try:
-
         analyzer = BillingAnalyzer(filename)
-
         report_path = analyzer.run_full_analysis(report_name)
-
-        print(f"\n🎉 全流程分析完成！报告路径: {report_path}")
-
+        print(f"\n[OK] 全流程分析完成！报告路径：{report_path}")
         
-
-        # 自动打开报告
-
-        if sys.platform.startswith('win'):
-            pass  # 不自动打开报告
-            pass  # os.startfile(report_path)
-
-        elif sys.platform.startswith('darwin'):
-            pass  # 不自动打开报告
-            os.system(f'open "{report_path}"')
-
-        else:
-
-            os.system(f'xdg-open "{report_path}"')
-
-            
-
     except Exception as e:
-
-        print(f"❌ 分析失败: {str(e)}")
-
+        print(f"[ERROR] 分析失败：{str(e)}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
-
-
-
 
 
 if __name__ == '__main__':
-
     main()
-

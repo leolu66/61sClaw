@@ -29,6 +29,7 @@ logs/
 
 # Memory and personal notes (user-specific, not synced)
 memory/
+TOOLS.md
 
 # OS
 .DS_Store
