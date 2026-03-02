@@ -53,6 +53,46 @@ def get_last_record(platform_key):
     return None
 
 
+def get_baseline_record(platform_key):
+    """
+    获取对比基准记录
+    - 如果今天有记录，返回今天第一条
+    - 如果今天没记录（跨天），返回昨天最后一条
+    """
+    history = load_history()
+    today = datetime.now().date()
+    yesterday = today.replace(day=today.day - 1) if today.day > 1 else today
+    
+    today_records = []
+    yesterday_records = []
+    
+    for record in history:
+        if record.get("platform_key") != platform_key:
+            continue
+        try:
+            record_date = datetime.fromisoformat(record.get("timestamp", "").replace('Z', '+00:00').replace('+00:00', '')).date()
+            if record_date == today:
+                today_records.append(record)
+            elif record_date == yesterday:
+                yesterday_records.append(record)
+        except:
+            continue
+    
+    # 如果今天有记录，返回今天第一条（最早的）
+    if today_records:
+        record = today_records[-1]  # 最后一条是最近的，第一条是最早的
+        return (record.get("remaining"), record.get("used"), 
+                record.get("requests"), record.get("timestamp"), "today")
+    
+    # 如果今天没记录但昨天有，返回昨天最后一条
+    if yesterday_records:
+        record = yesterday_records[0]  # 第一条是最早的，最后一条是最近的
+        return (record.get("remaining"), record.get("used"), 
+                record.get("requests"), record.get("timestamp"), "yesterday")
+    
+    return None
+
+
 def parse_amount(amount_str):
     """解析金额"""
     if not amount_str or amount_str == "未知":
@@ -92,10 +132,10 @@ def format_time_diff_detailed(minutes):
 def print_comparison(result):
     """打印对比"""
     platform_key = result.get("platform_key", "")
-    last_record = get_last_record(platform_key)
+    baseline = get_baseline_record(platform_key)
     
-    if last_record:
-        last_remaining, last_used, last_requests, last_time = last_record
+    if baseline:
+        last_remaining, last_used, last_requests, last_time, baseline_type = baseline
         try:
             last_time_dt = datetime.fromisoformat(last_time.replace('Z', '+00:00').replace('+00:00', ''))
         except:
@@ -115,11 +155,20 @@ def print_comparison(result):
         print("## 当前余额")
         print("| 已使用费用 | 剩余额度 | 请求次数 |")
         print("| ---------- | -------- | -------- |")
-        print(f"| **\${used_val}** | **\${remaining_val}** | **{current_requests}** |")
+        print(f"| **${used_val}** | **${remaining_val}** | **{current_requests}** |")
         
         # ========== 与上次对比 ==========
-        is_different_day = (last_time_dt.date() != datetime.now().date())
-        baseline = 100.0 if is_different_day and platform_key == "whalecloud" else (parse_amount(last_remaining) or 100.0)
+        is_yesterday = baseline_type == "yesterday"
+        
+        # 余额基准
+        if is_yesterday and platform_key == "whalecloud":
+            # 跨天：使用系统基准 100 元
+            balance_baseline = 100.0
+            baseline_label = "（昨日重置）"
+        else:
+            # 同一天或非 whalecloud：使用上次剩余金额
+            balance_baseline = parse_amount(last_remaining) or 100.0
+            baseline_label = ""
         
         print()
         print("## 与上次对比")
@@ -128,31 +177,42 @@ def print_comparison(result):
         time_str = format_time_diff_detailed(time_diff_minutes)
         print(f"- **时间间隔**：{time_str}")
         
-        # 余额差
-        if is_different_day and platform_key == "whalecloud":
-            print(f"- **系统充值**：基准 \$100（每日重置）")
+        if is_yesterday and platform_key == "whalecloud":
+            print(f"- **基准重置**：跨天已重置，基准 ¥100{baseline_label}")
         
-        if remaining_val and baseline:
-            diff = remaining_val - baseline
-            if diff < 0:
-                print(f"- **余额**：- \${abs(diff):.2f}")
-            elif diff > 0:
-                print(f"- **余额**：+ \${diff:.2f}")
+        # 已使用费用差（更直观）
+        last_used_val = parse_amount(last_used)
+        if used_val is not None and last_used_val is not None:
+            used_diff = used_val - last_used_val
+            if used_diff > 0:
+                print(f"- **已使用**：+{used_diff:.2f}")
+            elif used_diff < 0:
+                print(f"- **已使用**：-{abs(used_diff):.2f}")
             else:
-                print(f"- **余额**：不变")
+                print(f"- **已使用**：不变")
+        
+        # 余额差
+        if remaining_val and balance_baseline:
+            diff = remaining_val - balance_baseline
+            if diff < 0:
+                print(f"- **余额变化**：-{abs(diff):.2f}")
+            elif diff > 0:
+                print(f"- **余额变化**：+{diff:.2f}")
+            else:
+                print(f"- **余额变化**：不变")
         
         # 调用次数差
         current_requests_num = current_requests
         last_requests_num = last_requests
-        if current_requests_num != "未知" and last_requests_num != "未知":
+        if current_requests_num != "未知" and last_requests_num != "未知" and last_requests_num is not None:
             try:
                 diff_requests = int(current_requests_num) - int(last_requests_num)
                 if diff_requests > 0:
-                    print(f"- **调用**：+ {diff_requests} 次")
+                    print(f"- **调用次数**：+ {diff_requests} 次")
                 elif diff_requests < 0:
-                    print(f"- **调用**：{diff_requests} 次")
+                    print(f"- **调用次数**：{diff_requests} 次")
                 else:
-                    print(f"- **调用**：不变")
+                    print(f"- **调用次数**：不变")
             except:
                 pass
     else:
