@@ -27,6 +27,9 @@ skills/*/node_modules/
 *.log
 logs/
 
+# Memory and personal notes (user-specific, not synced)
+memory/
+
 # OS
 .DS_Store
 Thumbs.db
