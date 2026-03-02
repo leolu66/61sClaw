@@ -59,10 +59,31 @@ function countCodeLines(content, ext) {
   return codeLines;
 }
 
+// 从 vault 读取 GitHub Token
+function getGitHubToken() {
+  const vaultPath = path.join(process.env.HOME || process.env.USERPROFILE, '.openclaw', 'vault', 'credentials.json');
+  
+  try {
+    if (fs.existsSync(vaultPath)) {
+      const data = JSON.parse(fs.readFileSync(vaultPath, 'utf-8'));
+      const github = data.credentials?.github;
+      if (github?.fields) {
+        const tokenField = github.fields.find(f => f.key === 'token');
+        if (tokenField?.value) {
+          return tokenField.value;
+        }
+      }
+    }
+  } catch (e) {
+    console.log('[读取 vault 失败]', e.message);
+  }
+  return null;
+}
+
 // GitHub 统计
 async function getGitHubStats() {
   const repo = 'leolu66/61sClaw';
-  const token = process.env.GITHUB_TOKEN || '';
+  const token = getGitHubToken() || process.env.GITHUB_TOKEN || '';
   
   const since = new Date();
   since.setDate(since.getDate() - 7);
