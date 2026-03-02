@@ -24,8 +24,11 @@ class TaskManager {
     // 推断任务类型（如果未指定）
     const inferredType = type || this._inferTaskType(title, description);
 
-    // 设置默认提醒策略
-    const defaultStrategy = this._getDefaultStrategy(taskType, reminderStrategy);
+    // 设置默认提醒策略（非年度任务才有提醒）
+    const isAnnual = TimeParser.isAnnualTask(parsedDeadline);
+    const defaultStrategy = isAnnual 
+      ? null 
+      : this._getDefaultStrategy(taskType, reminderStrategy);
 
     // 生成唯一编号（日期+序号）
     const uniqueId = this._generateUniqueId();
@@ -46,11 +49,14 @@ class TaskManager {
       createdAt: dayjs().toISOString(),
       completedAt: null,
       reminderStrategy: defaultStrategy,
-      reminders: []
+      reminders: [],
+      comments: []
     };
 
-    // 生成提醒时间点
-    task.reminders = StrategyEngine.generateReminders(task);
+    // 生成提醒时间点（非年度任务）
+    if (!isAnnual) {
+      task.reminders = StrategyEngine.generateReminders(task);
+    }
 
     // 保存任务
     const tasks = this.storage.getTasks();
@@ -94,43 +100,105 @@ class TaskManager {
   /**
    * 完成任务
    * @param {string} taskId - 任务 ID（支持 uuid/uniqueId/todoNumber）
+   * @param {string} comment - 完成时的评论（可选）
    * @returns {Object|null} 完成的任务
    */
-  completeTask(taskId) {
+  completeTask(taskId, comment = null) {
     const task = this._findTask(taskId);
     if (!task) return null;
 
     // 释放待办编号
-    if (task.todoNumber) {
-      this._releaseTodoNumber(task.todoNumber);
+    const releasedNumber = task.todoNumber;
+    if (releasedNumber) {
+      this._releaseTodoNumber(releasedNumber);
     }
 
-    return this.updateTask(task.id, {
+    // 添加评论
+    const updates = {
       status: 'completed',
       completedAt: dayjs().toISOString(),
-      todoNumber: null
-    });
+      todoNumber: 0
+    };
+
+    if (comment) {
+      task.comments = task.comments || [];
+      task.comments.push({
+        content: comment,
+        createdAt: dayjs().toISOString(),
+        action: 'completed'
+      });
+      updates.comments = task.comments;
+    }
+
+    return this.updateTask(task.id, updates);
   }
 
   /**
    * 取消任务
    * @param {string} taskId - 任务 ID（支持 uuid/uniqueId/todoNumber）
+   * @param {string} comment - 取消时的评论（可选）
    * @returns {Object|null} 取消的任务
    */
-  cancelTask(taskId) {
+  cancelTask(taskId, comment = null) {
     const task = this._findTask(taskId);
     if (!task) return null;
 
     // 释放待办编号
-    if (task.todoNumber) {
-      this._releaseTodoNumber(task.todoNumber);
+    const releasedNumber = task.todoNumber;
+    if (releasedNumber) {
+      this._releaseTodoNumber(releasedNumber);
     }
 
-    return this.updateTask(task.id, {
+    // 添加评论
+    const updates = {
       status: 'cancelled',
       completedAt: dayjs().toISOString(),
-      todoNumber: null
+      todoNumber: 0
+    };
+
+    if (comment) {
+      task.comments = task.comments || [];
+      task.comments.push({
+        content: comment,
+        createdAt: dayjs().toISOString(),
+        action: 'cancelled'
+      });
+      updates.comments = task.comments;
+    }
+
+    return this.updateTask(task.id, updates);
+  }
+
+  /**
+   * 为任务添加评论
+   * @param {string} taskId - 任务 ID（支持 uuid/uniqueId/todoNumber）
+   * @param {string} content - 评论内容
+   * @returns {Object|null} 更新后的任务
+   */
+  addComment(taskId, content) {
+    const task = this._findTask(taskId);
+    if (!task) return null;
+
+    const comments = task.comments || [];
+    comments.push({
+      content: content,
+      createdAt: dayjs().toISOString()
     });
+
+    return this.updateTask(task.id, { comments });
+  }
+
+  /**
+   * 获取任务的最近 N 条评论
+   * @param {string} taskId - 任务 ID
+   * @param {number} limit - 返回数量，默认3
+   * @returns {Array} 评论列表
+   */
+  getTaskComments(taskId, limit = 3) {
+    const task = this._findTask(taskId);
+    if (!task || !task.comments) return [];
+
+    return task.comments.slice(-limit);
   }
 
   /**
@@ -286,31 +354,40 @@ class TaskManager {
   }
 
   /**
-   * 分配待办编号（最小可用编号）
+   * 分配待办编号（1-100，完成/取消时回收，新任务从最大+1，超过100从1找空号）
    * @returns {number} 待办编号
    */
   _allocateTodoNumber() {
     const tasks = this.storage.getTasks();
     const usedNumbers = tasks
-      .filter(t => t.status === 'pending' && t.todoNumber)
+      .filter(t => t.status === 'pending' && t.todoNumber && t.todoNumber > 0)
       .map(t => t.todoNumber)
       .sort((a, b) => a - b);
 
-    // 找到最小的未使用编号
-    let number = 1;
-    for (const used of usedNumbers) {
-      if (used === number) {
-        number++;
-      } else {
-        break;
+    // 先尝试从最大编号+1开始
+    let maxUsed = usedNumbers.length > 0 ? Math.max(...usedNumbers) : 0;
+    
+    // 如果小于100，从最大+1开始找
+    if (maxUsed < 100) {
+      const nextNumber = maxUsed + 1;
+      if (!usedNumbers.includes(nextNumber)) {
+        return nextNumber;
       }
     }
 
-    return number;
+    // 否则从1开始找空号
+    for (let i = 1; i <= 100; i++) {
+      if (!usedNumbers.includes(i)) {
+        return i;
+      }
+    }
+
+    // 如果1-100都满了，返回null（理论上不太可能）
+    return null;
   }
 
   /**
-   * 释放待办编号（标记为可重用）
+   * 释放待办编号（标记为可重用，设置为0表示已回收）
    * @param {number} todoNumber - 待办编号
    */
   _releaseTodoNumber(todoNumber) {

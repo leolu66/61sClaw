@@ -255,10 +255,29 @@ ${'─'.repeat(40)}
 
       const deadline = dayjs(task.deadline).format('MM-DD HH:mm');
       const overdueFlag = showOverdue ? '⚠️ ' : '';
-      const todoNum = task.todoNumber ? `[${task.todoNumber}]` : '';
+      const todoNum = task.todoNumber > 0 ? `[${task.todoNumber}]` : '';
 
       return `  ${overdueFlag}${todoNum} ${priorityEmoji[task.priority]} ${typeEmoji[task.type]} ${task.title} (${deadline})`;
     }).join('\n');
+  }
+
+  /**
+   * 格式化评论列表
+   */
+  static _formatComments(comments, limit = 3) {
+    if (!comments || comments.length === 0) return '';
+    
+    const recentComments = comments.slice(-limit);
+    let output = '\n💬 最新评论:\n';
+    
+    recentComments.forEach((c, i) => {
+      const actionText = c.action === 'completed' ? '[完成]' : 
+                        c.action === 'cancelled' ? '[取消]' : '';
+      const time = dayjs(c.createdAt).format('MM-DD HH:mm');
+      output += `  ${i + 1}. ${actionText} ${c.content} (${time})\n`;
+    });
+    
+    return output;
   }
 
   /**
@@ -292,7 +311,7 @@ ${'─'.repeat(40)}
 📋 任务详情
 ${'='.repeat(50)}
 唯一编号: ${task.uniqueId || 'N/A'}
-${task.todoNumber ? `待办编号: ${task.todoNumber}` : ''}
+${task.todoNumber > 0 ? `待办编号: [${task.todoNumber}]` : ''}
 标题: ${task.title}
 ${task.description ? `描述: ${task.description}` : ''}
 类型: ${typeEmoji[task.type]}
@@ -303,6 +322,11 @@ ${task.description ? `描述: ${task.description}` : ''}
 ${task.completedAt ? `完成时间: ${dayjs(task.completedAt).format('YYYY-MM-DD HH:mm')}` : ''}
 ${'='.repeat(50)}
     `.trim();
+
+    // 添加评论
+    if (task.comments && task.comments.length > 0) {
+      output += this._formatComments(task.comments);
+    }
 
     return output;
   }

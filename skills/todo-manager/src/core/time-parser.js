@@ -102,7 +102,7 @@ class TimeParser {
   }
 
   /**
-   * 判断任务类型（daily/weekly/monthly）
+   * 判断任务类型（daily/weekly/monthly/annual）
    * @param {string} deadline - ISO 8601 格式的截止时间
    * @returns {string} 任务类型
    */
@@ -113,7 +113,19 @@ class TimeParser {
 
     if (diffDays <= 1) return 'daily';
     if (diffDays <= 7) return 'weekly';
-    return 'monthly';
+    if (diffDays <= 365) return 'monthly';
+    return 'annual';
+  }
+
+  /**
+   * 判断是否为年度任务（超过365天）
+   * @param {string} deadline - ISO 8601 格式的截止时间
+   * @returns {boolean} 是否为年度任务
+   */
+  static isAnnualTask(deadline) {
+    const now = dayjs();
+    const target = dayjs(deadline);
+    return target.diff(now, 'day') > 365;
   }
 }
 

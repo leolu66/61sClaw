@@ -10,9 +10,10 @@
 - "创建任务" / "新建任务" / "添加任务"
 - "查看任务" / "显示任务" / "任务列表"
 - "完成任务" / "标记完成"
-- "删除任务" / "取消任务"
+- "取消任务" / "删除任务"
 - "查看逾期任务"
 - "调整任务时间"
+- "评论任务"
 
 ## 使用方法
 
@@ -28,7 +29,7 @@ const task = manager.createTask({
   deadline: '明天',  // 支持：今天/明天/周三/3月2日/2026-03-02
   priority: 'high',  // high/medium/low，可选，默认 medium
   reminderStrategy: {
-    type: 'daily',  // daily/weekly/monthly，可选，会自动推断
+    type: 'daily',  // daily/weekly/monthly/annual，可选，会自动推断
     frequency: 'once',  // 见下方策略说明
     exceptions: {
       workHoursOnly: false,  // 仅工作时间提醒
@@ -77,11 +78,19 @@ manager.updateTask(taskId, {
   priority: 'high'
 });
 
-// 完成任务
+// 完成任务（可带评论）
 manager.completeTask(taskId);
+manager.completeTask(taskId, '已完成，原因...');
 
-// 取消任务
+// 取消任务（可带评论）
 manager.cancelTask(taskId);
+manager.cancelTask(taskId, '取消原因...');
+
+// 添加评论
+manager.addComment(taskId, '这是评论内容');
+
+// 查看任务评论
+const comments = manager.getTaskComments(taskId);
 ```
 
 ### 4. 删除任务
@@ -89,6 +98,26 @@ manager.cancelTask(taskId);
 ```javascript
 manager.deleteTask(taskId);
 ```
+
+## 快速编号
+
+待办任务会自动分配 1-100 的快速编号：
+
+- 查看任务时显示编号：`[1] 参加基金会会议`
+- 操作任务时可用编号代替 ID：`完成 1` → 完成编号为1的任务
+- 完成任务或取消任务时，编号会被回收
+- 新任务从当前最大编号+1，超过100则从1开始找空号
+
+## 时限类型
+
+| 类型 | 说明 | 提醒策略 |
+|------|------|----------|
+| daily | 1天内 | 每天提醒 |
+| weekly | 2-7天 | 每周提醒 |
+| monthly | 8-365天 | 每月提醒 |
+| annual | 超过365天 | **不提醒**，仅显示 |
+
+年度任务的截止时间会自动设为当年12月31日，只在任务列表中显示，不触发提醒。
 
 ## 提醒策略说明
 
@@ -111,6 +140,11 @@ manager.deleteTask(taskId);
 - `someday` - 一个月内某天提醒（默认每月 1 号 10:00）
 - `everyMonday` - 每周一早上 10:00 提醒
 - `everyday` - 每天早上 9:00 提醒
+
+### 年度任务策略 (type: 'annual')
+
+- **不提醒**，只在任务列表中显示
+- 适用于超过1年的长期任务
 
 ### 例外控制
 
@@ -152,6 +186,8 @@ node ~/.openclaw/workspace-main/skills/todo-manager/scripts/heartbeat-check.js
   "tasks": [
     {
       "id": "uuid",
+      "uniqueId": "20260302-001",
+      "todoNumber": 1,
       "title": "任务标题",
       "description": "详细描述",
       "type": "work",
@@ -172,6 +208,13 @@ node ~/.openclaw/workspace-main/skills/todo-manager/scripts/heartbeat-check.js
           "sent": false,
           "sentAt": null
         }
+      ],
+      "comments": [
+        {
+          "content": "评论内容",
+          "createdAt": "2026-03-02T10:00:00+08:00",
+          "action": "completed"
+        }
       ]
     }
   ],
@@ -184,6 +227,11 @@ node ~/.openclaw/workspace-main/skills/todo-manager/scripts/heartbeat-check.js
   }
 }
 ```
+
+**字段说明**：
+- `uniqueId`: 唯一编号（日期+序号）
+- `todoNumber`: 快速编号（1-100，完成/取消后回收为0）
+- `comments`: 评论数组，包含 `content`、`createdAt`、`action`（completed/cancelled）
 
 ## 示例场景
 

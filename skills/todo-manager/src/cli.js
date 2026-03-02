@@ -55,24 +55,41 @@ async function handleTaskRequest(action, params = {}) {
       }
 
       case 'complete': {
-        const task = manager.completeTask(params.taskId);
+        const task = manager.completeTask(params.taskId, params.comment || null);
         if (!task) {
           return { success: false, message: '❌ 任务不存在' };
         }
+        const msg = params.comment 
+          ? `✅ 任务已完成：${task.title}\n💬 备注：${params.comment}`
+          : `✅ 任务已完成：${task.title}`;
         return {
           success: true,
-          message: `✅ 任务已完成：${task.title}`
+          message: msg
         };
       }
 
       case 'cancel': {
-        const task = manager.cancelTask(params.taskId);
+        const task = manager.cancelTask(params.taskId, params.comment || null);
+        if (!task) {
+          return { success: false, message: '❌ 任务不存在' };
+        }
+        const msg = params.comment 
+          ? `❌ 任务已取消：${task.title}\n💬 备注：${params.comment}`
+          : `❌ 任务已取消：${task.title}`;
+        return {
+          success: true,
+          message: msg
+        };
+      }
+
+      case 'comment': {
+        const task = manager.addComment(params.taskId, params.content);
         if (!task) {
           return { success: false, message: '❌ 任务不存在' };
         }
         return {
           success: true,
-          message: `❌ 任务已取消：${task.title}`
+          message: `💬 已添加评论到任务：${task.title}`
         };
       }
 

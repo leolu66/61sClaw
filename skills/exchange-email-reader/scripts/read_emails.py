@@ -18,15 +18,31 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 import os
+import subprocess
 
-# 邮箱配置（从环境变量读取）
+# 邮箱配置（优先从环境变量读取，否则从 vault 获取）
 EMAIL = os.environ.get("XTC_EXCHANGE_EMAIL", "0027025600@iwhalecloud.com")
 USERNAME = os.environ.get("XTC_EXCHANGE_USERNAME", "0027025600")
 PASSWORD = os.environ.get("XTC_EXCHANGE_PASSWORD", "")
 SERVER = os.environ.get("XTC_EXCHANGE_SERVER", "mail.iwhalecloud.com")
 
+# 如果环境变量没有密码，尝试从 vault 获取
 if not PASSWORD:
-    raise ValueError('请设置环境变量 XTC_EXCHANGE_PASSWORD')
+    try:
+        result = subprocess.run(
+            ["python", os.path.join(os.path.dirname(__file__), "..", "..", "vault", "scripts", "__main__.py"), "query", "email"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            encoding='utf-8'
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            PASSWORD = result.stdout.strip()
+    except Exception as e:
+        print(f"从 vault 获取密码失败: {e}", file=sys.stderr)
+
+if not PASSWORD:
+    raise ValueError('请设置环境变量 XTC_EXCHANGE_PASSWORD 或在 vault 中保存邮箱密码')
 
 def get_account():
     """建立 Exchange 连接"""
@@ -103,22 +119,33 @@ def read_emails(limit=10, unread_only=False, folder_name='inbox', search_keyword
         folder_name: 文件夹名称
         search_keyword: 搜索关键词
         full_body: 是否返回完整正文（默认False只返回200字符预览）
+    
+    注意：当 unread_only=True 且未读数量为0时，也会返回最近7封邮件
     """
     account = get_account()
     folder = get_folder(account, folder_name)
 
-    # 构建查询
+    # 先获取所有邮件（用于判断未读数量）
+    all_items = folder.all().order_by('-datetime_received')
+    
+    # 获取未读邮件
+    unread_items = folder.filter(is_read=False).order_by('-datetime_received')
+    unread_count = unread_items.count()
+    
     if unread_only:
-        items = folder.filter(is_read=False)
+        # 如果有未读邮件，返回未读的
+        if unread_count > 0:
+            items = unread_items[:limit]
+        else:
+            # 未读为0时，返回最近7封
+            items = all_items[:7]
     else:
-        items = folder.all()
+        # 非未读模式，返回最近的
+        items = all_items[:limit]
 
     # 搜索关键词
     if search_keyword:
         items = items.filter(subject__contains=search_keyword)
-
-    # 按时间倒序排列，限制数量
-    items = items.order_by('-datetime_received')[:limit]
 
     emails = []
     for item in items:

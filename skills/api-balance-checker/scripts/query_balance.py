@@ -115,7 +115,7 @@ def print_comparison(result):
         print("## 当前余额")
         print("| 已使用费用 | 剩余额度 | 请求次数 |")
         print("| ---------- | -------- | -------- |")
-        print(f"| **\${used_val}** | **\${remaining_val}** | **{current_requests}** |")
+        print(f"| **￥{used_val}** | **￥{remaining_val}** | **{current_requests}** |")
         
         # ========== 与上次对比 ==========
         is_different_day = (last_time_dt.date() != datetime.now().date())
@@ -130,14 +130,14 @@ def print_comparison(result):
         
         # 余额差
         if is_different_day and platform_key == "whalecloud":
-            print(f"- **系统充值**：基准 \$100（每日重置）")
+            print(f"- **系统充值**：基准 ￥100（每日重置）")
         
         if remaining_val and baseline:
             diff = remaining_val - baseline
             if diff < 0:
-                print(f"- **余额**：- \${abs(diff):.2f}")
+                print(f"- **余额**：- ￥{abs(diff):.2f}")
             elif diff > 0:
-                print(f"- **余额**：+ \${diff:.2f}")
+                print(f"- **余额**：+ ￥{diff:.2f}")
             else:
                 print(f"- **余额**：不变")
         
@@ -167,7 +167,7 @@ def print_comparison(result):
         print("## 当前余额")
         print("| 已使用费用 | 剩余额度 | 请求次数 |")
         print("| ---------- | -------- | -------- |")
-        print(f"| **\${used_val}** | **\${remaining_val}** | **{current_requests}** |")
+        print(f"| **￥{used_val}** | **￥{remaining_val}** | **{current_requests}** |")
         print()
         print("## 与上次对比")
         print("- **时间间隔**：首次查询")
