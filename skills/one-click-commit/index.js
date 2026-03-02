@@ -36,15 +36,31 @@ function parseArgs() {
   };
   
   let currentKey = null;
+  let currentValue = '';
+  
   args.forEach(arg => {
     if (arg.startsWith('--')) {
+      // 保存之前的值
+      if (currentKey && currentValue) {
+        const items = currentValue.split(/[,，;；]/).filter(s => s.trim());
+        if (currentKey === 'tasks') result.tasks.push(...items);
+        else if (currentKey === 'problems') result.problems.push(...items);
+        else if (currentKey === 'experiences') result.experiences.push(...items);
+      }
       currentKey = arg.replace('--', '');
-    } else if (currentKey && arg) {
-      if (currentKey === 'tasks') result.tasks.push(arg);
-      else if (currentKey === 'problems') result.problems.push(arg);
-      else if (currentKey === 'experiences') result.experiences.push(arg);
+      currentValue = '';
+    } else if (arg && currentKey) {
+      currentValue += (currentValue ? ' ' : '') + arg;
     }
   });
+  
+  // 处理最后一个
+  if (currentKey && currentValue) {
+    const items = currentValue.split(/[,，;；]/).filter(s => s.trim());
+    if (currentKey === 'tasks') result.tasks.push(...items);
+    else if (currentKey === 'problems') result.problems.push(...items);
+    else if (currentKey === 'experiences') result.experiences.push(...items);
+  }
   
   return result;
 }
