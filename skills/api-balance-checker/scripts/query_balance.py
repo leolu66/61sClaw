@@ -178,9 +178,11 @@ def print_comparison(result):
         print(f"- **时间间隔**：{time_str}")
         
         if is_yesterday and platform_key == "whalecloud":
-            print(f"- **基准重置**：跨天已重置，基准 ¥100{baseline_label}")
+            # 跨天：计算实际重置金额 = 已使用 + 剩余
+            reset_amount = (used_val or 0) + (remaining_val or 0)
+            print(f"- **基准重置**：跨天已重置，基准 ¥{reset_amount:.2f}")
         
-        # 已使用费用差（更直观）
+        # 已使用费用差（只显示这个，余额变化与已使用是此消彼长的关系）
         last_used_val = parse_amount(last_used)
         if used_val is not None and last_used_val is not None:
             used_diff = used_val - last_used_val
@@ -190,16 +192,6 @@ def print_comparison(result):
                 print(f"- **已使用**：-{abs(used_diff):.2f}")
             else:
                 print(f"- **已使用**：不变")
-        
-        # 余额差
-        if remaining_val and balance_baseline:
-            diff = remaining_val - balance_baseline
-            if diff < 0:
-                print(f"- **余额变化**：-{abs(diff):.2f}")
-            elif diff > 0:
-                print(f"- **余额变化**：+{diff:.2f}")
-            else:
-                print(f"- **余额变化**：不变")
         
         # 调用次数差
         current_requests_num = current_requests
