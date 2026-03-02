@@ -24,12 +24,12 @@ async function handleTaskRequest(action, params = {}) {
       }
 
       case 'list': {
-        const { groupBy = 'time', status = 'pending', type = null, ...filters } = params;
+        const { groupBy = 'table', status = 'pending', type = null, ...filters } = params;
         const tasks = manager.getTasks({ status, type, ...filters });
-        let output = TaskFormatter.format(tasks, groupBy, status, type, true);
+        let output = TaskFormatter.format(tasks, groupBy, status, type, groupBy !== 'table');
         
-        // 添加重要提醒（仅对待办任务）
-        if (status === 'pending') {
+        // 表格模式不显示重要提醒
+        if (groupBy !== 'table' && status === 'pending') {
           const reminders = _generateReminders(tasks);
           if (reminders) {
             output += '\n\n' + '─'.repeat(40) + '\n' + reminders;

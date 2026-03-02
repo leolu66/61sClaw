@@ -4,7 +4,7 @@ class TaskFormatter {
   /**
    * 按时间范围和类型分组显示任务
    * @param {Array} tasks - 任务列表
-   * @param {string} groupBy - 分组方式（time/type/priority）
+   * @param {string} groupBy - 分组方式（time/type/priority/table）
    * @param {string} statusFilter - 状态过滤（pending/completed/cancelled）
    * @param {string} typeFilter - 类型过滤（work/personal/study/other）
    * @param {boolean} showLegend - 是否显示图例
@@ -17,9 +17,11 @@ class TaskFormatter {
 
     let output = '';
     
-    // 根据状态设置标题
-    const title = this._getStatusTitle(statusFilter, tasks.length, typeFilter);
-    output += title + '\n';
+    // 表格模式不需要标题
+    if (groupBy !== 'table') {
+      const title = this._getStatusTitle(statusFilter, tasks.length, typeFilter);
+      output += title + '\n';
+    }
     
     switch (groupBy) {
       case 'time':
@@ -31,11 +33,14 @@ class TaskFormatter {
       case 'priority':
         output += this._formatByPriority(tasks);
         break;
+      case 'table':
+        output += this._formatAsTable(tasks);
+        break;
       default:
         output += this._formatByTime(tasks);
     }
 
-    if (showLegend) {
+    if (showLegend && groupBy !== 'table') {
       output += '\n\n' + this._getLegend();
     }
 
@@ -44,10 +49,6 @@ class TaskFormatter {
 
   /**
    * 根据状态获取标题
-   * @param {string} statusFilter - 状态过滤
-   * @param {number} count - 任务数量
-   * @param {string} typeFilter - 类型过滤（work/personal/study）
-   * @returns {string} 标题文本
    */
   static _getStatusTitle(statusFilter, count, typeFilter = null) {
     const typeTitles = {
@@ -83,7 +84,6 @@ class TaskFormatter {
 
   /**
    * 获取图例说明
-   * @returns {string} 图例文本
    */
   static _getLegend() {
     return `
@@ -156,6 +156,99 @@ ${'─'.repeat(40)}
     if (groups.later.length > 0) {
       output += '\n🔮 更晚\n';
       output += this._formatTaskList(groups.later);
+    }
+
+    return output.trim();
+  }
+
+  /**
+   * 格式化为表格（无表头）
+   * 字段：编号，优先级，类别，内容，截止时间
+   */
+  static _formatAsTable(tasks) {
+    const now = dayjs();
+    
+    // 先按时间段分组，再按截止时间排序
+    const groups = {
+      today: [],
+      tomorrow: [],
+      thisWeek: [],
+      thisMonth: [],
+      later: []
+    };
+
+    tasks.forEach(task => {
+      const deadline = dayjs(task.deadline);
+      
+      if (deadline.isSame(now, 'day')) {
+        groups.today.push(task);
+      } else if (deadline.isSame(now.add(1, 'day'), 'day')) {
+        groups.tomorrow.push(task);
+      } else if (deadline.isSame(now, 'week')) {
+        groups.thisWeek.push(task);
+      } else if (deadline.isSame(now, 'month')) {
+        groups.thisMonth.push(task);
+      } else {
+        groups.later.push(task);
+      }
+    });
+
+    const priorityMap = {
+      high: '高',
+      medium: '中',
+      low: '低'
+    };
+
+    const typeMap = {
+      work: '工作',
+      personal: '个人',
+      study: '学习',
+      other: '其他'
+    };
+
+    let output = '';
+
+    // 今天
+    if (groups.today.length > 0) {
+      groups.today.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+      groups.today.forEach(task => {
+        output += `${task.todoNumber || ''} | ${priorityMap[task.priority] || ''} | ${typeMap[task.type] || ''} | ${task.title || ''} | 今天\n`;
+      });
+    }
+
+    // 明天
+    if (groups.tomorrow.length > 0) {
+      groups.tomorrow.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+      groups.tomorrow.forEach(task => {
+        output += `${task.todoNumber || ''} | ${priorityMap[task.priority] || ''} | ${typeMap[task.type] || ''} | ${task.title || ''} | 明天\n`;
+      });
+    }
+
+    // 本周
+    if (groups.thisWeek.length > 0) {
+      groups.thisWeek.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+      groups.thisWeek.forEach(task => {
+        const dd = dayjs(task.deadline).format('MM-DD');
+        output += `${task.todoNumber || ''} | ${priorityMap[task.priority] || ''} | ${typeMap[task.type] || ''} | ${task.title || ''} | 本周(${dd})\n`;
+      });
+    }
+
+    // 本月
+    if (groups.thisMonth.length > 0) {
+      groups.thisMonth.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+      groups.thisMonth.forEach(task => {
+        const dd = dayjs(task.deadline).format('MM-DD');
+        output += `${task.todoNumber || ''} | ${priorityMap[task.priority] || ''} | ${typeMap[task.type] || ''} | ${task.title || ''} | 本月(${dd})\n`;
+      });
+    }
+
+    // 长期
+    if (groups.later.length > 0) {
+      groups.later.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+      groups.later.forEach(task => {
+        const dd = dayjs(task.deadline).format('MM-DD');
+        output += `${task.todoNumber || ''} | ${priorityMap[task.priority] || ''} | ${typeMap[task.type] || ''} | ${task.title || ''} | ${dd}\n`;
+      });
     }
 
     return output.trim();
