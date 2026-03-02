@@ -1,0 +1,375 @@
+{
+  "tasks": [
+    {
+      "id": "a17a03e9-8699-4977-a036-60fafde804c6",
+      "title": "编写一个运营商新闻采集Agent",
+      "description": "获取运营商行业新闻和通信类微信公众号文章。当用户需要查询运营商新闻、通信行业资讯时使用此技能。支持从C114通信网等网站获取新闻，支持获取指定公众号的文章。",
+      "type": "study",
+      "deadline": "2026-03-07T15:59:59.999Z",
+      "priority": "medium",
+      "status": "pending",
+      "createdAt": "2026-02-28T19:49:17.657Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "weekly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "uniqueId": "20260228-002",
+      "todoNumber": 3
+    },
+    {
+      "id": "289ffe5e-2087-4347-a323-25144a5cab91",
+      "title": "网上申报个人所得税",
+      "description": "",
+      "type": "personal",
+      "deadline": "2026-03-03T15:59:59.999Z",
+      "priority": "medium",
+      "status": "pending",
+      "createdAt": "2026-02-28T19:50:58.497Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "weekly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "uniqueId": "20260228-003",
+      "todoNumber": 4
+    },
+    {
+      "id": "bc11d49c-9c85-4ca5-b384-2b22cb740a24",
+      "title": "研究OpenClaw通信问题",
+      "description": "研究两个OpenClaw之间互相通信的问题，或者OpenClaw和Claude Code之间互相通信的问题",
+      "type": "study",
+      "deadline": "2026-03-31T15:59:59.999Z",
+      "priority": "medium",
+      "status": "pending",
+      "createdAt": "2026-02-28T19:52:28.542Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "monthly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "uniqueId": "20260228-004",
+      "todoNumber": 5
+    },
+    {
+      "id": "1b838b1f-b475-4b6d-b454-819f0e57dda0",
+      "title": "软院出海合作伙伴交流",
+      "description": "需要整理材料提交，当周还需要交流",
+      "type": "work",
+      "deadline": "2026-03-14T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-02-28T19:53:49.262Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "monthly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "uniqueId": "20260228-005",
+      "todoNumber": 6
+    },
+    {
+      "id": "8cde7a83-c523-4907-8203-6a100fc49c37",
+      "title": "火山引擎方案整理",
+      "description": "客户希望能把业界主流的厂商和方案做一个对标呈现，最好是和运营商IT支撑紧密结合的干货。现在的方案达不到这个要求。",
+      "type": "work",
+      "deadline": "2026-03-14T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-02-28T19:55:01.655Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "monthly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "uniqueId": "20260228-006",
+      "todoNumber": 7,
+      "comments": [
+        {
+          "content": "客户希望能把业界主流的厂商和方案做一个对标呈现，最好是和运营商IT支撑紧密结合的干货。现在的方案达不到这个要求，要改下。",
+          "createdAt": "2026-03-02T15:16:06.830Z"
+        }
+      ]
+    },
+    {
+      "id": "a3d8b2e5-3f09-4583-b614-6ef22cbc9258",
+      "uniqueId": "20260301-001",
+      "todoNumber": null,
+      "title": "测试编号系统",
+      "description": "",
+      "type": "work",
+      "deadline": "2026-03-02T15:59:59.999Z",
+      "priority": "medium",
+      "status": "completed",
+      "createdAt": "2026-02-28T20:00:31.803Z",
+      "completedAt": "2026-02-28T20:00:32.606Z",
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "09:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-02T01:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "129e34c4-5589-4be3-8433-a2fe7658b875",
+      "uniqueId": "20260301-002",
+      "todoNumber": null,
+      "title": "新任务会复用编号1",
+      "description": "",
+      "type": "other",
+      "deadline": "2026-03-02T15:59:59.999Z",
+      "priority": "medium",
+      "status": "completed",
+      "createdAt": "2026-02-28T20:00:33.068Z",
+      "completedAt": "2026-02-28T20:05:45.115Z",
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "09:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-02T01:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "849bfa49-6c1a-49f2-89d6-80367b3cf486",
+      "uniqueId": "20260301-003",
+      "todoNumber": 1,
+      "title": "研究调度特殊模型访问",
+      "description": "研究语音、OCR、图像、视频等处理模型的调度访问；以及是否可以在 OpenClaw 里面调度 Gemini 和 ChatGPT 的模型",
+      "type": "study",
+      "deadline": "2026-03-31T15:59:59.999Z",
+      "priority": "low",
+      "status": "pending",
+      "createdAt": "2026-02-28T20:12:53.343Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "monthly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "c3ae0dc8-a5d9-45e9-b044-892a133a927a",
+      "uniqueId": "20260301-004",
+      "todoNumber": 0,
+      "title": "一日三餐",
+      "description": "早餐稀饭，午餐吃火锅，晚餐吃辣椒炒肉丝",
+      "type": "personal",
+      "deadline": "2026-03-01T15:59:59.999Z",
+      "priority": "low",
+      "status": "completed",
+      "createdAt": "2026-02-28T20:28:41.971Z",
+      "completedAt": "2026-03-01T12:51:00.000Z",
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "09:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-01T01:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "4c39d05e-923d-4174-9d31-12611719697f",
+      "uniqueId": "20260301-005",
+      "todoNumber": null,
+      "title": "陪东总见客户",
+      "description": "陪东总去，可能去见一下客户",
+      "type": "work",
+      "deadline": "2026-03-03T15:59:59.999Z",
+      "priority": "high",
+      "status": "cancelled",
+      "createdAt": "2026-02-28T20:31:20.966Z",
+      "completedAt": "2026-02-28T20:32:17.341Z",
+      "reminderStrategy": {
+        "type": "weekly",
+        "frequency": "someday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "f8e2a1c5-9b3d-4f6e-8a21-7d5c3b9e4f12",
+      "uniqueId": "20260301-006",
+      "todoNumber": 0,
+      "title": "参加基金会的会议",
+      "description": "地点：绿地启航国际 6 号楼",
+      "type": "work",
+      "deadline": "2026-03-02T15:00:00.000Z",
+      "priority": "high",
+      "status": "completed",
+      "createdAt": "2026-03-01T12:47:00.000Z",
+      "completedAt": "2026-03-02T14:50:49.879Z",
+      "reminderStrategy": {
+        "type": "once",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "14:30"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-02T06:30:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "comments": [
+        {
+          "content": "已完成，现场参加了会议",
+          "createdAt": "2026-03-02T14:50:49.879Z",
+          "action": "completed"
+        }
+      ]
+    },
+    {
+      "id": "37cfeae3-64ab-4f7a-ba75-f0e953171121",
+      "uniqueId": "20260302-001",
+      "todoNumber": 8,
+      "title": "去软院交流，找魏尔希",
+      "description": "讨论两个话题：一是26年部门AI计划的整体推进，二是AI全链路研发体系的建设",
+      "type": "work",
+      "deadline": "2026-03-03T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-03-02T15:14:34.718Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "09:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-03T01:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ],
+      "comments": []
+    },
+    {
+      "id": "d78c99e3-18ed-496a-9b87-2df0585a1dbc",
+      "uniqueId": "20260302-002",
+      "todoNumber": 9,
+      "title": "写Paper",
+      "description": "",
+      "type": "study",
+      "deadline": "2028-02-12T15:59:59.999Z",
+      "priority": "medium",
+      "status": "pending",
+      "createdAt": "2026-03-02T15:15:03.420Z",
+      "completedAt": null,
+      "reminderStrategy": null,
+      "reminders": [],
+      "comments": []
+    },
+    {
+      "id": "a5c78619-e2b9-483f-9136-918d8da0de54",
+      "uniqueId": "20260302-003",
+      "todoNumber": 10,
+      "title": "学习强化学习基础课程",
+      "description": "",
+      "type": "study",
+      "deadline": "2028-02-12T15:59:59.999Z",
+      "priority": "low",
+      "status": "pending",
+      "createdAt": "2026-03-02T15:15:03.423Z",
+      "completedAt": null,
+      "reminderStrategy": null,
+      "reminders": [],
+      "comments": []
+    }
+  ],
+  "config": {
+    "workHours": {
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "workdays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}
