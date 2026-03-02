@@ -27,27 +27,31 @@ function getTodayLogs() {
   });
 }
 
-function summarizeLogs(logs) {
-  // 简单总结：从日志中提取任务、问题、经验
-  const tasks = [];
-  const problems = [];
-  const experiences = [];
-
-  logs.forEach(log => {
-    // 提取任务（## 完成的任务 下的内容）
-    const taskMatch = log.content.match(/### 任务\d+：[^\n]+/g);
-    if (taskMatch) {
-      tasks.push(...taskMatch.map(t => t.replace(/### 任务\d+：/, '')));
-    }
-    
-    // 提取问题
-    const probMatch = log.content.match(/\| 问题\d+ \|[^|]+ \|/g);
-    if (probMatch) {
-      problems.push(...probMatch.map(p => p.split('|')[1]?.trim()).filter(Boolean));
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const result = {
+    tasks: [],
+    problems: [],
+    experiences: []
+  };
+  
+  let currentKey = null;
+  args.forEach(arg => {
+    if (arg.startsWith('--')) {
+      currentKey = arg.replace('--', '');
+    } else if (currentKey && arg) {
+      if (currentKey === 'tasks') result.tasks.push(arg);
+      else if (currentKey === 'problems') result.problems.push(arg);
+      else if (currentKey === 'experiences') result.experiences.push(arg);
     }
   });
+  
+  return result;
+}
 
-  return { tasks, problems, experiences };
+function summarizeCurrentSession() {
+  // 从命令行参数获取总结
+  return parseArgs();
 }
 
 function updateMemory(summary) {
@@ -64,18 +68,18 @@ function updateMemory(summary) {
     content = fs.readFileSync(memoryFile, 'utf-8');
   }
 
-  // 添加今日总结
+  // 添加今日总结 - 需要用户输入或从会话上下文获取
   const summaryText = `
 ## 今日总结 (${today})
 
 ### 完成的任务
-${summary.tasks.map(t => `- ${t}`).join('\n') || '- 无'}
+${summary.tasks.length > 0 ? summary.tasks.map(t => `- ${t}`).join('\n') : '- 请在"提交"时告知当前完成的任务'}
 
 ### 遇到的问题
-${summary.problems.map(p => `- ${p}`).join('\n') || '- 无'}
+${summary.problems.length > 0 ? summary.problems.map(p => `- ${p}`).join('\n') : '- 无'}
 
 ### 经验教训
-${summary.experiences.map(e => `- ${e}`).join('\n') || '- 无'}
+${summary.experiences.length > 0 ? summary.experiences.map(e => `- ${e}`).join('\n') : '- 无'}
 `;
 
   // 如果文件已存在，追加；否则创建
@@ -126,11 +130,15 @@ async function main() {
     log('请先通过 "记录工作日志" 创建日志\n');
   } else {
     log(`找到 ${logs.length} 个日志文件`);
-    
-    // 第2步：总结并写入记忆
-    log('总结并写入记忆...');
-    const summary = summarizeLogs(logs);
+  }
+  
+  // 第2步：总结当前会话并写入记忆
+  log('总结当前会话并写入记忆...');
+  const summary = summarizeCurrentSession();
+  if (summary.tasks.length > 0 || summary.problems.length > 0 || summary.experiences.length > 0) {
     updateMemory(summary);
+  } else {
+    log('提示: 可使用 --tasks "任务1;任务2" --problems "问题" --experiences "经验" 传入总结');
   }
 
   // 第3步：Git 同步
