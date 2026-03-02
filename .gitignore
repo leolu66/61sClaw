@@ -1,20 +1,21 @@
-# Python
+# Python cache
 __pycache__/
-*.py[cod]
-*$py.class
-*.
-env/
-venvso
-.Python/
-*.egg-info/
-dist/
-build/
+*.pyc
+*.pyo
 
-# OpenClaw
-.openclaw/
-workspace-state.json
-*.db
-*.db-journal
+# Debug and test files
+debug*.py
+test*.py
+*_debug.py
+*_backup.py
+*_old.py
+check_balance*.py
+fix_*.py
+query_balance_*.py
+
+# Skill data (user-specific, not synced)
+skills/*/data/
+skills/*/node_modules/
 
 # IDE
 .vscode/
@@ -22,42 +23,19 @@ workspace-state.json
 *.swp
 *.swo
 
+# Logs
+*.log
+logs/
+
+# Memory and personal notes (user-specific, not synced)
+memory/
+TOOLS.md
+
 # OS
 .DS_Store
 Thumbs.db
 
-# 临时文件
-*.log
+# Temporary files
+tmp/
+temp/
 *.tmp
-
-# AI 特有文件（不同设备不同，不上传 GitHub）
-SOUL.md
-IDENTITY.md
-USER.md
-MEMORY.md
-TOOLS.md
-AGENTS.md
-BOOTSTRAP.md
-HEARTBEAT.md
-
-# 技能构建产物（自动生成，不纳入版本管理）
-*.skill
-
-# Node.js 依赖（不纳入版本管理）
-node_modules/
-
-# 个人数据和状态文件（包含敏感信息）
-datas/
-
-# 工作日志（本地记录，不同设备不同）
-logs/
-
-# 记忆目录（本地记录，不同设备不同）
-memory/
-
-# 过程性文件（分析报告、图表等，自动生成）
-agfiles/*.md
-agfiles/*.png
-agfiles/*.jpg
-agfiles/billing_charts/
-agfiles/billing_report/

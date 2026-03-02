@@ -11,77 +11,114 @@ import sys
 import subprocess
 from pathlib import Path
 
-# 模型数据文件路径（从 model-recommender 复制）
-MODELS_FILE = Path(__file__).parent.parent / "model-recommender" / "models-capabilities.json"
 
-# 模型配置（完整版，包含所有可用模型）
-MODELS = [
-    # WhaleCloud 代理（公司结算）- 🏢
-    {"name": "qwen3.5-flash", "alias": "QWen-Flash", "input": 0.8, "output": 8, "context": "1M", "tag": "性价比之王 🥇", "source": "whalecloud"},
-    {"name": "doubao-seed-2.0-mini", "alias": "Doubao-Mini", "input": 0.8, "output": 8, "context": "256K", "tag": "轻量快速 🥈", "source": "whalecloud"},
-    {"name": "MiniMax-M2.5", "alias": "MiniMax-M2.5", "input": 2.1, "output": 8.4, "context": "200K", "tag": "编程首选 🥉", "source": "whalecloud"},
-    {"name": "doubao-seed-2.0-lite", "alias": "Doubao-Lite", "input": 1.8, "output": 10.8, "context": "256K", "tag": "均衡性价比", "source": "whalecloud"},
-    {"name": "qwen3.5-plus", "alias": "QWen-Plus", "input": 2, "output": 12, "context": "1M", "tag": "长文多模态", "source": "whalecloud"},
-    {"name": "glm-4.7", "alias": "GLM-4.7", "input": 4, "output": 16, "context": "200K", "tag": "中文 Agentic", "source": "whalecloud"},
-    {"name": "glm-5", "alias": "GLM-5", "input": 6, "output": 22, "context": "200K", "tag": "旗舰编程 SOTA", "source": "whalecloud"},
-    {"name": "kimi-k2.5", "alias": "Kimi-K2.5", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "whalecloud"},
-    {"name": "doubao-seed-2.0-code", "alias": "Doubao-Code", "input": 9.6, "output": 48, "context": "256K", "tag": "专业编程", "source": "whalecloud"},
-    {"name": "doubao-seed-2.0-pro", "alias": "Doubao-Pro", "input": 20, "output": 80, "context": "256K", "tag": "高端选择", "source": "whalecloud"},
-    {"name": "claude-4.5-haiku", "alias": "Claude-4.5-Haiku", "input": 30, "output": 120, "context": "200K", "tag": "快速 Claude", "source": "whalecloud"},
-    {"name": "claude-4.5-sonnet", "alias": "Claude-4.5-Sonnet", "input": 60, "output": 240, "context": "200K", "tag": "最强 Claude", "source": "whalecloud"},
-    {"name": "qwen3.5-max", "alias": "QWen-Max", "input": 16, "output": 48, "context": "256K", "tag": "QWen 旗舰", "source": "whalecloud"},
-    {"name": "doubao-vision-pro", "alias": "Doubao-Vision-Pro", "input": 12, "output": 48, "context": "256K", "tag": "视觉理解", "source": "whalecloud"},
-    {"name": "doubao-vision-lite", "alias": "Doubao-Vision-Lite", "input": 3, "output": 12, "context": "256K", "tag": "视觉性价比", "source": "whalecloud"},
-    # 外部直连（自费）- 🌐
-    {"name": "moonshot/kimi-k2.5", "alias": "Kimi-K2.5 (Moonshot 直连)", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "external"},
-    {"name": "zhipu/glm-4.7", "alias": "GLM-4.7 (智谱直连)", "input": None, "output": None, "context": "200K", "tag": "资源包已购", "source": "external"},
-]
-
-# 默认模型
-DEFAULT_MODEL = "whalecloud/qwen3.5-plus"
-
-
-def get_current_model():
-    """获取当前使用的模型"""
+def get_configured_models():
+    """从 OpenClaw 配置获取实际可用的模型列表"""
     try:
-        # 从 openclaw models status 获取当前模型
         result = subprocess.run(
-            "openclaw models status --status-plain",
+            "openclaw models status",
             shell=True,
             capture_output=True,
             text=True,
             timeout=10
         )
-        if result.returncode == 0 and result.stdout:
-            # 解析输出，找到 Default 行
-            for line in result.stdout.split('\n'):
-                if line.startswith('Default'):
-                    return line.split(':')[1].strip()
-        return DEFAULT_MODEL
-    except:
-        return DEFAULT_MODEL
+        if result.returncode != 0:
+            return [], None
+        
+        models = []
+        current_model = None
+        
+        # 解析 Configured models 行
+        for line in result.stdout.split('\n'):
+            if line.startswith('Default'):
+                current_model = line.split(':', 1)[1].strip()
+            elif line.startswith('Configured models'):
+                # 提取冒号后的模型列表
+                models_part = line.split(':', 1)[1].strip()
+                # 解析逗号分隔的模型列表
+                for model in models_part.split(','):
+                    model = model.strip()
+                    if model:
+                        models.append(model)
+        
+        return models, current_model
+    except Exception as e:
+        print(f"⚠️ 无法获取配置模型：{e}")
+        return [], None
 
 
-def display_models(current_model):
+# 模型别名和价格信息（用于展示）
+MODEL_INFO = {
+    "whalecloud/qwen3.5-flash": {"alias": "QWen-Flash", "input": 0.8, "output": 8, "context": "1M", "tag": "性价比之王 🥇"},
+    "whalecloud/doubao-seed-2.0-mini": {"alias": "Doubao-Mini", "input": 0.8, "output": 8, "context": "256K", "tag": "轻量快速 🥈"},
+    "whalecloud/doubao-seed-2.0-lite": {"alias": "Doubao-Lite", "input": 1.8, "output": 10.8, "context": "256K", "tag": "均衡性价比"},
+    "whalecloud/MiniMax-M2.5": {"alias": "MiniMax-M2.5", "input": 2.1, "output": 8.4, "context": "200K", "tag": "编程首选 🥉"},
+    "whalecloud/qwen3.5-plus": {"alias": "QWen-Plus", "input": 2, "output": 12, "context": "1M", "tag": "长文多模态"},
+    "whalecloud/glm-4.7": {"alias": "GLM-4.7", "input": 4, "output": 16, "context": "200K", "tag": "中文 Agentic"},
+    "whalecloud/kimi-k2.5": {"alias": "Kimi", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态"},
+    "whalecloud/glm-5": {"alias": "GLM-5", "input": 6, "output": 22, "context": "200K", "tag": "旗舰编程 SOTA"},
+    "whalecloud/doubao-seed-2.0-code": {"alias": "Doubao-Code", "input": 9.6, "output": 48, "context": "256K", "tag": "专业编程"},
+    "whalecloud/doubao-seed-2.0-pro": {"alias": "Doubao-Pro", "input": 9.6, "output": 48, "context": "256K", "tag": "旗舰全能"},
+    "whalecloud/doubao-vision-lite": {"alias": "Doubao-Vision-Lite", "input": 3, "output": 12, "context": "256K", "tag": "视觉性价比"},
+    "whalecloud/doubao-vision-pro": {"alias": "Doubao-Vision-Pro", "input": 12, "output": 48, "context": "256K", "tag": "视觉理解"},
+    "whalecloud/qwen3.5-max": {"alias": "QWen-Max", "input": 16, "output": 48, "context": "256K", "tag": "QWen 旗舰"},
+    "whalecloud/claude-4.5-haiku": {"alias": "Claude-4.5-Haiku", "input": 30, "output": 120, "context": "200K", "tag": "快速 Claude"},
+    "whalecloud/claude-4.5-sonnet": {"alias": "Claude-4.5-Sonnet", "input": 60, "output": 240, "context": "200K", "tag": "最强 Claude"},
+    "whalecloud/claude-4.6-sonnet": {"alias": "Claude-4.6-Sonnet", "input": 24, "output": 120, "context": "200K", "tag": "高端专业"},
+    "moonshot/kimi-k2.5": {"alias": "Kimi (Moonshot 直连)", "input": 4, "output": 21, "context": "256K", "tag": "长输出多模态", "source": "external"},
+    "zhipu/glm-4.7": {"alias": "GLM-4.7 (智谱直连)", "input": None, "output": None, "context": "200K", "tag": "资源包已购", "source": "external"},
+    "zhipu/glm-5": {"alias": "GLM-5 (智谱直连)", "input": None, "output": None, "context": "256K", "tag": "资源包/自费", "source": "external"},
+}
+
+
+def get_model_display_info(model_id):
+    """获取模型的展示信息（别名、价格等）"""
+    info = MODEL_INFO.get(model_id, {})
+    alias = info.get('alias', model_id.split('/')[-1])
+    input_price = info.get('input')
+    output_price = info.get('output')
+    context = info.get('context', '未知')
+    tag = info.get('tag', '')
+    source = info.get('source', 'whalecloud')
+    
+    # 处理价格显示
+    if input_price is None or output_price is None:
+        price = "资源包"
+    else:
+        price = f"¥{input_price} / ¥{output_price}"
+    
+    # 处理来源图标
+    source_icon = "🌐" if source == 'external' else "🏢"
+    
+    return {
+        'id': model_id,
+        'alias': alias,
+        'price': price,
+        'context': context,
+        'tag': tag,
+        'source_icon': source_icon
+    }
+
+
+def display_models(models, current_model):
     """显示模型列表"""
+    if not models:
+        print("⚠️ 无法获取可用模型列表")
+        return
+    
     print("\n" + "="*100)
     print("🧠 可用模型列表\n")
     print(f"{'序号':<6} {'模型名称':<35} {'价格 (I/O)':<16} {'上下文':<10} {'来源':<8} {'定位':<20}")
     print("-"*100)
     
-    for i, model in enumerate(MODELS, 1):
-        # 处理资源包模型（无价格）
-        if model.get('input') is None or model.get('output') is None:
-            price = "资源包"
-        else:
-            price = f"¥{model['input']} / ¥{model['output']}"
-        
-        current_marker = " [当前使用]" if model['name'] in current_model or model['alias'] in current_model else ""
-        source_icon = "🌐" if model.get('source') == 'external' else "🏢"
-        print(f"{i:<6} {model['alias']:<35} {price:<16} {model['context']:<10} {source_icon:<8} {model['tag']:<20}{current_marker}")
+    for i, model_id in enumerate(models, 1):
+        info = get_model_display_info(model_id)
+        current_marker = " [当前使用]" if model_id == current_model else ""
+        print(f"{i:<6} {info['alias']:<35} {info['price']:<16} {info['context']:<10} {info['source_icon']:<8} {info['tag']:<20}{current_marker}")
     
     print("-"*100)
-    print(f"\n**当前使用**: {current_model}")
+    print(f"\n**当前使用**: {current_model or '未知'}")
+    print(f"**可用模型数**: {len(models)}")
     print("\n💡 **提示**: 直接回复序号 (如 `5`) 即可切换模型")
     print("🏢 = WhaleCloud 代理（公司结算） | 🌐 = 外部直连（自费/资源包）")
     print("="*100)
@@ -118,24 +155,29 @@ def switch_model(model_name):
 
 def main():
     """主函数"""
-    current_model = get_current_model()
+    # 动态获取实际配置的模型列表和当前模型
+    models, current_model = get_configured_models()
+    
+    if not models:
+        print("❌ 无法获取可用模型列表，请检查 OpenClaw 配置")
+        return
     
     # 显示模型列表
-    display_models(current_model)
+    display_models(models, current_model)
     
     # 如果提供了命令行参数，直接切换
     if len(sys.argv) > 1:
         model_index = sys.argv[1]
         try:
             idx = int(model_index)
-            if 1 <= idx <= len(MODELS):
-                model_name = MODELS[idx-1]['name']
+            if 1 <= idx <= len(models):
+                model_name = models[idx-1]
                 switch_model(model_name)
             elif idx == 0:
                 print("👋 已退出")
                 sys.exit(0)
             else:
-                print(f"❌ 无效序号：{idx}，请输入 1-{len(MODELS)} 之间的数字")
+                print(f"❌ 无效序号：{idx}，请输入 1-{len(models)} 之间的数字")
         except ValueError:
             print(f"❌ 无效输入：{model_index}，请输入数字")
         return
@@ -154,13 +196,13 @@ def main():
             
             idx = int(user_input)
             
-            if 1 <= idx <= len(MODELS):
-                model_name = MODELS[idx-1]['name']
+            if 1 <= idx <= len(models):
+                model_name = models[idx-1]
                 if switch_model(model_name):
                     # 切换成功后退出
                     break
             else:
-                print(f"❌ 无效序号：{idx}，请输入 1-{len(MODELS)} 之间的数字")
+                print(f"❌ 无效序号：{idx}，请输入 1-{len(models)} 之间的数字")
                 
         except ValueError:
             print("❌ 无效输入，请输入数字")
