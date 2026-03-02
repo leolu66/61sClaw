@@ -64,8 +64,14 @@ python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\script
    - 调用次数差 = 本次调用次数 - 0 = 本次调用次数（当日累计）
 
 3. **如果是跨天查询（昨天有记录，今天没有）**：
-   - WhaleCloud：基准重置为 ¥100，显示"基准重置"
+   - 重置金额 = 当天已使用 + 剩余额度（如 ¥50 + ¥150 = ¥200）
+   - 显示"基准重置"并计算重置后的变化
    - 其他平台：对比昨天最后的记录
+
+### 输出规则
+
+- **已使用** 和 **余额变化** 只显示一个（两者是此消彼长的关系，总额不变）
+- 推荐显示：**已使用**（更直观反映消耗速度）
 
 ### 输出示例
 
@@ -74,7 +80,6 @@ python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\script
 ## 与上次对比
 - **时间间隔**：15分钟前
 - **已使用**：+8.29
-- **余额变化**：-8.29
 - **调用次数**：+ 42 次
 ```
 
@@ -84,7 +89,6 @@ python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\script
 - **时间间隔**：2小时26分钟
 - **提示**：当天首次查询，基准为0点
 - **已使用**：+54.41
-- **余额变化**：-54.41
 - **调用次数**：+ 392 次
 ```
 
@@ -92,9 +96,8 @@ python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\script
 ```
 ## 与上次对比
 - **时间间隔**：8小时前
-- **基准重置**：跨天已重置，基准 ¥100
+- **基准重置**：¥200（已使用+剩余）
 - **已使用**：+12.50
-- **余额变化**：-12.50
 - **调用次数**：+ 150 次
 ```
 
