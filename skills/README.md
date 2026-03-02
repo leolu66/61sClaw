@@ -1,6 +1,6 @@
 # 技能清单 - Skills Catalog
 
-> 🧠 **小天才的技能库** | 最后更新：2026-03-01
+> 🧠 **小天才的技能库** | 最后更新：2026-03-03
 
 本目录包含所有可用的 OpenClaw 技能，每个技能都是独立的、可重用的自动化工具。
 
@@ -10,16 +10,18 @@
 
 | 分类 | 数量 | 技能列表 |
 |------|------|----------|
-| 🤖 AI 工具 | 4 | AI 新闻获取、Brave 搜索、模型推荐、模型选择器 |
-| 🎮 游戏娱乐 | 2 | 五子棋、几何王国自动代玩 |
-| 📧 效率工具 | 4 | 邮件读取、工作日志、飞书通知、鼠标工具 |
+| 🤖 AI 工具 | 5 | AI 新闻获取、Brave 搜索、模型推荐、模型选择器、模型切换器 |
+| 🎮 游戏娱乐 | 3 | 五子棋、几何王国代玩、纸牌接龙 |
+| 📧 效率工具 | 5 | 邮件读取、工作日志、飞书通知、鼠标工具、待办管理 |
 | ☁️ 云服务 | 2 | 七牛云同步、NAS 同步 |
-| 🔒 安全工具 | 2 | 密码箱、VPN 控制 |
-| 🛠️ 系统工具 | 2 | C 盘清理、天气查询 |
+| 🔒 安全工具 | 3 | 密码箱、VPN 控制、API 余额查询 |
+| 🛠️ 系统工具 | 4 | C 盘清理、天气查询、磁盘日志迁移、跨设备消息 |
 | 📱 社交工具 | 1 | 微信公众号文章获取 |
 | 🎵 媒体工具 | 1 | PotPlayer 音乐播放 |
+| 📝 开发工具 | 2 | 账单分析、自动测试 |
+| ⚡ 一键工具 | 1 | 一键提交 |
 
-**总计**: **17 个技能**
+**总计**: **28 个技能**
 
 ---
 
@@ -34,11 +36,7 @@
 - "获取 AI 新闻"、"最新 AI 资讯"、"科技新闻"、"AI 动态"
 
 **支持网站**:
-- 机器之心 (jiqizhixin.com)
-- 量子位 (qbitai.com)
-- InfoQ 中国 (infoq.cn)
-- 智东西 (zhidx.com)
-- AI 科技大本营 (leiphone.com)
+- 机器之心、量子位、InfoQ 中国、智东西、AI 科技大本营
 
 **脚本**: `scripts/fetch_ai_news.py`
 
@@ -70,20 +68,6 @@
 
 ---
 
-#### 4. 模型切换器 (model-switcher)
-**描述**: 根据任务复杂度自动切换快速模型 (haiku) 和强大模型 (sonnet)
-
-**触发场景**:
-- 复杂分析、代码重构、架构设计时自动切换到 sonnet
-- 简单任务、快速查询使用 haiku
-
-**模型配置**:
-- Fast: `claude-haiku-4-5` - 简单快速任务
-- Powerful: `claude-sonnet-4-5` - 复杂分析任务
-
-
----
-
 #### 4. 模型选择器 (model-selector)
 **描述**: 交互式模型选择器 - 显示所有可用模型清单，支持通过序号快速切换模型
 
@@ -98,17 +82,22 @@
 - 输入序号即可切换模型
 - 切换后自动重启 Gateway
 
-**使用方式**:
-直接回复序号（如 `3` 或 `12`），我来帮你切换模型。
-
 **脚本**: `scripts/model_selector.py`
-**快捷启动**: `skills\model-selector\"Model Switcher.bat"`
+
+---
+
+#### 5. 模型切换器 (model-switcher)
+**描述**: 根据任务复杂度自动切换快速模型 (haiku) 和强大模型 (sonnet)
+
+**触发场景**:
+- 复杂分析、代码重构、架构设计时自动切换到 sonnet
+- 简单任务、快速查询使用 haiku
 
 ---
 
 ### 🎮 游戏娱乐
 
-#### 5. 五子棋游戏 (gobang-game)
+#### 6. 五子棋游戏 (gobang-game)
 **描述**: 打开五子棋游戏页面，支持双人对战和人机对战
 
 **触发词**:
@@ -123,7 +112,7 @@
 
 ---
 
-#### 6. 几何王国自动代玩 (jhwg-auto)
+#### 7. 几何王国自动代玩 (jhwg-auto)
 **描述**: 模拟真人鼠标操作完成几何王国游戏日常任务
 
 **触发词**:
@@ -131,19 +120,23 @@
 - "领取商店福利"、"领取终生卡"、"开启自动钓鱼"
 
 **支持任务**:
-- 领取 PC 端奖励
-- 商店免费福利
-- 终生卡奖励
-- 巡逻奖励
-- 自动钓鱼
+- 领取 PC 端奖励、商店免费福利、终生卡奖励、巡逻奖励、自动钓鱼
 
 **脚本**: `scripts/jhwg_auto.py`
 
 ---
 
+#### 8. 纸牌接龙 (solitaire-game)
+**描述**: 打开纸牌接龙（Solitaire）游戏
+
+**触发词**:
+- "玩纸牌"、"玩纸牌接龙"、"play cards"、"solitaire"
+
+---
+
 ### 📧 效率工具
 
-#### 7. 邮箱读取 (exchange-email-reader)
+#### 9. 邮箱读取 (exchange-email-reader)
 **描述**: 读取 Microsoft Exchange/Outlook 邮箱中的最新邮件
 
 **触发词**:
@@ -159,7 +152,7 @@
 
 ---
 
-#### 8. 工作日志记录器 (work-session-logger)
+#### 10. 工作日志记录器 (work-session-logger)
 **描述**: 总结当前会话内容并写入工作日志文件，自动生成分类清晰的 Markdown 日志
 
 **触发词**:
@@ -170,25 +163,17 @@
 - 生成结构化日志（任务、问题、解决方案、决策）
 - 自动递增文件名（YYYY-MM-DD-NNN-概述.md）
 
-**存储路径**: `D:\anthropic\工作日志\`
-
 ---
 
-#### 9. 飞书通知 (feishu-notifier)
+#### 11. 飞书通知 (feishu-notifier)
 **描述**: 主动向用户发送飞书通知消息，支持文本和卡片消息
 
 **触发场景**:
-- 任务完成通知
-- 定时提醒
-- 告警消息
-
-**依赖**:
-- OpenClaw 飞书集成配置
-- `im:message:send_as_bot` 权限
+- 任务完成通知、定时提醒、告警消息
 
 ---
 
-#### 10. 鼠标信息工具 (mouseinfo-launcher)
+#### 12. 鼠标信息工具 (mouseinfo-launcher)
 **描述**: 启动 mouseinfo 工具获取鼠标坐标和屏幕颜色
 
 **触发词**:
@@ -203,9 +188,24 @@
 
 ---
 
+#### 13. 待办事项管理 (todo-manager)
+**描述**: 任务管理、智能提醒、CLI 命令行工具
+
+**触发词**:
+- "添加待办"、"创建任务"、"提醒我"
+- "todo"、"待办事项"、"任务管理"
+
+**功能**:
+- 任务创建、编辑、删除
+- 智能提醒系统（支持多种策略）
+- CLI 命令行工具
+- 自然语言时间解析
+
+---
+
 ### ☁️ 云服务
 
-#### 11. 七牛云同步 (qiniu-sync)
+#### 14. 七牛云同步 (qiniu-sync)
 **描述**: 将 workspace 内容同步到七牛云存储空间 `61sopenclaw`
 
 **触发词**:
@@ -221,7 +221,7 @@
 
 ---
 
-#### 12. NAS 同步 (workspace-sync)
+#### 15. NAS 同步 (workspace-sync)
 **描述**: 将 workspace 同步到 NAS 共享目录，支持多设备协作
 
 **触发词**:
@@ -232,37 +232,27 @@
 - 目标目录：`Z:\61sOpenClaw`
 - 增量同步，只传输修改过的文件
 
-**配置文件**: `scripts/sync_config.json`
-
 ---
 
 ### 🔒 安全工具
 
-#### 13. 密码箱 (vault)
+#### 16. 密码箱 (vault)
 **描述**: 安全存储和查询各平台的账号、密码、API Key 等敏感信息
 
 **触发词**:
 - "vault"、"密码箱"、"凭证"
-- "查询 [平台] 密码"、"保存 [平台] 账号"
+- "查询 [平台] 密码"
 
 **功能**:
-- 安全存储（敏感信息自动加密）
+- 安全存储（敏感信息加密）
 - 快速查询（支持别名）
 - 列出所有平台
-- 更新/删除凭据
-
-**使用示例**:
-```bash
-vault get-secret email      # 查询邮箱密码
-vault get-secret gmail      # 查询 Google 密码（别名）
-vault get-secret zmp        # 查询 ZMP 系统密码
-```
 
 **脚本**: `scripts/vault.py`
 
 ---
 
-#### 14. VPN 控制器 (vpn-controller)
+#### 17. VPN 控制器 (vpn-controller)
 **描述**: 控制 Clash for Windows VPN 应用，管理 Windows 代理设置
 
 **触发词**:
@@ -274,16 +264,12 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 - 检查 VPN 状态
 - 启用/禁用 Windows 代理设置
 
-**VPN 路径**: `D:\Users\luzhe\AppData\Local\Programs\Clash for Windows\Clash for Windows.exe`
-
 **脚本**: `scripts/vpn_control.py`
 
 ---
 
-### 🔒 安全工具（续）
-
-#### 14B. API 余额查询 (api-balance-checker)
-**描述**: 查询多个 API 平台的余额和用量信息，支持 WhaleCloud Lab（鲸云实验室）
+#### 18. API 余额查询 (api-balance-checker)
+**描述**: 查询多个 API 平台的余额和用量信息
 
 **触发词**:
 - "查余额"、"查 API 余额"、"余额查询"
@@ -296,53 +282,11 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 - 跨天时期初自动重置为 0
 - 保存历史记录供后续对比
 
-**查询结果示例**:
-| 项目 | 金额/数量 |
-|------|----------|
-| 剩余额度 | ¥90.66 |
-| 已使用费用 | ¥109.34 |
-| 请求次数 | 989 次 |
-
-**对比功能**:
-- 费用增加：¥0.54
-- 次数增加：4 次
-- 相隔时间：1 分钟
-
-**脚本**: `scripts/auto_login.py`、`scripts/query_basic.py`
-
----
-
-### 📧 效率工具（续）
-
-#### 18B. 待办事项管理 (todo-manager)
-**描述**: 任务管理、智能提醒、CLI 命令行工具
-
-**触发词**:
-- "添加待办"、"创建任务"、"提醒我"
-- "todo"、"待办事项"、"任务管理"
-
-**功能**:
-- 任务创建、编辑、删除
-- 智能提醒系统（支持多种策略）
-- CLI 命令行工具
-- 自然语言时间解析
-
-**核心模块**:
-- `src/cli.js` - 命令行工具
-- `src/core/task-manager.js` - 任务管理核心
-- `src/core/time-parser.js` - 时间解析
-- `src/reminder/reminder-checker.js` - 提醒检查
-- `src/reminder/strategy-engine.js` - 提醒策略引擎
-
-**依赖**: Node.js + npm
-
-**安装**: `npm install`（首次使用）
-
 ---
 
 ### 🛠️ 系统工具
 
-#### 15. C 盘清理 (disk-cleaner)
+#### 19. C 盘清理 (disk-cleaner)
 **描述**: C 盘空间清理和分析工具，自动清理临时文件，分析占用空间大的应用
 
 **触发词**:
@@ -355,7 +299,7 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 
 ---
 
-#### 16. 天气查询 (weather-skill)
+#### 20. 天气查询 (weather-skill)
 **描述**: 使用和风天气 API 查询实时天气和天气预报
 
 **触发词**:
@@ -366,15 +310,33 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 - 未来 7 天天气预报
 - 支持城市名称或 Location ID
 
-**API**: 和风天气（内置 API Key）
-
 **脚本**: `scripts/weather.py`
+
+---
+
+#### 21. 磁盘日志迁移 (log-migrator)
+**描述**: 定时迁移工作日志到外部归档目录，解决 Git 仓库空间不足问题
+
+**触发词**:
+- "迁移日志"、"日志归档"
+
+**功能**:
+- 每天自动扫描工作区日志目录
+- 将超过 7 天的文件迁移到归档目录
+
+---
+
+#### 22. 跨设备消息 (cross-device-msg)
+**描述**: 实现不同设备间的工作区文件同步和消息传递
+
+**触发词**:
+- "跨设备同步"、"发送到其他设备"
 
 ---
 
 ### 📱 社交工具
 
-#### 17. 微信公众号文章获取 (wechat-article-fetcher)
+#### 23. 微信公众号文章获取 (wechat-article-fetcher)
 **描述**: 获取微信公众号文章列表
 
 **触发词**:
@@ -389,7 +351,7 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 
 ### 🎵 媒体工具
 
-#### 18. PotPlayer 音乐播放 (potplayer-music)
+#### 24. PotPlayer 音乐播放 (potplayer-music)
 **描述**: 使用 PotPlayer 64-bit 播放本地音乐文件
 
 **触发词**:
@@ -405,6 +367,58 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 
 ---
 
+### 📝 开发工具
+
+#### 25. 账单分析 (billing-analyzer)
+**描述**: 模型账单自动分析工具，自动分析模型消费 CSV 账单
+
+**触发词**:
+- "分析账单"、"账单查询"、"API 费用分析"
+
+**功能**:
+- 多维度数据分析
+- 可视化图表生成
+- 专业分析报告
+
+**脚本**: `scripts/billing_analyzer.py`
+
+---
+
+#### 26. 自动测试 (auto-tester)
+**描述**: 自动化测试工具，支持功能测试和性能测试
+
+**触发词**:
+- "运行测试"、"自动化测试"
+
+---
+
+### ⚡ 一键工具
+
+#### 27. 一键提交 (one-click-commit)
+**描述**: 整合工作日志记录、记忆总结、GitHub 同步三个操作
+
+**触发词**:
+- "提交"、"一键提交"
+
+**功能**:
+- 自动调用 work-session-logger 写工作日志
+- 提取任务、问题、经验写入记忆
+- 自动 git add → commit → push
+
+---
+
+### 📡 运营商工具
+
+#### 28. 运营商新闻获取 (telecom-news-fetcher)
+**描述**: 获取运营商行业新闻和通信类微信公众号文章
+
+**触发词**:
+- "运营商新闻"、"通信资讯"、"获取通信新闻"
+
+**支持网站**: C114 通信网等
+
+---
+
 ## 🔧 开发规范
 
 所有技能开发遵循 **DoD (Definition of Done)** 规范：
@@ -412,7 +426,7 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 1. **SRS 文档** - SKILL.md 中包含完整的需求说明
 2. **代码规范** - 使用相对路径，配置外置，敏感信息通过环境变量
 3. **测试通过** - 功能测试 + 触发测试
-4. **GitHub 同步** - 无隐私文件，推送到 master 和 main
+4. **GitHub 同步** - 无隐私文件，推送到 main 分支
 
 **详细说明**: 参考 [`SKILL_DO.md`](SKILL_DO.md)
 
@@ -423,26 +437,36 @@ vault get-secret zmp        # 查询 ZMP 系统密码
 ```
 skills/
 ├── ai-news-fetcher/        # AI 新闻获取
-├── brave-search/           # Brave 搜索
-├── model-recommender/      # 模型推荐
-├── model-switcher/         # 模型切换
-├── gobang-game/            # 五子棋游戏
-├── jhwg-auto/              # 几何王国代玩
-├── exchange-email-reader/  # 邮箱读取
-├── work-session-logger/    # 工作日志
-├── feishu-notifier/        # 飞书通知
-├── mouseinfo-launcher/     # 鼠标信息
-├── qiniu-sync/             # 七牛云同步
-├── workspace-sync/         # NAS 同步
-├── vault/                  # 密码箱
-├── vpn-controller/         # VPN 控制
-├── disk-cleaner/           # C 盘清理
-├── weather-skill/          # 天气查询
-├── wechat-article-fetcher/ # 微信公众号
-├── potplayer-music/        # PotPlayer 播放
-├── SKILL_DO.md             # DoD 规范
-├── SKILL_TEMPLATE.md       # 技能模板
-└── README.md               # 本文件
+├── api-balance-checker/   # API 余额查询
+├── auto-tester/           # 自动测试
+├── billing-analyzer/      # 账单分析
+├── brave-search/          # Brave 搜索
+├── cross-device-msg/      # 跨设备消息
+├── disk-cleaner/          # C 盘清理
+├── exchange-email-reader/ # 邮箱读取
+├── feishu-notifier/       # 飞书通知
+├── gobang-game/           # 五子棋游戏
+├── jhwg-auto/             # 几何王国代玩
+├── log-migrator/         # 磁盘日志迁移
+├── model-recommender/     # 模型推荐
+├── model-selector/        # 模型选择器
+├── model-switcher/        # 模型切换器
+├── mouseinfo-launcher/    # 鼠标信息
+├── one-click-commit/      # 一键提交
+├── potplayer-music/       # PotPlayer 播放
+├── qiniu-sync/            # 七牛云同步
+├── solitaire-game/        # 纸牌接龙
+├── telecom-news-fetcher/  # 运营商新闻
+├── todo-manager/          # 待办事项管理
+├── vault/                 # 密码箱
+├── vpn-controller/        # VPN 控制
+├── weather-skill/         # 天气查询
+├── wechat-article-fetcher/# 微信公众号
+├── work-session-logger/   # 工作日志
+├── workspace-sync/        # NAS 同步
+├── SKILL_DO.md            # DoD 规范
+├── SKILL_TEMPLATE.md      # 技能模板
+└── README.md              # 本文件
 ```
 
 ---
@@ -463,6 +487,7 @@ skills/
 - "查余额" → 调用 `api-balance-checker`
 - "播放音乐" → 调用 `potplayer-music`
 - "记录工作日志" → 调用 `work-session-logger`
+- "提交" → 调用 `one-click-commit`
 
 ---
 
@@ -471,9 +496,8 @@ skills/
 - **开发者**: 小天才 🧠
 - **用户**: 六一
 - **GitHub**: https://github.com/leolu66/61sClaw
-- **最后更新**: 2026-02-27
+- **最后更新**: 2026-03-03
 
 ---
 
 *本技能清单会自动更新，每次新增或修改技能时同步更新此文档。*
-
