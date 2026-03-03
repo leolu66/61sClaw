@@ -101,8 +101,55 @@ python C:\Users\luzhe\.openclaw\workspace-main\skills\api-balance-checker\script
 - **调用次数**：+ 150 次
 ```
 
-## 注意事项
+## 输出规范
 
-- Chrome 调试端口默认为 9222
-- 登录状态失效后，需要重新手动登录
-- 查询结果会保存到 `C:/Users/luzhe/Pictures/api_balances.json`
+### JSON 数据结构（Python 脚本输出）
+
+```json
+{
+  "platform": "WhaleCloud Lab",
+  "platform_key": "whalecloud",
+  "used": "59.29",
+  "remaining": "140.71",
+  "requests": "442",
+  "date": "2026/03/03",
+  "timestamp": "2026-03-03T14:00:00",
+  "status": "success",
+  "last_query": {
+    "time_diff_minutes": 702,
+    "used_diff": "13.17",
+    "requests_diff": 92
+  }
+}
+```
+
+### 展示模板（大模型参考格式化）
+
+```markdown
+## 📊 API 余额查询结果
+
+**平台：** {platform}
+**查询时间：** {date} {time}
+**状态：** {status_icon}
+
+### 当前余额
+
+| 指标 | 数值 |
+|------|------|
+| 已使用 | ¥{used} |
+| 剩余额度 | ¥{remaining} |
+| 调用次数 | {requests} 次 |
+
+### 与上次对比
+
+| 指标 | 变化 |
+|------|------|
+| 时间间隔 | {time_diff} |
+| 已使用变化 | {used_diff} |
+| 调用次数变化 | {requests_diff} 次 |
+```
+
+**状态图标：**
+- `success` → ✅ 成功
+- `error` → ❌ 失败
+- `pending` → ⏳ 查询中

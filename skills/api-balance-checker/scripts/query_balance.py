@@ -78,9 +78,9 @@ def get_baseline_record(platform_key):
         except:
             continue
     
-    # 如果今天有记录，返回今天第一条（最早的）
+    # 如果今天有记录，返回今天最新的一条（对比基准）
     if today_records:
-        record = today_records[-1]  # 最后一条是最近的，第一条是最早的
+        record = today_records[0]  # 遍历是从新到旧，0 是最新的
         return (record.get("remaining"), record.get("used"), 
                 record.get("requests"), record.get("timestamp"), "today")
     
@@ -129,10 +129,18 @@ def format_time_diff_detailed(minutes):
             return f"{hours}小时"
 
 
-def print_comparison(result):
-    """打印对比"""
-    platform_key = result.get("platform_key", "")
-    baseline = get_baseline_record(platform_key)
+def format_comparison_json(result):
+    """格式化对比信息为 JSON"""
+    # 使用保存时记录的对比基准（避免读到自己的情况）
+    baseline = result.get("_baseline")
+    
+    comparison = {
+        "time_diff_minutes": 0,
+        "used_diff": "0",
+        "requests_diff": 0,
+        "is_first_query": False,
+        "baseline_type": None
+    }
     
     if baseline:
         last_remaining, last_used, last_requests, last_time, baseline_type = baseline
@@ -142,93 +150,51 @@ def print_comparison(result):
             last_time_dt = datetime.now()
         
         time_diff_minutes = (datetime.now() - last_time_dt).total_seconds() / 60
+        comparison["time_diff_minutes"] = int(time_diff_minutes)
+        comparison["baseline_type"] = baseline_type
         
-        # ========== 当前余额 ==========
-        current_remaining = result.get("remaining", "未知")
-        current_used = result.get("used", "未知")
-        current_requests = result.get("requests", "未知")
-        
-        # 解析金额
-        remaining_val = parse_amount(current_remaining)
-        used_val = parse_amount(current_used)
-        
-        print("## 当前余额")
-        print("| 已使用费用 | 剩余额度 | 请求次数 |")
-        print("| ---------- | -------- | -------- |")
-        print(f"| **${used_val}** | **${remaining_val}** | **{current_requests}** |")
-        
-        # ========== 与上次对比 ==========
-        is_yesterday = baseline_type == "yesterday"
-        
-        # 余额基准
-        if is_yesterday and platform_key == "whalecloud":
-            # 跨天：使用系统基准 100 元
-            balance_baseline = 100.0
-            baseline_label = "（昨日重置）"
-        else:
-            # 同一天或非 whalecloud：使用上次剩余金额
-            balance_baseline = parse_amount(last_remaining) or 100.0
-            baseline_label = ""
-        
-        print()
-        print("## 与上次对比")
-        
-        # 时间间隔
-        time_str = format_time_diff_detailed(time_diff_minutes)
-        print(f"- **时间间隔**：{time_str}")
-        
-        if is_yesterday and platform_key == "whalecloud":
-            # 跨天：计算实际重置金额 = 已使用 + 剩余
-            reset_amount = (used_val or 0) + (remaining_val or 0)
-            print(f"- **基准重置**：跨天已重置，基准 ¥{reset_amount:.2f}")
-        
-        # 已使用费用差（只显示这个，余额变化与已使用是此消彼长的关系）
+        # 已使用费用差
+        current_used = parse_amount(result.get("used", ""))
         last_used_val = parse_amount(last_used)
-        if used_val is not None and last_used_val is not None:
-            used_diff = used_val - last_used_val
-            if used_diff > 0:
-                print(f"- **已使用**：+{used_diff:.2f}")
-            elif used_diff < 0:
-                print(f"- **已使用**：-{abs(used_diff):.2f}")
-            else:
-                print(f"- **已使用**：不变")
+        if current_used is not None and last_used_val is not None:
+            used_diff = current_used - last_used_val
+            comparison["used_diff"] = f"+{used_diff:.2f}" if used_diff >= 0 else f"{used_diff:.2f}"
         
         # 调用次数差
-        current_requests_num = current_requests
-        last_requests_num = last_requests
-        if current_requests_num != "未知" and last_requests_num != "未知" and last_requests_num is not None:
+        current_requests = result.get("requests", "未知")
+        if current_requests != "未知" and last_requests != "未知" and last_requests is not None:
             try:
-                diff_requests = int(current_requests_num) - int(last_requests_num)
-                if diff_requests > 0:
-                    print(f"- **调用次数**：+ {diff_requests} 次")
-                elif diff_requests < 0:
-                    print(f"- **调用次数**：{diff_requests} 次")
-                else:
-                    print(f"- **调用次数**：不变")
+                diff_requests = int(current_requests) - int(last_requests)
+                comparison["requests_diff"] = diff_requests
             except:
                 pass
     else:
-        # 首次查询
-        current_remaining = result.get("remaining", "未知")
-        current_used = result.get("used", "未知")
-        current_requests = result.get("requests", "未知")
-        
-        remaining_val = parse_amount(current_remaining)
-        used_val = parse_amount(current_used)
-        
-        print("## 当前余额")
-        print("| 已使用费用 | 剩余额度 | 请求次数 |")
-        print("| ---------- | -------- | -------- |")
-        print(f"| **\${used_val}** | **\${remaining_val}** | **{current_requests}** |")
-        print()
-        print("## 与上次对比")
-        print("- **时间间隔**：首次查询")
-        print("- **余额**：-")
-        print("- **调用**：-")
+        comparison["is_first_query"] = True
+    
+    return comparison
+
+
+def print_comparison(result):
+    """打印对比 - 输出 JSON 格式供大模型格式化"""
+    comparison = format_comparison_json(result)
+    
+    output = {
+        "platform": result.get("platform", ""),
+        "platform_key": result.get("platform_key", ""),
+        "used": result.get("used", "未知"),
+        "remaining": result.get("remaining", "未知"),
+        "requests": result.get("requests", "未知"),
+        "date": result.get("date", ""),
+        "timestamp": result.get("timestamp", ""),
+        "status": result.get("status", "error"),
+        "last_query": comparison
+    }
+    
+    print(json.dumps(output, ensure_ascii=False, indent=2))
 
 
 def run_query(platform):
-    """执行查询 - 带进度反馈"""
+    """执行查询 - 进度输出到 stderr"""
     result = {
         "platform": f"WhaleCloud Lab ({platform})",
         "platform_key": platform,
@@ -238,23 +204,22 @@ def run_query(platform):
         "status": "error"
     }
     
-    print("=" * 60)
-    print(f"查询 {platform} 余额")
-    print("=" * 60)
-    print()
+    # 进度输出到 stderr（不污染 JSON 输出）
+    sys.stderr.write(f"Querying {platform}...\n")
+    sys.stderr.flush()
     
     # 查询数据（内部自动检测/启动 Chrome）
-    print("[查询] 正在查询余额数据...")
     
     query_result = subprocess.run(
         [sys.executable, api_checker_script, platform],
         capture_output=True, text=True, timeout=60
     )
     
-    # 显示查询进度
+    # 显示查询进度（到 stderr）
     for line in query_result.stdout.strip().split('\n'):
         if line.strip():
-            print(f"     {line}")
+            sys.stderr.write(f"  {line}\n")
+            sys.stderr.flush()
     
     # 解析结果
     if "[成功]" in query_result.stdout or "success" in query_result.stdout:
@@ -262,18 +227,22 @@ def run_query(platform):
         import re
         match = re.search(r'剩余余额：￥([0-9.]+)', query_result.stdout)
         if match:
-            result["remaining"] = f"￥{match.group(1)}"
+            result["remaining"] = match.group(1)  # 纯数字，去掉 ￥ 符号
         match = re.search(r'已用金额：￥([0-9.]+)', query_result.stdout)
         if match:
-            result["used"] = f"￥{match.group(1)}"
+            result["used"] = match.group(1)  # 纯数字
         match = re.search(r'请求次数：(\d+)', query_result.stdout)
         if match:
             result["requests"] = match.group(1)
     
+    # 先获取对比基准（保存之前）
+    baseline = get_baseline_record(platform)
+    result["_baseline"] = baseline
+    
     # 保存结果
     save_result(result)
-    print(f"     [完成] 已保存至：{result_file}")
-    print()
+    sys.stderr.write(f"  Saved to {result_file}\n\n")
+    sys.stderr.flush()
     
     return result
 
@@ -292,29 +261,19 @@ def main():
         result = run_query(platform)
         all_results.append(result)
     
-    # 汇总结果
-    success_count = sum(1 for r in all_results if r["status"] == "success")
+    # 输出 JSON 格式（供大模型格式化展示）
+    success_results = [r for r in all_results if r["status"] == "success"]
     
-    print("=" * 60)
-    if success_count == len(all_results):
-        print("[成功] 全部查询完成")
-    elif success_count > 0:
-        print(f"[部分成功] {success_count}/{len(all_results)} 查询成功")
+    if success_results:
+        # 输出第一个成功结果的完整 JSON
+        print_comparison(success_results[0])
     else:
-        print("[失败] 全部查询失败")
-    print("=" * 60)
-    
-    for result in all_results:
-        if result["status"] == "success":
-            print(f"   [{result['platform_key']}] 剩余：{result['remaining']} | 已用：{result['used']} | 请求：{result['requests']}次")
-        else:
-            print(f"   [{result['platform_key']}] 查询失败")
-    
-    # 对比第一个成功的结果
-    first_success = next((r for r in all_results if r["status"] == "success"), None)
-    if first_success:
-        print()
-        print_comparison(first_success)
+        # 全部失败
+        print(json.dumps({
+            "status": "error",
+            "message": "All queries failed",
+            "results": all_results
+        }, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
