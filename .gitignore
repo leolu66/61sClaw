@@ -41,6 +41,9 @@ HEARTBEAT.md
 BOOTSTRAP.md
 CORE_PRINCIPLES.md
 
+# OpenClaw workspace state
+.openclaw/
+
 # User data directories
 datas/
 data/
