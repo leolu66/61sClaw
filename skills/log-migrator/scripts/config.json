@@ -1,7 +1,17 @@
 {
-  "retention_days": 7,
-  "source_dir": "logs/daily",
-  "archive_base": "D:\\\\openclaw\\\\logs\\\\daily\\\\archive",
-  "log_dir": "logs/errors",
-  "dry_run": false
+  "log_archive": {
+    "source_dir": "logs",
+    "archive_base": "D:\\\\openclaw\\\\archive",
+    "create_date_subdir": true
+  },
+  "quick_backup": {
+    "target_base": "D:\\\\anthropic\\\\.openclaw",
+    "backup_suffix": "bak",
+    "date_format": "%y%m%d"
+  },
+  "log_cleanup": {
+    "source_dir": "logs",
+    "days_to_keep": 3,
+    "dry_run": false
+  }
 }
