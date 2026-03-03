@@ -45,8 +45,11 @@ CORE_PRINCIPLES.md
 datas/
 data/
 
+# All agfiles (user-specific)
+agfiles/
+
 # Billing reports (privacy-sensitive)
-agfiles/billing_report/
+# agfiles/billing_report/
 
 # OS
 .DS_Store
