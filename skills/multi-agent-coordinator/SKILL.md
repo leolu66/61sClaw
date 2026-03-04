@@ -308,12 +308,22 @@ node scripts/node-agent.js xiaobai D:\projects\workspace\node-xiaobai
 ### 启动子节点
 
 ```bash
-# 启动 Claude 节点
+# 方式1：使用 bat 脚本（需要先复制到 D:\projects\）
 D:\projects\start-sub-agent-claude.bat
 
-# 或手动启动
+# 方式2：手动启动
 cd D:\projects\skills\multi-agent-coordinator
 node scripts\sub-agent.js claude
+```
+
+### 部署流程
+
+子节点启动前需要将 Skills 代码同步到运行目录：
+
+```
+1. 从 GitHub 拉取最新代码
+2. 复制到 D:\projects\skills\multi-agent-coordinator\
+3. 双击 start-sub-agent-claude.bat 启动
 ```
 
 ### 启动文件

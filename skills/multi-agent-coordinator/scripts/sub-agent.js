@@ -19,7 +19,7 @@ const RESULTS_DIR = 'D:\\projects\\results';
 const LOGS_DIR = 'D:\\projects\\logs';
 
 const DEFAULT_SCAN_INTERVAL = 60000; // 60 秒扫描一次
-const DEFAULT_HEARTBEAT_INTERVAL = 300000; // 300 秒心跳
+const DEFAULT_HEARTBEAT_INTERVAL = 3600000; // 3600 秒 = 1 小时
 
 class SubAgent {
   constructor(nodeId) {
