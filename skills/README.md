@@ -1,6 +1,6 @@
 # 技能清单 - Skills Catalog
 
-> 🧠 **小天才的技能库** | 最后更新：2026-03-03
+> 🧠 **小天才的技能库** | 最后更新：2026-03-04
 
 本目录包含所有可用的 OpenClaw 技能，每个技能都是独立的、可重用的自动化工具。
 
@@ -20,8 +20,9 @@
 | 🎵 媒体工具 | 1 | PotPlayer 音乐播放 |
 | 📝 开发工具 | 3 | 账单分析、自动测试、代码统计 |
 | ⚡ 一键工具 | 1 | 一键提交 |
+| 🔄 协同工具 | 3 | 多节点协调、Claude Code 发送器、技能同步器 |
 
-**总计**: **29 个技能**
+**总计**: **32 个技能**
 
 ---
 
@@ -408,7 +409,7 @@
 
 ### ⚡ 一键工具
 
-#### 27. 一键提交 (one-click-commit)
+#### 28. 一键提交 (one-click-commit)
 **描述**: 整合工作日志记录、记忆总结、GitHub 同步三个操作
 
 **触发词**:
@@ -418,6 +419,74 @@
 - 自动调用 work-session-logger 写工作日志
 - 提取任务、问题、经验写入记忆
 - 自动 git add → commit → push
+
+---
+
+### 🔄 协同工具
+
+#### 29. 多节点协调器 (multi-agent-coordinator)
+**描述**: 协调多个 Claude Code 节点协同工作，实现任务分发、执行和结果收集
+
+**触发词**:
+- "创建任务 xxx"、"查看任务列表"、"查看节点状态"
+- "确认任务 xxx"、"取消任务 xxx"
+
+**功能**:
+- 主节点任务分配
+- 子节点任务执行
+- 心跳检测和节点管理
+- 任务状态跟踪
+
+**工作模式**:
+- 文件同步模式（通过共享目录）
+- SDK 直接调用模式（通过 `claude-code-sender`）
+
+---
+
+#### 30. Claude Code 发送器 (claude-code-sender)
+**描述**: 通过 SDK 向 Claude Code 进程发送协同工作任务单
+
+**触发词**:
+- 通过脚本调用，无直接触发词
+
+**功能**:
+- 发送任务单到 Claude Code
+- 保持会话上下文
+- 检查结果并要求改进
+- 支持多轮对话直到任务完成
+
+**脚本**:
+- `scripts/claude_sender.py` - 基础 SDK 封装
+- `scripts/claude_node_sdk.py` - 节点 SDK
+- `scripts/claude_task_coordinator.py` - 任务协调器
+
+---
+
+#### 31. 技能同步器 (skill-syncer)
+**描述**: 从 GitHub 远程仓库获取最新技能并同步到本地
+
+**触发词**:
+- "获取 {skill-name}"、"get {skill-name}"
+- "获取全部技能"、"get all skills"
+
+**功能**:
+- 从 GitHub 获取远程技能列表
+- 更新本地同名技能
+- 安装远程新技能
+- 保护本地特有技能
+- 自动备份更新前的技能
+
+**同步规则**:
+| 场景 | 处理方式 |
+|------|---------|
+| 远程有、本地有 | ✅ 更新 |
+| 远程有、本地没有 | 📦 安装 |
+| 远程没有、本地有 | 🛡️ 保护 |
+
+**脚本**:
+- `scripts/github_client.py` - GitHub API 客户端
+- `scripts/sync_manager.py` - 同步管理器
+- `scripts/sync_cli.py` - 命令行工具
 
 ---
 
@@ -455,6 +524,7 @@ skills/
 ├── auto-tester/           # 自动测试
 ├── billing-analyzer/      # 账单分析
 ├── brave-search/          # Brave 搜索
+├── claude-code-sender/    # Claude Code 发送器 ⭐新增
 ├── code-stats/            # 代码统计
 ├── cross-device-msg/      # 跨设备消息
 ├── disk-cleaner/          # C 盘清理
@@ -467,9 +537,11 @@ skills/
 ├── model-selector/        # 模型选择器
 ├── model-switcher/        # 模型切换器
 ├── mouseinfo-launcher/    # 鼠标信息
+├── multi-agent-coordinator/ # 多节点协调器 ⭐新增
 ├── one-click-commit/      # 一键提交
 ├── potplayer-music/       # PotPlayer 播放
 ├── qiniu-sync/            # 七牛云同步
+├── skill-syncer/          # 技能同步器 ⭐新增
 ├── solitaire-game/        # 纸牌接龙
 ├── telecom-news-fetcher/  # 运营商新闻
 ├── todo-manager/          # 待办事项管理
@@ -511,7 +583,7 @@ skills/
 - **开发者**: 小天才 🧠
 - **用户**: 六一
 - **GitHub**: https://github.com/leolu66/61sClaw
-- **最后更新**: 2026-03-03
+- **最后更新**: 2026-03-04
 
 ---
 
