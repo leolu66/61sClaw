@@ -35,7 +35,7 @@ version: 1.0
 - **错误**：遇到什么问题
 - **经验**：学到了什么
 
-更新 `MEMORY.md` 或 `memory/YYYY-MM-DD.md`
+更新 `MEMORY.md`
 
 ### 第3步：同步 GitHub
 
@@ -59,7 +59,7 @@ git push origin main
    -> logs/daily/YYYY-MM-DD-NNN-xxx.md
 
 2. 记忆已更新
-   -> MEMORY.md / memory/YYYY-MM-DD.md
+   -> MEMORY.md
 
 3. GitHub 已同步
    -> 已推送到 main 分支

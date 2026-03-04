@@ -49,7 +49,7 @@ def get_sync_mapping():
     """获取同步映射关系"""
     return {
         "skills": "skills/",
-        "memory": "logs/",
+        # "memory": "logs/",  # 已废弃，使用 logs/daily/
         "data": "data/",
     }
 
@@ -139,13 +139,7 @@ def sync_to_qiniu():
         total_skipped += skipped
         print(f"  📦 music-player: {uploaded} 上传, {skipped} 跳过")
     
-    # 4. 同步 memory/ -> /logs/
-    memory_dir = os.path.join(workspace, "memory")
-    if os.path.exists(memory_dir):
-        uploaded, skipped = sync_directory(memory_dir, "logs")
-        total_uploaded += uploaded
-        total_skipped += skipped
-        print(f"  📝 memory: {uploaded} 上传, {skipped} 跳过")
+    # 注意：memory/ 目录已删除，工作日志请使用 logs/daily/
     
     # 5. 同步 *.db -> /data/
     data_files = []

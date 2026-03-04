@@ -4,7 +4,6 @@
 
 ## 功能
 - 将skills同步到七牛云 /skills 目录
-- 将memory（记忆/日志）同步到七牛云 /logs 目录
 - 将数据文件同步到七牛云 /data 目录
 - 其他文件同步到根目录
 
@@ -15,9 +14,10 @@
 | 本地目录/文件 | 七牛云目录 |
 |--------------|-----------|
 | skills/ | /skills |
-| memory/ | /logs |
 | *.db | /data |
 | 其他 | / |
+
+**注意**: memory/ 目录已废弃，请使用 logs/daily/ 存放工作日志
 
 ## 配置
 在 scripts/config.json 中设置：
