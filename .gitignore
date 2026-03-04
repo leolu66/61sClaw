@@ -28,8 +28,8 @@ skills/*/node_modules/
 logs/
 
 # Memory and personal notes (user-specific, not synced)
-memory/
 TOOLS.md
+memory/
 
 # Personalized workspace configuration files
 MEMORY.md
