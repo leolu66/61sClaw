@@ -299,7 +299,7 @@ if __name__ == "__main__":
     options = ClaudeCodeOptions(output_format="json", max_turns=3)
     result = send_to_claude("编写一个斐波那契数列函数", options)
     print(f"成功: {result['success']}")
-    if result["json"]:
+    if result.get("json"):
         print(f"会话 ID: {result['session_id']}")
         print(f"成本: ${result['cost_usd']}")
         print(f"耗时: {result['duration_ms']}ms")

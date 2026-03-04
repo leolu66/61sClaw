@@ -42,6 +42,11 @@ class SubAgent {
         console.log(log);
         fs.appendFileSync(logFile, log + '\n');
       },
+      warn: (msg) => {
+        const log = `[${dayjs().format('YYYY-MM-DD HH:mm:ss')}] [WARN] ${msg}`;
+        console.warn(log);
+        fs.appendFileSync(logFile, log + '\n');
+      },
       error: (msg) => {
         const log = `[${dayjs().format('YYYY-MM-DD HH:mm:ss')}] [ERROR] ${msg}`;
         console.error(log);
@@ -170,7 +175,7 @@ class SubAgent {
     this.currentTask = taskId;
     this.logger.info(`========================================`);
     this.logger.info(`开始执行任务: ${taskId}`);
-    this.logger.info(`指令: ${command.command.substring(0, 100)}...`);
+    this.logger.info(`指令: ${command.instruction.substring(0, 100)}...`);
     this.logger.info(`========================================`);
 
     try {
@@ -188,7 +193,7 @@ class SubAgent {
 
       // 4. 写入指令文件（方便后续追溯）
       const promptFile = path.join(outputDir, 'prompt.txt');
-      fs.writeFileSync(promptFile, command.command);
+      fs.writeFileSync(promptFile, command.instruction);
 
       // 5. 执行任务（这里应该调用实际的执行逻辑）
       const result = await this._doExecuteTask(command, outputDir);
@@ -242,6 +247,12 @@ class SubAgent {
       fs.writeFileSync(resultFile, JSON.stringify(resultData, null, 2));
       
       this._updateTaskStatus(taskId, 'failed', { error: error.message });
+      
+      // 失败时也删除命令文件，避免重复执行
+      try {
+        fs.unlinkSync(commandFile.path);
+        this.logger.info(`已清除失败任务命令文件`);
+      } catch (e) {}
     } finally {
       this.currentTask = null;
       this._updateNodeStatus('online');
@@ -250,27 +261,123 @@ class SubAgent {
 
   /**
    * 实际执行任务
-   * 这里模拟 Claude Code 执行任务
-   * 在真实场景中，应该调用实际的 Claude Code 执行引擎
+   * 支持两种执行方式：
+   * 1. executeBy: 'claude' - 调用 Claude Code 执行
+   * 2. executeBy: 'command' - 直接调用外部程序
    */
   async _doExecuteTask(command, outputDir) {
-    const instruction = command.command;
+    const { executeBy, instruction, command: cmd, args } = command;
     
-    this.logger.info(`[执行] 理解任务指令: ${instruction}`);
+    if (executeBy === 'claude') {
+      // 调用 Claude Code 执行
+      return await this._executeByClaude(instruction, outputDir);
+    } else if (executeBy === 'command') {
+      // 直接调用外部程序
+      return await this._executeCommand(cmd, args, outputDir);
+    } else {
+      // 默认行为：模拟执行（向后兼容）
+      return await this._executeByClaude(command.instruction, outputDir);
+    }
+  }
+
+  /**
+   * 通过 Claude Code 执行任务
+   */
+  async _executeByClaude(instruction, outputDir) {
+    this.logger.info(`[Claude执行] ${instruction.substring(0, 100)}...`);
     
-    // 模拟执行过程
-    // 在真实场景中，这里应该是:
-    // 1. 调用 Claude Code API 或本地模型
-    // 2. 或者调用其他执行工具
+    const { spawn } = require('child_process');
+    const path = require('path');
     
-    // 模拟执行结果
-    const output = `[Claude Code 节点 ${this.nodeId}] 执行完成\n\n指令: ${instruction}\n输出目录: ${outputDir}\n执行时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
+    return new Promise((resolve, reject) => {
+      const claudeProcess = spawn('claude', [
+        '-p',
+        instruction,
+        '--max-turns', '20',
+        '--permission-mode', 'bypassPermissions'
+      ], {
+        cwd: outputDir,
+        shell: true
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      claudeProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      
+      claudeProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+      
+      claudeProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve({
+            success: true,
+            output: output,
+            files: []
+          });
+        } else {
+          resolve({
+            success: false,
+            output: errorOutput || output,
+            files: []
+          });
+        }
+      });
+      
+      claudeProcess.on('error', (error) => {
+        resolve({
+          success: false,
+          output: `执行错误: ${error.message}`,
+          files: []
+        });
+      });
+    });
+  }
+
+  /**
+   * 直接执行外部命令
+   */
+  async _executeCommand(cmd, args, outputDir) {
+    this.logger.info(`[命令执行] ${cmd} ${args ? args.join(' ') : ''}`);
     
-    return {
-      success: true,
-      output: output,
-      files: []
-    };
+    const { spawn } = require('child_process');
+    
+    return new Promise((resolve, reject) => {
+      const childProcess = spawn(cmd, args || [], {
+        cwd: outputDir,
+        shell: true
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      childProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      
+      childProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+      
+      childProcess.on('close', (code) => {
+        resolve({
+          success: code === 0,
+          output: output || errorOutput,
+          files: []
+        });
+      });
+      
+      childProcess.on('error', (error) => {
+        resolve({
+          success: false,
+          output: `命令执行错误: ${error.message}`,
+          files: []
+        });
+      });
+    });
   }
 
   /**
