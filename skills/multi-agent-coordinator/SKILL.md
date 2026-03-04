@@ -354,6 +354,63 @@ node scripts\sub-agent.js claude
 
 ---
 
+## 替代方案：SDK 直接调用模式
+
+如果你希望主节点直接通过 SDK 发送消息给 Claude Code 进程（而不是通过文件同步），可以使用 `claude-code-sender` 技能。
+
+### 使用 SDK 方式的优势
+
+1. **实时响应** - 不需要等待文件扫描周期
+2. **会话保持** - 可以维持多轮对话上下文
+3. **简化架构** - 不需要文件同步机制
+4. **直接返回** - 结果直接返回，不需要轮询文件
+
+### SDK 调用示例
+
+```python
+from claude_code_sender.scripts.claude_node_sdk import ClaudeNodeSDK, MultiNodeCoordinator
+
+# 方式1: 单节点调用
+sdk = ClaudeNodeSDK("claude", workspace="D:\\projects\\workspace\\node-claude")
+result = sdk.send_task(
+    instruction="创建一个简单的 Python 计算器类",
+    max_turns=5
+)
+print(result["text"])
+
+# 方式2: 多节点协调
+coordinator = MultiNodeCoordinator()
+coordinator.register_node("claude")
+coordinator.register_node("kimi")
+
+# 发送到指定节点
+result = coordinator.send_task_to_node(
+    node_id="claude",
+    instruction="分析这个文件",
+    file_path="data.txt"
+)
+
+# 广播到所有节点
+results = coordinator.broadcast_task("检查代码风格")
+```
+
+### 两种模式对比
+
+| 特性 | 文件同步模式 | SDK 直接调用模式 |
+|------|-------------|-----------------|
+| 通信方式 | 文件读写 | `claude -p` 命令 |
+| 实时性 | 延迟（扫描周期） | 实时 |
+| 会话保持 | 需手动管理 | 自动 `--continue` |
+| 架构复杂度 | 需要文件目录结构 | 仅需 CLI |
+| 适用场景 | 多节点异步任务 | 单节点同步任务 |
+
+### 选择建议
+
+- **文件同步模式**：适合多节点分布式任务、异步处理、任务队列场景
+- **SDK 直接调用模式**：适合单节点快速响应、需要多轮对话、简单集成场景
+
+---
+
 ## 节点 Agent 部署说明（已废弃）
 
 ### 通信机制
