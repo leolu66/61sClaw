@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-GitHub 合规检查器
-检查 Git 暂存区文件是否符合上传规则
+GitHub 合规检查器 - 改进版
+检查 Git 暂存区和已提交文件是否符合上传规则
 
 使用方法:
     from compliance_checker import ComplianceChecker
     
     checker = ComplianceChecker()
     
-    # 检查暂存区
-    issues = checker.check_staged_files()
+    # 检查暂存区（准备提交的文件）
+    staged_issues = checker.check_staged_files()
+    
+    # 检查已提交的文件（已经在仓库中的）
+    committed_issues = checker.check_committed_files()
     
     # 自动修复
     checker.auto_fix(issues)
-    
-    # 生成报告
-    report = checker.generate_report(issues)
 """
 
 import os
@@ -49,7 +49,7 @@ class ComplianceChecker:
     
     # 合规规则定义
     RULES = {
-        # 🔴 高风险 - 隐私保护
+        # 高风险 - 隐私保护
         "memory.md": {
             "pattern": r"^MEMORY\.md$",
             "type": "个人记忆文件",
@@ -68,12 +68,6 @@ class ComplianceChecker:
             "risk": RiskLevel.HIGH,
             "description": "工作日志文件，可能包含敏感信息"
         },
-        "memory_dir": {
-            "pattern": r"^memory/.*$",
-            "type": "历史记忆（已废弃）",
-            "risk": RiskLevel.HIGH,
-            "description": "历史记忆目录，已废弃，建议删除"
-        },
         "user_data": {
             "pattern": r"^(datas|data|agfiles)/.*$",
             "type": "用户数据",
@@ -81,7 +75,7 @@ class ComplianceChecker:
             "description": "用户数据目录"
         },
         
-        # 🟡 中风险
+        # 中风险
         "tools_md": {
             "pattern": r"^TOOLS\.md$",
             "type": "本地工具配置",
@@ -101,7 +95,7 @@ class ComplianceChecker:
             "description": "技能 node_modules 目录"
         },
         
-        # 🟢 低风险 - 技术规范
+        # 低风险 - 技术规范
         "pycache": {
             "pattern": r"^__pycache__/.*$",
             "type": "Python 缓存",
@@ -206,6 +200,32 @@ class ComplianceChecker:
             print("[错误] 未找到 git 命令")
             return []
     
+    def get_committed_files(self) -> List[str]:
+        """
+        获取 Git 仓库中已跟踪的文件列表（包括已提交的）
+        
+        Returns:
+            文件路径列表
+        """
+        try:
+            result = subprocess.run(
+                ["git", "ls-files"],
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            
+            files = result.stdout.strip().split("\n")
+            return [f for f in files if f]
+            
+        except subprocess.CalledProcessError as e:
+            print(f"[错误] 获取已跟踪文件失败: {e}")
+            return []
+        except FileNotFoundError:
+            print("[错误] 未找到 git 命令")
+            return []
+    
     def check_file(self, file_path: str) -> Optional[ComplianceIssue]:
         """
         检查单个文件
@@ -244,38 +264,22 @@ class ComplianceChecker:
         
         return self.issues
     
-    def check_all_files(self) -> List[ComplianceIssue]:
+    def check_committed_files(self) -> List[ComplianceIssue]:
         """
-        检查仓库中的所有文件（包括未暂存的）
+        检查已提交到仓库的文件（发现不应上传的隐私文件）
         
         Returns:
             违规问题列表
         """
         self.issues = []
+        committed_files = self.get_committed_files()
         
-        try:
-            # 获取所有被 Git 跟踪的文件
-            result = subprocess.run(
-                ["git", "ls-files"],
-                cwd=self.repo_path,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            
-            all_files = result.stdout.strip().split("\n")
-            
-            for file_path in all_files:
-                if file_path:
-                    issue = self.check_file(file_path)
-                    if issue:
-                        self.issues.append(issue)
-            
-            return self.issues
-            
-        except subprocess.CalledProcessError as e:
-            print(f"[错误] 获取文件列表失败: {e}")
-            return []
+        for file_path in committed_files:
+            issue = self.check_file(file_path)
+            if issue:
+                self.issues.append(issue)
+        
+        return self.issues
     
     def remove_from_staging(self, file_path: str) -> bool:
         """
@@ -351,7 +355,8 @@ class ComplianceChecker:
         self,
         issues: Optional[List[ComplianceIssue]] = None,
         fix_result: Optional[Dict] = None,
-        auto_mode: bool = False
+        auto_mode: bool = False,
+        check_type: str = "staged"
     ) -> str:
         """
         生成检查报告
@@ -360,6 +365,7 @@ class ComplianceChecker:
             issues: 问题列表
             fix_result: 修复结果
             auto_mode: 是否为自动修正模式
+            check_type: 检查类型 (staged/committed)
         
         Returns:
             报告文本
@@ -370,11 +376,17 @@ class ComplianceChecker:
         lines = []
         lines.append("## GitHub 合规检查报告")
         lines.append("")
+        
+        if check_type == "staged":
+            lines.append(f"**检查范围**: 暂存区文件（准备提交）")
+        else:
+            lines.append(f"**检查范围**: 已提交文件（已在仓库中）")
+        
         lines.append(f"**检查模式**: {'自动修正' if auto_mode else '仅检查'}")
         
         if not issues:
             lines.append("")
-            lines.append("✅ **没有发现合规问题，可以安全提交。**")
+            lines.append("[OK] **没有发现合规问题。**")
             return "\n".join(lines)
         
         # 按风险等级分组
@@ -388,7 +400,7 @@ class ComplianceChecker:
         
         # 高风险
         if high_risk:
-            lines.append(f"#### 🔴 高风险 ({len(high_risk)} 个)")
+            lines.append(f"#### [H] 高风险 ({len(high_risk)} 个)")
             lines.append("")
             lines.append("| 文件路径 | 问题类型 | 说明 |")
             lines.append("|---------|---------|------|")
@@ -398,7 +410,7 @@ class ComplianceChecker:
         
         # 中风险
         if medium_risk:
-            lines.append(f"#### 🟡 中风险 ({len(medium_risk)} 个)")
+            lines.append(f"#### [M] 中风险 ({len(medium_risk)} 个)")
             lines.append("")
             lines.append("| 文件路径 | 问题类型 | 说明 |")
             lines.append("|---------|---------|------|")
@@ -408,7 +420,7 @@ class ComplianceChecker:
         
         # 低风险
         if low_risk:
-            lines.append(f"#### 🟢 低风险 ({len(low_risk)} 个)")
+            lines.append(f"#### [L] 低风险 ({len(low_risk)} 个)")
             lines.append("")
             lines.append("| 文件路径 | 问题类型 | 说明 |")
             lines.append("|---------|---------|------|")
@@ -426,14 +438,17 @@ class ComplianceChecker:
             lines.append("")
             
             if fix_result['success']:
-                lines.append("✅ **所有不合规文件已处理，可以安全提交。**")
+                lines.append("[OK] **所有不合规文件已处理。**")
             else:
-                lines.append("⚠️ **部分文件处理失败，请手动检查。**")
+                lines.append("[!] **部分文件处理失败，请手动检查。**")
         elif not auto_mode:
             # 需要确认的模式
             lines.append("### 建议操作")
             lines.append("")
-            lines.append("1. **从 Git 暂存区移除这些文件**")
+            if check_type == "staged":
+                lines.append("1. **从 Git 暂存区移除这些文件**")
+            else:
+                lines.append("1. **从 Git 仓库中移除这些文件**（git rm --cached）")
             lines.append("2. **更新 .gitignore** 防止再次提交")
             lines.append("")
             lines.append("### 确认执行")
@@ -450,24 +465,17 @@ if __name__ == "__main__":
     checker = ComplianceChecker()
     
     print("=== 检查暂存区文件 ===")
-    issues = checker.check_staged_files()
+    staged_issues = checker.check_staged_files()
     
-    if issues:
-        print(f"\n发现 {len(issues)} 个合规问题:")
-        for issue in issues:
-            risk_icon = "🔴" if issue.risk_level == RiskLevel.HIGH else "🟡" if issue.risk_level == RiskLevel.MEDIUM else "🟢"
+    print("\n=== 检查已提交文件 ===")
+    committed_issues = checker.check_committed_files()
+    
+    all_issues = staged_issues + committed_issues
+    
+    if all_issues:
+        print(f"\n发现 {len(all_issues)} 个合规问题:")
+        for issue in all_issues:
+            risk_icon = "[H]" if issue.risk_level == RiskLevel.HIGH else "[M]" if issue.risk_level == RiskLevel.MEDIUM else "[L]"
             print(f"{risk_icon} {issue.file_path} - {issue.issue_type}")
-        
-        print("\n=== 生成报告 ===")
-        report = checker.generate_report(issues, auto_mode=False)
-        print(report)
-        
-        print("\n=== 自动修复 ===")
-        fix_result = checker.auto_fix(issues)
-        print(f"移除: {fix_result['removed']}, 失败: {fix_result['failed']}")
-        
-        print("\n=== 修复后报告 ===")
-        report = checker.generate_report(issues, fix_result, auto_mode=True)
-        print(report)
     else:
-        print("✅ 没有发现合规问题")
+        print("\n[OK] 没有发现合规问题")
