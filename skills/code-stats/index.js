@@ -13,8 +13,16 @@ const SKILLS_DIR = path.join(__dirname, '..');
 const EXT_STATS = {
   '.py': { count: 0, lines: 0 },
   '.js': { count: 0, lines: 0 },
-  '.md': { count: 0, lines: 0 },
+  '.md': { count: 0, lines: 0, contentLines: 0 },
   other: { count: 0, lines: 0 }
+};
+
+// GitHub 7天统计
+let GH_STATS = {
+  codeAdditions: 0,
+  codeDeletions: 0,
+  mdAdditions: 0,
+  mdDeletions: 0
 };
 
 // 统计每个技能
@@ -194,6 +202,7 @@ async function main() {
     
     let skillFiles = 0;
     let skillLines = 0;
+    let skillMdLines = 0;
     let skillSize = 0;
     
     for (const file of files) {
@@ -217,6 +226,10 @@ async function main() {
         }
       } else if (ext === '.md') {
         EXT_STATS['.md'].count++;
+        // 统计MD文件行数（包括所有行）
+        const mdLines = content.split('\n').length;
+        EXT_STATS['.md'].contentLines += mdLines;
+        skillMdLines += mdLines;
       } else {
         EXT_STATS.other.count++;
       }
@@ -227,16 +240,49 @@ async function main() {
         name: skillName,
         files: skillFiles,
         lines: skillLines,
+        mdLines: skillMdLines,
         size: skillSize
       });
     }
   }
 
-  skills.sort((a, b) => b.lines - a.lines);
+  skills.sort((a, b) => (b.lines + b.mdLines) - (a.lines + a.mdLines));
 
   // 获取 GitHub 统计
   console.log('[正在获取 GitHub 统计...]');
   const ghStats = await getGitHubStats();
+  
+  // 计算GitHub代码和文档变化（通过git命令）
+  let codeAdditions = 0, codeDeletions = 0;
+  let mdAdditions = 0, mdDeletions = 0;
+  
+  try {
+    const { execSync } = require('child_process');
+    
+    // 获取代码变化
+    const codeStats = execSync('git log --since="2026-02-25" --pretty=tformat: --numstat -- "*.py" "*.js"', { cwd: __dirname + '/../..' })
+      .toString().trim().split('\n');
+    for (const line of codeStats) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        if (/^\d+$/.test(parts[0])) codeAdditions += parseInt(parts[0]);
+        if (/^\d+$/.test(parts[1])) codeDeletions += parseInt(parts[1]);
+      }
+    }
+    
+    // 获取文档变化
+    const mdStats = execSync('git log --since="2026-02-25" --pretty=tformat: --numstat -- "*.md"', { cwd: __dirname + '/../..' })
+      .toString().trim().split('\n');
+    for (const line of mdStats) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        if (/^\d+$/.test(parts[0])) mdAdditions += parseInt(parts[0]);
+        if (/^\d+$/.test(parts[1])) mdDeletions += parseInt(parts[1]);
+      }
+    }
+  } catch (e) {
+    // 忽略git错误
+  }
   
   // 输出报告
   console.log(`
@@ -246,27 +292,21 @@ async function main() {
 - **技能数量**: ${skills.length} 个
 - **总文件数**: ${totalFiles} 个
 - **总代码行数**: ${totalCodeLines.toLocaleString()} 行
+- **总文档行数**: ${EXT_STATS['.md'].contentLines.toLocaleString()} 行
 - **总大小**: ${formatSize(totalSize)}
-${ghStats ? `
-## GitHub 提交统计（最近7天）
-- **提交次数**: ${ghStats.commitCount} 次
-- **PR 数量**: ${ghStats.prCount} 个
-- **代码增行**: +${ghStats.additions.toLocaleString()}
-- **代码删行**: -${ghStats.deletions.toLocaleString()}
-- **净变化**: ${ghStats.netChanges >= 0 ? '+' : ''}${ghStats.netChanges.toLocaleString()}
-- **活跃天数**: ${ghStats.daysWithCommits} 天` : ''}
-## 文件类型分布
-| 类型 | 文件数 | 代码行数 |
-|------|--------|---------|
-| Python (.py) | ${EXT_STATS['.py'].count} | ${EXT_STATS['.py'].lines.toLocaleString()} |
-| JavaScript (.js) | ${EXT_STATS['.js'].count} | ${EXT_STATS['.js'].lines.toLocaleString()} |
-| Markdown (.md) | ${EXT_STATS['.md'].count} | - |
-| 其他 | ${EXT_STATS.other.count} | - |
 
-## 技能列表（按代码行数排序）
-| 排名 | 技能名称 | 文件数 | 代码行数 | 大小 |
-|------|---------|--------|---------|------|
-${skills.map((s, i) => `| ${i + 1} | ${s.name} | ${s.files} | ${s.lines.toLocaleString()} | ${formatSize(s.size)} |`).join('\n')}
+## GitHub 提交统计（最近7天）
+- **提交次数**: ${ghStats ? ghStats.commitCount : '-'} 次
+- **活跃天数**: ${ghStats ? ghStats.daysWithCommits : '-'} 天
+| 类型 | 增加 | 删除 | 净变化 |
+| ------------------ | ------- | ------ | ------ |
+| **代码 (.py/.js)** | +${codeAdditions.toLocaleString()} | -${codeDeletions.toLocaleString()} | ${codeAdditions - codeDeletions >= 0 ? '+' : ''}${(codeAdditions - codeDeletions).toLocaleString()} |
+| **文档 (.md)** | +${mdAdditions.toLocaleString()} | -${mdDeletions.toLocaleString()} | ${mdAdditions - mdDeletions >= 0 ? '+' : ''}${(mdAdditions - mdDeletions).toLocaleString()} |
+
+## Top 5 技能（按代码+文档行数）
+| 排名 | 技能 | 代码行数 | 文档行数 |
+| ---- | ----------------------- | -------- | -------- |
+${skills.slice(0, 5).map((s, i) => `| ${i + 1} | ${s.name} | ${s.lines.toLocaleString()} | ${s.mdLines.toLocaleString()} |`).join('\n')}
 `);
 
   // 写入日志
