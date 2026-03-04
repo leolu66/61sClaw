@@ -2,7 +2,62 @@
 
 ## 功能概述
 
-协调多个 Claude Code 节点（Claude Code、Kimi Code、小白）协同工作，实现任务分发、执行和结果收集。
+协调多个 Claude Code 节点协同工作，实现任务分发、执行和结果收集。
+
+## 角色说明
+
+本技能支持两种角色：
+- **主节点**：任务分配者和协调者
+- **子节点**：任务执行者
+
+### 主节点处理逻辑
+
+```
+用户 ──► 创建任务 ──► 写入 commands/{node}/task-xxx.json
+    │
+    ▼
+监控 results/ 和 tasks.json
+    │
+    ▼
+发现任务提交 ──► 读取结果
+    │
+    ▼
+确认完成 ──► 更新 tasks.json 状态为 done
+```
+
+**主节点指令**：
+- `创建任务 xxx` - 创建新任务
+- `查看任务列表` - 查看所有任务
+- `查看节点状态` - 查看子节点在线情况
+- `确认任务 task-xxx` - 确认任务完成
+- `取消任务 task-xxx` - 取消任务
+
+### 子节点处理逻辑
+
+```
+主节点 ──► 创建任务文件 ──► commands/claude/task-xxx.json
+    │
+    ▼
+我检测到任务
+    │
+    ▼
+直接读取并执行（使用我的工具）
+    │
+    ▼
+写入结果到 results/claude/
+    │
+    ▼
+更新 tasks.json 状态
+    │
+    ▼
+等待主节点确认
+```
+
+**触发方式**：
+| 触发条件 | 说明 |
+|----------|------|
+| 手动触发 | 说"检查任务"，立即扫描执行 |
+| 自动检测 | 说"任务处理完成"后自动检查下一个 |
 
 ## 触发条件
 
@@ -236,7 +291,60 @@ node scripts/node-agent.js xiaobai D:\projects\workspace\node-xiaobai
 
 ---
 
-## 节点 Agent 部署说明
+## 子节点部署说明（Claude Code 模式）
+
+### 架构说明
+
+子节点作为 Claude Code 直接执行任务，不需要再调用 `claude -p`。
+
+```
+子节点（Claude Code）:
+  1. 定时扫描 commands/{node}/ 目录
+  2. 读取 task-xxx.json
+  3. 自己理解并执行任务
+  4. 写入 results/{node}/task-xxx.json
+```
+
+### 启动子节点
+
+```bash
+# 启动 Claude 节点
+D:\projects\start-sub-agent-claude.bat
+
+# 或手动启动
+cd D:\projects\skills\multi-agent-coordinator
+node scripts\sub-agent.js claude
+```
+
+### 启动文件
+
+| 文件 | 说明 |
+|------|------|
+| `D:\projects\start-sub-agent-claude.bat` | 启动 claude 子节点 |
+| `D:\projects\start-sub-agent-kimi.bat` | 启动 kimi 子节点 |
+
+### 子节点工作流程
+
+```
+1. 启动时
+   └── 注册节点到 heartbeats.json
+
+2. 每 5 分钟
+   └── 发送心跳
+
+3. 每 60 秒
+   └── 扫描 commands/{node}/ 目录
+   └── 发现任务文件
+   └── 读取指令
+   └── 更新任务状态为 running
+   └── 执行任务（自己理解并执行）
+   └── 写入 results/{node}/
+   └── 更新任务状态为 submitted
+```
+
+---
+
+## 节点 Agent 部署说明（已废弃）
 
 ### 通信机制
 
