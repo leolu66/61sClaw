@@ -55,8 +55,8 @@ class ComplianceIssue:
 class ComplianceChecker:
     """GitHub 合规检查器"""
     
-    # 确认记录文件路径（放在 workspace 根目录的 config 下）
-    APPROVALS_FILE = Path(__file__).parent.parent.parent.parent / 'config' / '.compliance_approvals.json'
+    # 确认记录文件路径（放在技能自己的 data 目录下）
+    APPROVALS_FILE = Path(__file__).parent.parent / 'data' / '.compliance_approvals.json'
     
     # 允许在 skills 目录外存在的目录（白名单）
     ALLOWED_TOP_LEVEL_DIRS = {
@@ -64,9 +64,9 @@ class ComplianceChecker:
         'docs',             # 文档
         '.git',             # Git 目录
         '.github',          # GitHub 配置
-        'config',           # 配置文件（协调器配置）
         'scripts',          # 脚本目录
         # 'shared',         # 共享目录（已从 GitHub 移除）
+        # 'config',         # 已移除：审批文件移到技能自己的 data 目录
         'logs',             # 日志目录（已被 .gitignore 忽略）
     }
     
