@@ -20,14 +20,19 @@
 助手: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-### 查询用户名和密码
+### 查询邮箱密码
 ```
-用户: 查看github的username
-助手: leolu66
+用户: 查邮箱密码
+助手: Luzh1103!（公司邮箱密码，默认）
 
-用户: 查github的password
-助手: ********（解密后的密码）
+用户: 查网易邮箱密码
+助手: luz8853（网易邮箱密码）
+
+用户: 查公司邮箱密码
+助手: Luzh1103!（公司邮箱密码）
 ```
+
+**注意**：`查邮箱密码` 默认查询**公司邮箱**密码，如需查询其他邮箱请指定平台名。
 
 ### 查询 API Key
 ```
@@ -52,6 +57,7 @@
 |-------------|------|---------|
 | **用户名** | Username, Account | `查github的username` |
 | **密码** | Password, 登录密码 | `查github的password` |
+| **邮箱密码** | 公司邮箱、网易邮箱 | `查邮箱密码`（默认公司邮箱）<br>`查网易邮箱密码`<br>`查公司邮箱密码` |
 | **Token** | Access Token, Private Token | `查github的token` |
 | **API Key** | API Key, Secret Key | `查智谱的api_key` |
 | **身份证号** | 身份证、ID Card | `查个人信息的身份证` |
