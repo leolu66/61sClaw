@@ -1,0 +1,21 @@
+{
+  "taskId": "task-music-002",
+  "status": "failed",
+  "timestamp": "2026-03-05T00:30:00.000Z",
+  "result": {
+    "musicFileFound": false,
+    "musicFilePath": null,
+    "player": "PotPlayer",
+    "playerFound": false,
+    "error": "未在指定目录找到音乐文件，且 PotPlayer 未安装或不在默认路径"
+  },
+  "searchedPaths": [
+    "D:\\Users\\luzhe\\Music\\",
+    "C:\\Users\\luzhe\\Music\\",
+    "C:\\Users\\luzhe\\Downloads\\",
+    "C:\\Users\\luzhe\\Desktop\\",
+    "C:\\Users\\luzhe\\OneDrive\\",
+    "D:\\download\\"
+  ],
+  "note": "任务执行完成，无论成功或失败都应删除任务文件"
+}

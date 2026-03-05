@@ -69,6 +69,216 @@
 - "重处理任务 xxx"
 - "取消任务 xxx"
 - "手动分配任务 xxx 到 xxx"
+- **"启动任务扫描"** / **"停止任务扫描"** / **"查看扫描状态"** - 控制定时扫描器
+
+---
+
+## 定时扫描器（新版）
+
+### 配置文件
+
+统一配置文件位于：`workspace-main/config/coordinator.json`
+
+```json
+{
+  "_comment": "多智能体协调器配置 - 修改后重启扫描生效",
+  "nodeType": "master",
+  "nodeId": "main",
+  
+  "master": {
+    "resultScanInterval": 30000,
+    "heartbeatCheckInterval": 300000,
+    "nodeTimeout": 360,
+    "notificationEnabled": true,
+    "maxRetries": 2,
+    "commandsDir": "D:\\projects\\commands",
+    "resultsDir": "D:\\projects\\results",
+    "configDir": "D:\\projects\\config"
+  },
+  
+  "worker": {
+    "taskScanInterval": 30000,
+    "heartbeatInterval": 300000,
+    "maxConcurrentTasks": 2,
+    "capabilities": ["code", "analysis", "doc", "writing"],
+    "commandsDir": "D:\\projects\\commands",
+    "resultsDir": "D:\\projects\\results",
+    "configDir": "D:\\projects\\config",
+    "workspaceDir": "D:\\projects\\workspace"
+  }
+}
+```
+
+### 配置说明
+
+| 配置项 | 说明 | 主节点 | 子节点 |
+|--------|------|--------|--------|
+| `nodeType` | 节点类型 | master | worker |
+| `nodeId` | 节点标识 | main | claude/kimi/... |
+| `resultScanInterval` | 结果扫描间隔(ms) | 30000 | - |
+| `heartbeatCheckInterval` | 心跳检查间隔(ms) | 300000 | - |
+| `taskScanInterval` | 任务扫描间隔(ms) | - | 30000 |
+| `heartbeatInterval` | 心跳发送间隔(ms) | - | 300000 |
+| `nodeTimeout` | 节点离线阈值(秒) | 360 | - |
+| `maxConcurrentTasks` | 最大并发任务数 | - | 2 |
+
+### 命令行工具
+
+```bash
+# 进入技能目录
+cd skills/multi-agent-coordinator
+
+# 启动扫描
+node coordinator-cli.js start
+
+# 停止扫描
+node coordinator-cli.js stop
+
+# 查看状态
+node coordinator-cli.js status
+
+# 重启扫描
+node coordinator-cli.js restart
+```
+
+### 技能指令
+
+| 指令 | 说明 | 执行逻辑 |
+|------|------|----------|
+| `启动任务扫描` | 根据 coordinator.json 中的 nodeType 启动对应扫描器 | 调用 `coordinator-cli.js start`，读取 PID 和状态文件确认 |
+| `停止任务扫描` | 停止当前运行的扫描器 | 调用 `coordinator-cli.js stop`，读取状态文件确认停止 |
+| `查看扫描状态` | 显示扫描器运行状态和配置信息 | 调用 `coordinator-cli.js status`，解析状态文件 |
+| `重载扫描配置` | 重新加载配置文件（无需重启） | 调用 `coordinator-cli.js reload`，发送重载信号 |
+
+### 技能指令通信机制
+
+```
+用户指令 ──► 技能处理 ──► 调用 CLI 工具 ──► 守护进程
+                              │
+                              ▼
+                    ┌─────────────────────┐
+                    │ coordinator.pid     │
+                    │ coordinator.status  │
+                    └─────────────────────┘
+                              │
+                              ▼
+                    技能读取状态文件 ──► 返回执行结果给用户
+```
+
+**状态文件格式** (`config/coordinator.status`):
+```json
+{
+  "status": "running",      // running, stopped, error, reloading
+  "timestamp": 1709630400000,
+  "pid": 12345,
+  "startTime": 1709630000000,
+  "tasksProcessed": 10,
+  "lastScan": 1709630400000,
+  "nodeType": "master"
+}
+```
+
+**PID 文件格式** (`config/coordinator.pid`):
+```json
+{
+  "pid": 12345,
+  "nodeType": "master",
+  "startTime": 1709630000000,
+  "updatedAt": 1709630400000
+}
+```
+
+---
+
+## 技能主入口
+
+技能主入口文件: `index.js`
+
+### 使用方式
+
+```javascript
+const coordinator = require('./skills/multi-agent-coordinator');
+
+// 启动扫描
+const result = coordinator.handleCommand('启动任务扫描');
+console.log(result.message);
+
+// 查看状态
+const status = coordinator.getStatus();
+console.log(status.message);
+```
+
+### 导出函数
+
+| 函数 | 参数 | 返回值 | 说明 |
+|------|------|--------|------|
+| `handleCommand(command)` | 用户指令字符串 | `{success, message, ...}` | 主处理函数 |
+| `startScan()` | 无 | `{success, message}` | 启动扫描 |
+| `stopScan()` | 无 | `{success, message}` | 停止扫描 |
+| `getStatus()` | 无 | `{success, message, status, pidInfo}` | 获取状态 |
+| `reloadConfig()` | 无 | `{success, message}` | 重载配置 |
+
+### 命令行测试
+
+```bash
+cd skills/multi-agent-coordinator
+
+# 启动扫描
+node index.js "启动任务扫描"
+
+# 查看状态
+node index.js "查看扫描状态"
+
+# 停止扫描
+node index.js "停止任务扫描"
+
+# 重载配置
+node index.js "重载扫描配置"
+```
+
+### 扫描器架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     coordinator.json                        │
+│  ┌──────────────┐              ┌──────────────┐            │
+│  │  nodeType    │─────────────►│  master      │            │
+│  │  = master    │              │  config      │            │
+│  └──────────────┘              └──────────────┘            │
+│         │                                                    │
+│         ▼                                                    │
+│  ┌──────────────┐              ┌──────────────┐            │
+│  │  nodeType    │─────────────►│  worker      │            │
+│  │  = worker    │              │  config      │            │
+│  └──────────────┘              └──────────────┘            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    coordinator-cli.js                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  start → 读取配置 → 判断 nodeType → 启动对应扫描器   │   │
+│  │  stop  → 读取 PID → 终止进程                        │   │
+│  │  status → 读取配置 + PID → 显示状态                 │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐    ┌─────────────────────────┐
+│     MasterScanner       │    │     WorkerScanner       │
+│  ┌───────────────────┐  │    │  ┌───────────────────┐  │
+│  │ 结果扫描 (30s)    │  │    │  │ 任务扫描 (30s)    │  │
+│  │ 检查 results/     │  │    │  │ 检查 commands/    │  │
+│  └───────────────────┘  │    │  └───────────────────┘  │
+│  ┌───────────────────┐  │    │  ┌───────────────────┐  │
+│  │ 心跳检查 (5min)   │  │    │  │ 心跳发送 (5min)   │  │
+│  │ 检查 heartbeats   │  │    │  │ 更新 heartbeats   │  │
+│  └───────────────────┘  │    │  └───────────────────┘  │
+└─────────────────────────┘    └─────────────────────────┘
+```
+
+---
 
 ## 目录结构
 

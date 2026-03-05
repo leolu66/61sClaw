@@ -1,334 +1,244 @@
 /**
- * Multi-Agent Coordinator - 技能入口
- * 负责协调多个 Claude Code 节点协同工作
+ * index.js - Multi-Agent Coordinator 技能主入口
+ * 处理用户指令，调用 CLI 工具控制扫描器
  */
 
-const { TaskManager } = require('./src/task/task-manager');
-const { NodeManager } = require('./src/node/node-manager');
-const { HeartbeatChecker } = require('./src/heartbeat/heartbeat-checker');
-const path = require('path');
+const { execSync } = require('child_process');
 const fs = require('fs');
-const dayjs = require('dayjs');
+const path = require('path');
 
-const PROJECTS_DIR = 'D:\\projects';
+const SKILL_DIR = __dirname;
+const CONFIG_DIR = path.join(SKILL_DIR, '..', '..', 'config');
+const PID_FILE = path.join(CONFIG_DIR, 'coordinator.pid');
+const STATUS_FILE = path.join(CONFIG_DIR, 'coordinator.status');
 
-// 任务管理器
-const taskManager = new TaskManager();
-
-// 节点管理器
-const nodeManager = new NodeManager();
-
-// 心跳检查器（延迟启动，不在模块加载时自动启动）
-let heartbeatChecker = null;
-
-// 启动心跳检查（需要时调用）
-function startHeartbeatChecker(intervalMs = 60000) {
-  if (!heartbeatChecker) {
-    heartbeatChecker = new HeartbeatChecker();
+/**
+ * 执行 CLI 命令
+ */
+function runCli(command) {
+  const cliPath = path.join(SKILL_DIR, 'coordinator-cli.js');
+  try {
+    const output = execSync(`node "${cliPath}" ${command}`, {
+      encoding: 'utf-8',
+      timeout: 10000
+    });
+    return { success: true, output: output.trim() };
+  } catch (error) {
+    return { 
+      success: false, 
+      output: error.stdout?.trim() || '',
+      error: error.stderr?.trim() || error.message 
+    };
   }
-  heartbeatChecker.start(intervalMs);
-}
-
-// 心跳检查回调：节点离线时处理
-function onNodeOffline(nodeId, node) {
-  console.log(`[Coordinator] 节点 ${nodeId} 已离线`);
-}
-
-// 心跳检查回调：节点恢复在线
-function onNodeOnline(nodeId, node) {
-  console.log(`[Coordinator] 节点 ${nodeId} 恢复在线`);
 }
 
 /**
- * 创建任务
+ * 读取状态文件
  */
-function createTask(options) {
-  const { title, type, priority, instruction, deadline, inputFiles, outputFiles, assignTo } = options;
+function readStatus() {
+  try {
+    if (!fs.existsSync(STATUS_FILE)) {
+      return null;
+    }
+    return JSON.parse(fs.readFileSync(STATUS_FILE, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 读取 PID 文件
+ */
+function readPid() {
+  try {
+    if (!fs.existsSync(PID_FILE)) {
+      return null;
+    }
+    return JSON.parse(fs.readFileSync(PID_FILE, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 启动任务扫描
+ */
+function startScan() {
+  console.log('[技能] 正在启动任务扫描...');
   
-  const task = taskManager.createTask({
-    title,
-    type: type || 'code',
-    priority: priority || 'medium',
-    instruction,
-    deadline,
-    inputFiles: inputFiles || [],
-    outputFiles: outputFiles || []
-  });
-
-  // 创建任务 README
-  createTaskReadme(task);
-
-  // 写入 commands 目录（指定节点或自动分配）
-  const targetNode = assignTo || nodeManager.selectBestNode() || 'claude';
-  writeCommandFile(task, targetNode);
-
-  return task;
-}
-
-/**
- * 写入指令文件到 commands 目录
- */
-function writeCommandFile(task, nodeId) {
-  const commandDir = path.join(PROJECTS_DIR, 'commands', nodeId);
-  if (!fs.existsSync(commandDir)) {
-    fs.mkdirSync(commandDir, { recursive: true });
-  }
-
-  const commandFile = path.join(commandDir, `${task.id}.json`);
-  const command = {
-    taskId: task.id,
-    command: task.instruction || task.title,
-    workspace: path.join(PROJECTS_DIR, 'workspace', 'shared'),
-    outputDir: path.join(PROJECTS_DIR, 'workspace', 'shared', 'output', task.id),
-    timeout: 300000,
-    createdAt: dayjs().toISOString(),
-    deadline: task.deadline
-  };
-
-  fs.writeFileSync(commandFile, JSON.stringify(command, null, 2));
-  console.log(`[Coordinator] 任务 ${task.id} 已下发到节点 ${nodeId}`);
-}
-
-/**
- * 创建任务说明书
- */
-function createTaskReadme(task) {
-  const taskDir = path.join(PROJECTS_DIR, 'workspace', 'shared', 'tasks', task.id);
+  const result = runCli('start');
   
-  if (!fs.existsSync(taskDir)) {
-    fs.mkdirSync(taskDir, { recursive: true });
+  if (!result.success) {
+    return {
+      success: false,
+      message: `启动失败: ${result.error}`
+    };
   }
-
-  const readme = `# 任务说明书：${task.title}
-
-## 任务概述
-- 任务编号：${task.id}
-- 创建时间：${dayjs(task.createdAt).format('YYYY-MM-DD HH:mm:ss')}
-- 截止时间：${dayjs(task.deadline).format('YYYY-MM-DD HH:mm:ss')}
-- 优先级：${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}
-- 类型：${task.type === 'code' ? '代码开发' : task.type === 'analysis' ? '数据分析' : '文档处理'}
-
-## 执行指令
-${task.instruction || task.title}
-
-## 输入资源
-${task.input?.resources?.length > 0 
-  ? task.input.resources.map(r => `- ${r}`).join('\n') 
-  : '无'}
-
-## 输出要求
-${task.output?.resources?.length > 0 
-  ? task.output.resources.map(r => `- ${r}`).join('\n') 
-  : '无'}
-
-## 状态
-- 当前状态：${task.status}
-- 分配节点：${task.assignee || '待分配'}
-`;
-
-  fs.writeFileSync(path.join(taskDir, 'README.md'), readme);
-  return task;
-}
-
-/**
- * 获取任务列表
- */
-function getTaskList(filter = {}) {
-  return taskManager.getTasks(filter);
-}
-
-/**
- * 获取任务详情
- */
-function getTaskDetail(taskId) {
-  return taskManager.getTask(taskId);
-}
-
-/**
- * 确认完成任务
- */
-function confirmTask(taskId) {
-  return taskManager.completeTask(taskId);
-}
-
-/**
- * 重处理任务
- */
-function retryTask(taskId) {
-  const task = taskManager.getTask(taskId);
-  if (!task) {
-    throw new Error(`任务不存在: ${taskId}`);
-  }
-
-  // 重置任务状态
-  return taskManager.updateTaskStatus(taskId, 'pending', {
-    assignee: null,
-    assignedAt: null,
-    startedAt: null,
-    submittedAt: null,
-    completedAt: null,
-    retryCount: 0,
-    error: null
-  });
-}
-
-/**
- * 取消任务
- */
-function cancelTask(taskId) {
-  return taskManager.deleteTask(taskId);
-}
-
-/**
- * 获取节点列表
- */
-function getNodeList() {
-  return nodeManager.getNodes();
-}
-
-/**
- * 获取节点状态
- */
-function getNodeStatus() {
-  return nodeManager.getStatusSummary();
-}
-
-/**
- * 手动分配任务到指定节点
- */
-function assignTaskToNode(taskId, nodeId) {
-  const node = nodeManager.getNode(nodeId);
-  if (!node) {
-    throw new Error(`节点不存在: ${nodeId}`);
-  }
-
-  if (!nodeManager.isNodeOnline(nodeId)) {
-    throw new Error(`节点不在线: ${nodeId}`);
-  }
-
-  // 锁定任务
-  taskManager.assignTask(taskId, nodeId);
   
-  // 增加节点任务数
-  nodeManager.incrementTaskCount(nodeId);
-
-  return taskManager.getTask(taskId);
-}
-
-/**
- * 格式化任务列表输出
- */
-function formatTaskList(tasks) {
-  if (tasks.length === 0) {
-    return '暂无任务';
-  }
-
-  // 按状态分组
-  const pending = tasks.filter(t => t.status === 'pending');
-  const assigned = tasks.filter(t => t.status === 'assigned');
-  const running = tasks.filter(t => t.status === 'running');
-  const submitted = tasks.filter(t => t.status === 'submitted');
-  const done = tasks.filter(t => t.status === 'done');
-  const failed = tasks.filter(t => t.status === 'failed');
-
-  let output = `## 任务列表（共 ${tasks.length} 个）\n\n`;
-
-  if (pending.length > 0) {
-    output += `**待执行（${pending.length}）**\n`;
-    pending.forEach(t => {
-      output += `- [${t.id}] ${t.title} (${t.priority === 'high' ? '高' : t.priority === 'medium' ? '中' : '低'})\n`;
-    });
-    output += '\n';
-  }
-
-  if (assigned.length > 0) {
-    output += `**已分配（${assigned.length}）**\n`;
-    assigned.forEach(t => {
-      output += `- [${t.id}] ${t.title} -> ${t.assignee}\n`;
-    });
-    output += '\n';
-  }
-
-  if (running.length > 0) {
-    output += `**执行中（${running.length}）**\n`;
-    running.forEach(t => {
-      output += `- [${t.id}] ${t.title} -> ${t.assignee}\n`;
-    });
-    output += '\n';
-  }
-
-  if (submitted.length > 0) {
-    output += `**已提交（${submitted.length}）**\n`;
-    submitted.forEach(t => {
-      output += `- [${t.id}] ${t.title} -> ${t.assignee} [待确认]\n`;
-    });
-    output += '\n';
-  }
-
-  if (done.length > 0) {
-    output += `**已完成（${done.length}）**\n`;
-    done.forEach(t => {
-      output += `- [${t.id}] ${t.title}\n`;
-    });
-    output += '\n';
-  }
-
-  if (failed.length > 0) {
-    output += `**失败（${failed.length}）**\n`;
-    failed.forEach(t => {
-      output += `- [${t.id}] ${t.title} [重试${t.retryCount}次]\n`;
-    });
-    output += '\n';
-  }
-
-  return output;
-}
-
-/**
- * 格式化节点状态输出
- */
-function formatNodeStatus() {
-  const summary = nodeManager.getStatusSummary();
-  const nodes = nodeManager.getNodes();
-
-  let output = `## 节点状态\n\n`;
-  output += `总计: ${summary.total} | 在线: ${summary.online} | 忙碌: ${summary.busy} | 离线: ${summary.offline} | 任务数: ${summary.totalTasks}\n\n`;
-
-  for (const [nodeId, node] of Object.entries(nodes)) {
-    const isOnline = nodeManager.isNodeOnline(nodeId);
-    const statusIcon = isOnline ? (node.status === 'busy' ? '忙碌' : '在线') : '离线';
-    const lastHeartbeat = dayjs(node.lastHeartbeat).format('HH:mm:ss');
+  // 等待并检查状态
+  setTimeout(() => {
+    const status = readStatus();
+    const pidInfo = readPid();
     
-    output += `### ${nodeId}\n`;
-    output += `- 状态: ${statusIcon}\n`;
-    output += `- 任务数: ${node.currentTaskCount || 0}/${node.maxTaskCount || 2}\n`;
-    output += `- 最后心跳: ${lastHeartbeat}\n`;
-    output += `- 工作区: ${node.workspace || '-'}\n\n`;
-  }
-
-  return output;
+    if (status && status.status === 'running') {
+      console.log(`[技能] 扫描器已启动`);
+      console.log(`  - 节点类型: ${status.nodeType || pidInfo?.nodeType}`);
+      console.log(`  - 进程ID: ${status.pid}`);
+      console.log(`  - 已处理任务: ${status.tasksProcessed || 0}`);
+    } else {
+      console.log(`[技能] 扫描器启动中，请稍后查看状态`);
+    }
+  }, 1500);
+  
+  return {
+    success: true,
+    message: '扫描器启动指令已发送',
+    output: result.output
+  };
 }
 
-module.exports = {
-  // 任务管理
-  createTask,
-  getTaskList,
-  getTaskDetail,
-  confirmTask,
-  retryTask,
-  cancelTask,
-  assignTaskToNode,
+/**
+ * 停止任务扫描
+ */
+function stopScan() {
+  console.log('[技能] 正在停止任务扫描...');
   
-  // 节点管理
-  getNodeList,
-  getNodeStatus,
+  const pidInfo = readPid();
+  if (!pidInfo) {
+    return {
+      success: false,
+      message: '扫描器未运行'
+    };
+  }
   
-  // 格式化
-  formatTaskList,
-  formatNodeStatus,
+  const result = runCli('stop');
   
-  // 内部模块
-  taskManager,
-  nodeManager,
-  heartbeatChecker
-};
+  // 检查是否已停止
+  setTimeout(() => {
+    const newPidInfo = readPid();
+    if (!newPidInfo) {
+      console.log('[技能] 扫描器已停止');
+    }
+  }, 1000);
+  
+  return {
+    success: result.success,
+    message: result.success ? '扫描器停止指令已发送' : `停止失败: ${result.error}`,
+    output: result.output
+  };
+}
+
+/**
+ * 查看扫描状态
+ */
+function getStatus() {
+  const result = runCli('status');
+  
+  // 同时读取详细状态
+  const status = readStatus();
+  const pidInfo = readPid();
+  
+  let detail = '';
+  if (status) {
+    const uptime = status.startTime ? Math.floor((Date.now() - status.startTime) / 1000) : 0;
+    const mins = Math.floor(uptime / 60);
+    const secs = uptime % 60;
+    
+    detail = `
+详细状态:
+  - 运行状态: ${status.status}
+  - 进程ID: ${status.pid || pidInfo?.pid || '未知'}
+  - 运行时间: ${mins}分${secs}秒
+  - 已处理任务: ${status.tasksProcessed || 0}
+  - 错误次数: ${status.errors || 0}
+  - 最后扫描: ${status.lastScan ? new Date(status.lastScan).toLocaleString() : '无'}
+  - 最后更新: ${new Date(status.timestamp).toLocaleString()}`;
+  }
+  
+  return {
+    success: true,
+    message: result.output + detail,
+    status: status,
+    pidInfo: pidInfo
+  };
+}
+
+/**
+ * 重载配置
+ */
+function reloadConfig() {
+  console.log('[技能] 正在重载配置...');
+  
+  const pidInfo = readPid();
+  if (!pidInfo) {
+    return {
+      success: false,
+      message: '扫描器未运行，无需重载'
+    };
+  }
+  
+  const result = runCli('reload');
+  
+  // 检查重载状态
+  setTimeout(() => {
+    const status = readStatus();
+    if (status && status.status === 'running' && status.reloadedAt) {
+      console.log(`[技能] 配置已重载于 ${new Date(status.reloadedAt).toLocaleString()}`);
+    }
+  }, 2000);
+  
+  return {
+    success: result.success,
+    message: result.success ? '配置重载指令已发送' : `重载失败: ${result.error}`,
+    output: result.output
+  };
+}
+
+/**
+ * 主处理函数
+ * @param {string} command - 用户指令
+ * @returns {Object} 处理结果
+ */
+function handleCommand(command) {
+  const cmd = command.toLowerCase().trim();
+  
+  // 启动扫描
+  if (cmd.includes('启动') && cmd.includes('扫描')) {
+    return startScan();
+  }
+  
+  // 停止扫描
+  if (cmd.includes('停止') && cmd.includes('扫描')) {
+    return stopScan();
+  }
+  
+  // 查看状态
+  if (cmd.includes('查看') && cmd.includes('状态')) {
+    return getStatus();
+  }
+  
+  // 重载配置
+  if (cmd.includes('重载') || (cmd.includes(' reload'))) {
+    return reloadConfig();
+  }
+  
+  return {
+    success: false,
+    message: '未知指令，支持的指令: 启动任务扫描、停止任务扫描、查看扫描状态、重载扫描配置'
+  };
+}
+
+// 如果直接运行，处理命令行参数
+if (require.main === module) {
+  const command = process.argv[2] || 'status';
+  const result = handleCommand(command);
+  
+  console.log('\n========================================');
+  console.log('执行结果:', result.success ? '成功' : '失败');
+  console.log('消息:', result.message);
+  console.log('========================================\n');
+  
+  process.exit(result.success ? 0 : 1);
+}
+
+module.exports = { handleCommand, startScan, stopScan, getStatus, reloadConfig };

@@ -1,0 +1,18 @@
+{
+  "taskId": "task-balance-001",
+  "status": "success",
+  "platform": "WhaleCloud Lab",
+  "total": "200.00",
+  "used": "3.18",
+  "remaining": "196.82",
+  "requests": 96,
+  "queryTime": "2026-03-05T00:17:25",
+  "lastQuery": {
+    "timeDiffMinutes": 2,
+    "usedDiff": "+0.33",
+    "requestsDiff": 15,
+    "isFirstQuery": false,
+    "baselineType": "today"
+  },
+  "message": "查询成功"
+}

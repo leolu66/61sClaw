@@ -1,0 +1,27 @@
+{
+  "_comment": "多智能体协调器配置 - 修改后重启扫描生效",
+  "nodeType": "master",
+  "nodeId": "main",
+  
+  "master": {
+    "resultScanInterval": 30000,
+    "heartbeatCheckInterval": 300000,
+    "nodeTimeout": 360,
+    "notificationEnabled": true,
+    "maxRetries": 2,
+    "commandsDir": "D:\\projects\\commands",
+    "resultsDir": "D:\\projects\\results",
+    "configDir": "D:\\projects\\config"
+  },
+  
+  "worker": {
+    "taskScanInterval": 30000,
+    "heartbeatInterval": 300000,
+    "maxConcurrentTasks": 2,
+    "capabilities": ["code", "analysis", "doc", "writing"],
+    "commandsDir": "D:\\projects\\commands",
+    "resultsDir": "D:\\projects\\results",
+    "configDir": "D:\\projects\\config",
+    "workspaceDir": "D:\\projects\\workspace"
+  }
+}

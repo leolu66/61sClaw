@@ -1,0 +1,17 @@
+{
+  "taskId": "task-music-001",
+  "status": "failed",
+  "message": "未找到音乐文件",
+  "searchedPaths": [
+    "D:\\Users\\luzhe\\Music\\",
+    "C:\\Users\\luzhe\\Music\\",
+    "C:\\Users\\luzhe\\Downloads\\"
+  ],
+  "result": {
+    "musicFile": null,
+    "player": "PotPlayer",
+    "played": false,
+    "reason": "在指定目录未找到任何 .mp3 或 .flac 音乐文件"
+  },
+  "completedAt": "2026-03-05T00:20:00.000Z"
+}
