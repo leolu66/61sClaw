@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 GitHub 合规检查器 - 改进版
 检查 Git 暂存区和已提交文件是否符合上传规则
@@ -19,12 +20,19 @@ GitHub 合规检查器 - 改进版
 """
 
 import os
+import sys
 import re
 import subprocess
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+
+# 设置 stdout 编码为 utf-8
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 
 class RiskLevel(Enum):
@@ -46,6 +54,29 @@ class ComplianceIssue:
 
 class ComplianceChecker:
     """GitHub 合规检查器"""
+    
+    # 允许在 skills 目录外存在的目录（白名单）
+    ALLOWED_TOP_LEVEL_DIRS = {
+        'skills',           # 技能目录（核心）
+        'docs',             # 文档
+        '.git',             # Git 目录
+        '.github',          # GitHub 配置
+        'config',           # 配置文件（协调器配置）
+        'scripts',          # 脚本目录
+        'shared',           # 共享目录
+        'logs',             # 日志目录（已被 .gitignore 忽略）
+    }
+    
+    # 允许在 skills 目录外存在的文件（白名单）
+    ALLOWED_TOP_LEVEL_FILES = {
+        '.gitignore',       # Git 忽略文件
+        'README.md',        # 项目说明
+        'LICENSE',          # 许可证
+        'AGENTS.md',        # 启动规则（已脱敏模板）
+        'BOOTSTRAP.md',     # 引导文件（已脱敏模板）
+        'package.json',     # Node 配置
+        'requirements.txt', # Python 依赖
+    }
     
     # 合规规则定义
     RULES = {
@@ -174,6 +205,77 @@ class ComplianceChecker:
         self.repo_path = Path(repo_path) if repo_path else Path.cwd()
         self.issues: List[ComplianceIssue] = []
     
+    def check_non_skills_content(self, files: List[str]) -> List[ComplianceIssue]:
+        """
+        检查 skills 目录外的新增内容
+        
+        Args:
+            files: 文件路径列表
+            
+        Returns:
+            合规问题列表
+        """
+        issues = []
+        
+        for file_path in files:
+            # 跳过空路径
+            if not file_path:
+                continue
+                
+            # 检查是否在 skills 目录内
+            if file_path.startswith('skills/'):
+                continue
+            
+            # 获取顶级目录或文件名
+            top_level = file_path.split('/')[0]
+            
+            # 检查是否是允许的顶级目录
+            if top_level in self.ALLOWED_TOP_LEVEL_DIRS:
+                continue
+            
+            # 检查是否是允许的顶级文件
+            if file_path in self.ALLOWED_TOP_LEVEL_FILES:
+                continue
+            
+            # 检查是否是 .gitignore 中的文件
+            if self._is_in_gitignore(file_path):
+                continue
+            
+            # 在 skills 目录外的新增内容，发出告警
+            if '/' in file_path:
+                # 这是一个目录下的文件
+                issues.append(ComplianceIssue(
+                    file_path=file_path,
+                    issue_type="非 skills 目录新增",
+                    risk_level=RiskLevel.HIGH,
+                    description=f"在 skills 目录外新增目录 '{top_level}'，请确认是否应该提交",
+                    rule="skills_external_content"
+                ))
+            else:
+                # 这是一个顶级文件
+                issues.append(ComplianceIssue(
+                    file_path=file_path,
+                    issue_type="非 skills 目录新增文件",
+                    risk_level=RiskLevel.HIGH,
+                    description=f"在 skills 目录外新增文件 '{file_path}'，请确认是否应该提交",
+                    rule="skills_external_content"
+                ))
+        
+        return issues
+    
+    def _is_in_gitignore(self, file_path: str) -> bool:
+        """检查文件是否在 .gitignore 中"""
+        try:
+            result = subprocess.run(
+                ["git", "check-ignore", file_path],
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True
+            )
+            return result.returncode == 0
+        except:
+            return False
+    
     def get_staged_files(self) -> List[str]:
         """
         获取 Git 暂存区的文件列表
@@ -257,7 +359,34 @@ class ComplianceChecker:
         self.issues = []
         staged_files = self.get_staged_files()
         
+        # 首先检查 skills 目录外的新增内容
+        external_issues = self.check_non_skills_content(staged_files)
+        self.issues.extend(external_issues)
+        
+        # 然后检查常规规则
         for file_path in staged_files:
+            issue = self.check_file(file_path)
+            if issue:
+                self.issues.append(issue)
+        
+        return self.issues
+    
+    def check_committed_files(self) -> List[ComplianceIssue]:
+        """
+        检查已提交的文件
+        
+        Returns:
+            违规问题列表
+        """
+        self.issues = []
+        committed_files = self.get_committed_files()
+        
+        # 首先检查 skills 目录外的新增内容
+        external_issues = self.check_non_skills_content(committed_files)
+        self.issues.extend(external_issues)
+        
+        # 然后检查常规规则
+        for file_path in committed_files:
             issue = self.check_file(file_path)
             if issue:
                 self.issues.append(issue)
@@ -467,8 +596,20 @@ if __name__ == "__main__":
     print("=== 检查暂存区文件 ===")
     staged_issues = checker.check_staged_files()
     
+    if staged_issues:
+        print(f"\n[!] 发现 {len(staged_issues)} 个不合规文件")
+        print("\n" + checker.generate_report(staged_issues, check_type="staged"))
+    else:
+        print("\n[OK] 没有发现不合规文件")
+    
     print("\n=== 检查已提交文件 ===")
     committed_issues = checker.check_committed_files()
+    
+    if committed_issues:
+        print(f"\n[!] 发现 {len(committed_issues)} 个不合规文件")
+        print("\n" + checker.generate_report(committed_issues, check_type="committed"))
+    else:
+        print("\n[OK] 没有发现不合规文件")
     
     all_issues = staged_issues + committed_issues
     
