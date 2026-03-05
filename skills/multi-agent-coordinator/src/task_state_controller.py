@@ -473,7 +473,7 @@ class TaskStateController:
 
 
 # 便捷函数：获取默认控制器实例
-_ default_controller = None
+_default_controller = None
 
 def get_controller(db_path: str = None) -> TaskStateController:
     """获取默认的任务状态控制器实例"""
