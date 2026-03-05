@@ -173,9 +173,17 @@ shared_dir = "D:\\projects\\workspace\\shared\\output"
 ```bash
 git add -A
 git commit -m "清晰的提交信息"
-git push origin master
-git push origin master:main
+git push origin main
 ```
+
+**⚠️ 重要：默认分支是 `main`，不是 `master`！**
+
+- [OK] 推送前检查：`git branch` 确认当前分支
+- [OK] 推送到 main：`git push origin main`
+- [ERROR] 不要再推到 master 让文件"消失"了！
+
+**历史错误**：
+- 2026-03-01: 多个技能误推到 master 分支，GitHub 默认显示 main，导致文件"消失"
 
 **检查清单：**
 - [ ] 不包含隐私文件（MEMORY.md, SOUL.md, USER.md, 等）
