@@ -11,6 +11,8 @@
 import os
 import sys
 import io
+import json
+from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,18 +30,68 @@ if sys.stderr.encoding != 'utf-8':
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
+def load_config():
+    """加载配置文件"""
+    # 配置文件路径：技能目录下的 config.json
+    skill_dir = Path(__file__).parent.parent
+    config_path = skill_dir / "config.json"
+    
+    default_config = {
+        "output_dir": "./billing_report",
+        "shared_output_dir": None
+    }
+    
+    if config_path.exists():
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                # 合并默认配置
+                for key, value in default_config.items():
+                    if key not in config:
+                        config[key] = value
+                
+                # 处理相对路径
+                for key in ['output_dir', 'shared_output_dir']:
+                    if config.get(key) and not os.path.isabs(config[key]):
+                        # 相对路径：基于技能目录
+                        config[key] = str(skill_dir / config[key])
+                
+                return config
+        except Exception as e:
+            print(f"[警告] 读取配置文件失败: {e}，使用默认配置")
+    
+    return default_config
+
+
 class BillingAnalyzer:
-    def __init__(self, filename, datas_dir=None, output_dir=None):
+    def __init__(self, filename, datas_dir=None, output_dir=None, use_shared=False):
         """
         初始化分析器
         :param filename: 账单 CSV 文件名
-        :param datas_dir: 数据文件目录，默认：../datas/
-        :param output_dir: 输出目录，默认：../../../agfiles/billing_report/
+        :param datas_dir: 数据文件目录，默认：当前工作目录
+        :param output_dir: 输出目录，默认：从配置文件读取
+        :param use_shared: 是否使用共享输出目录（从配置文件读取）
         """
         self.filename = filename
-        workspace_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        self.datas_dir = datas_dir or os.path.join(workspace_root, 'datas')
-        self.output_dir = output_dir or os.path.join(workspace_root, 'agfiles', 'billing_report')
+        
+        # 加载配置
+        config = load_config()
+        
+        # 数据目录
+        if datas_dir:
+            self.datas_dir = datas_dir
+        else:
+            self.datas_dir = os.getcwd()
+        
+        # 输出目录（优先级：传入参数 > 共享配置 > 默认配置）
+        if output_dir:
+            self.output_dir = output_dir
+        elif use_shared and config.get('shared_output_dir'):
+            self.output_dir = config['shared_output_dir']
+        else:
+            self.output_dir = config.get('output_dir', './billing_report')
+        
+        # 确保目录存在
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(os.path.join(self.output_dir, 'charts'), exist_ok=True)
 
@@ -603,8 +655,19 @@ class BillingAnalyzer:
         efficiency = self.analysis_results['efficiency']
 
         if not report_name:
-            filename_only = os.path.basename(self.filename).replace('.csv', '')
-            report_name = f"{filename_only}_分析报告.md"
+            # 默认报告名：ZD-日期范围.md
+            date_range = self.analysis_results['overview']['date_range']
+            # 从日期范围提取开始和结束日期
+            try:
+                start_date = pd.to_datetime(self.df['日期'].min()).strftime('%m%d')
+                end_date = pd.to_datetime(self.df['日期'].max()).strftime('%m%d')
+                report_name = f"ZD-{start_date}-{end_date}.md"
+            except:
+                # 如果提取失败，使用默认名
+                report_name = f"ZD-{self.timestamp}.md"
+        elif not report_name.endswith('.md'):
+            # 确保有 .md 后缀
+            report_name = f"{report_name}.md"
 
         report_path = os.path.join(self.output_dir, report_name)
         
@@ -870,22 +933,32 @@ class BillingAnalyzer:
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("使用方法：python billing_analyzer.py <账单文件名> [报告名称]")
-        print("示例：python billing_analyzer.py billing_2026-02-09_2026-02-28.csv")
-        sys.exit(1)
-        
-    filename = sys.argv[1]
-    report_name = sys.argv[2] if len(sys.argv) > 2 else None
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='模型账单分析工具')
+    parser.add_argument('filename', help='账单 CSV 文件名')
+    parser.add_argument('report_name', nargs='?', help='报告名称（可选）')
+    parser.add_argument('--output-dir', '-o', help='输出目录（覆盖配置）')
+    parser.add_argument('--datas-dir', '-d', help='数据文件目录')
+    parser.add_argument('--shared', '-s', action='store_true', help='使用共享输出目录')
+    
+    args = parser.parse_args()
     
     try:
-        analyzer = BillingAnalyzer(filename)
-        report_path = analyzer.run_full_analysis(report_name)
+        analyzer = BillingAnalyzer(
+            args.filename,
+            datas_dir=args.datas_dir,
+            output_dir=args.output_dir,
+            use_shared=args.shared
+        )
+        report_path = analyzer.run_full_analysis(args.report_name)
         print(f"\n[OK] 全流程分析完成！报告路径：{report_path}")
         
     except Exception as e:
         print(f"[ERROR] 分析失败：{str(e)}")
         import traceback
+        traceback.print_exc()
+        sys.exit(1)
         traceback.print_exc()
         sys.exit(1)
 
