@@ -39,11 +39,9 @@ class GitHubClient:
         self.base_api_url = f"https://api.github.com/repos/{repo}"
         self.raw_url = f"https://raw.githubusercontent.com/{repo}/{branch}"
         
-    def _make_request(self, url: str, headers: Optional[Dict] = None) -> Any:
+    def _curl_request(self, url: str, headers: Optional[Dict] = None) -> Any:
         """
-        发送 HTTP 请求
-        
-        优先使用 curl（避免 urllib SSL 握手问题），失败时回退到 urllib
+        使用 curl 发送 HTTP 请求（解决 Windows SSL 握手超时问题）
         
         Args:
             url: 请求 URL
@@ -60,45 +58,74 @@ class GitHubClient:
         if self.token:
             headers["Authorization"] = f"token {self.token}"
         
-        # 优先使用 curl（避免 Windows 上 urllib 的 SSL 握手超时问题）
+        cmd = ["curl", "-s", "-L", "--max-time", "30", "-w", "\n%{http_code}", "-A", headers["User-Agent"]]
+        
+        # 添加自定义 headers
+        for key, value in headers.items():
+            if key != "User-Agent":
+                cmd.extend(["-H", f"{key}: {value}"])
+        
+        cmd.append(url)
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="ignore"
+        )
+        
+        if result.returncode != 0:
+            raise ConnectionError(f"curl 请求失败: {result.stderr}")
+        
+        # 解析响应（最后一行是 HTTP 状态码）
+        output_lines = result.stdout.strip().split("\n")
+        http_code = output_lines[-1]
+        response_body = "\n".join(output_lines[:-1])
+        
+        # 检查 HTTP 状态码
+        if http_code == "404":
+            raise FileNotFoundError(f"文件不存在: {url}")
+        elif http_code == "403":
+            raise PermissionError(f"API 限制或权限不足: {url}")
+        elif http_code.startswith("4") or http_code.startswith("5"):
+            raise Exception(f"HTTP 错误 {http_code}: {response_body[:200]}")
+        
+        # 尝试解析 JSON
         try:
-            cmd = ["curl", "-s", "-L", "--max-time", "30", "-A", headers["User-Agent"]]
+            return json.loads(response_body)
+        except json.JSONDecodeError:
+            return response_body
+    
+    def _make_request(self, url: str, headers: Optional[Dict] = None) -> Any:
+        """
+        发送 HTTP 请求（优先使用 curl，失败时回退到 urllib）
+        
+        Args:
+            url: 请求 URL
+            headers: 请求头
+        
+        Returns:
+            响应数据
+        """
+        try:
+            return self._curl_request(url, headers)
+        except Exception as curl_error:
+            # curl 失败，回退到 urllib
+            if headers is None:
+                headers = {}
             
-            # 添加自定义 headers
-            for key, value in headers.items():
-                if key != "User-Agent":  # User-Agent 已通过 -A 设置
-                    cmd.extend(["-H", f"{key}: {value}"])
+            headers["User-Agent"] = "SkillSyncer/1.0"
             
-            cmd.append(url)
+            if self.token:
+                headers["Authorization"] = f"token {self.token}"
             
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="ignore"
-            )
-            
-            if result.returncode == 0:
-                data = result.stdout
-                # 尝试解析 JSON
-                try:
-                    return json.loads(data)
-                except json.JSONDecodeError:
-                    return data
-            else:
-                # curl 失败，回退到 urllib
-                raise Exception(f"curl failed: {result.stderr}")
-                
-        except Exception:
-            # 回退到 urllib 方式
             request = urllib.request.Request(url, headers=headers)
             
             try:
                 with urllib.request.urlopen(request, timeout=30) as response:
                     data = response.read().decode("utf-8")
                     
-                    # 尝试解析 JSON
                     try:
                         return json.loads(data)
                     except json.JSONDecodeError:
@@ -119,24 +146,12 @@ class GitHubClient:
         """
         获取仓库文件树
         
-        使用 GitHub API 获取目录列表（目录列表没有 raw URL 方式）
-        但可以通过访问 skills/ 目录的 README 或特定文件来推断
-        
         Args:
             path: 目录路径
         
         Returns:
             文件列表
         """
-        # 尝试使用 raw URL 获取目录列表（通过访问一个已知文件来推断）
-        if path == "skills" or path.startswith("skills/"):
-            # 对于技能目录，尝试直接获取技能列表
-            try:
-                return self._get_skills_list_via_raw()
-            except Exception:
-                pass
-        
-        # 回退到 API 方式
         url = f"{self.base_api_url}/contents/{path}?ref={self.branch}"
         
         try:
@@ -147,49 +162,9 @@ class GitHubClient:
         except FileNotFoundError:
             return []
     
-    def _get_skills_list_via_raw(self) -> List[Dict]:
-        """通过 raw URL 获取技能列表（避免 API 限流）"""
-        # 尝试获取 skills 目录下的几个已知技能来推断列表
-        # 这是一个变通方案，因为 GitHub 没有提供目录列表的 raw 接口
-        
-        # 常见技能列表（硬编码兜底）
-        common_skills = [
-            "ai-news-fetcher", "api-balance-checker", "audio-control",
-            "billing-analyzer", "brave-search", "claude-code-sender",
-            "code-stats", "disk-cleaner", "exchange-email-reader",
-            "feishu-notifier", "game-auto-clicker", "github-compliance-checker",
-            "gobang-game", "jhwg-auto", "log-migrator", "model-selector",
-            "mouseinfo-launcher", "multi-agent-coordinator", "one-click-commit",
-            "potplayer-music", "skill-syncer", "solitaire-game",
-            "telecom-news-fetcher", "todo-manager", "vpn-controller",
-            "weather-skill", "wechat-article-fetcher", "work-session-logger"
-        ]
-        
-        skills = []
-        for skill_name in common_skills:
-            # 尝试获取 SKILL.md 验证技能存在
-            try:
-                raw_url = f"{self.raw_url}/skills/{skill_name}/SKILL.md"
-                self._make_request(raw_url)
-                # 如果成功，说明技能存在
-                skills.append({
-                    "name": skill_name,
-                    "path": f"skills/{skill_name}",
-                    "type": "dir"
-                })
-            except Exception:
-                # 技能不存在或网络错误，跳过
-                continue
-        
-        if not skills:
-            # 如果 raw 方式失败，回退到 API
-            raise Exception("Raw URL 方式获取失败")
-        
-        return skills
-    
     def get_file_content(self, path: str) -> str:
         """
-        获取文件内容
+        获取文件内容（直接使用 GitHub API）
         
         Args:
             path: 文件路径
@@ -197,31 +172,19 @@ class GitHubClient:
         Returns:
             文件内容
         """
-        # 优先使用 raw.githubusercontent.com（无 API 限制）
-        raw_url = f"{self.raw_url}/{path}"
+        url = f"{self.base_api_url}/contents/{path}?ref={self.branch}"
+        result = self._make_request(url)
         
-        try:
-            content = self._make_request(raw_url)
-            if isinstance(content, str):
-                return content
-            else:
-                # 如果返回的不是字符串，使用 API 方式
-                raise Exception("Unexpected response type")
-        except Exception:
-            # 回退到 API 方式
-            url = f"{self.base_api_url}/contents/{path}?ref={self.branch}"
-            result = self._make_request(url)
-            
-            if isinstance(result, dict) and "content" in result:
-                # Base64 解码
-                content = base64.b64decode(result["content"]).decode("utf-8")
-                return content
-            
-            raise FileNotFoundError(f"无法获取文件: {path}")
+        if isinstance(result, dict) and "content" in result:
+            # Base64 解码
+            content = base64.b64decode(result["content"]).decode("utf-8")
+            return content
+        
+        raise FileNotFoundError(f"无法获取文件: {path}")
     
     def get_skills_list(self) -> List[str]:
         """
-        获取技能列表
+        获取技能列表（直接从 GitHub API 获取，不再使用预定义列表）
         
         Returns:
             技能名称列表
