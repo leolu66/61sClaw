@@ -1,3 +1,6 @@
+# Shared directory (should be outside workspace)
+shared/
+
 # Python cache
 __pycache__/
 *.pyc
