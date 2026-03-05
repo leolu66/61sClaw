@@ -21,14 +21,22 @@ from pathlib import Path
 
 @dataclass
 class ClaudeCodeOptions:
-    """Claude Code 调用选项"""
+    """Claude Code 调用选项
+    
+    重要：使用本 SDK 前，请确保已在 Claude Code 中授权工作目录：
+      1. 运行 `claude` 进入交互模式
+      2. 执行 `/allowed-dirs add D:\projects` （添加共享目录）
+      3. 执行 `/allowed-dirs list` 验证配置
+    
+    否则 Claude Code 会因安全限制拒绝文件操作。
+    """
     max_turns: Optional[int] = None
     output_format: str = "text"  # text, json, stream-json
     system_prompt: Optional[str] = None
     append_system_prompt: Optional[str] = None
     allowed_tools: Optional[List[str]] = None
     disallowed_tools: Optional[List[str]] = None
-    permission_mode: Optional[str] = None  # acceptEdits, bypassPermissions, plan
+    permission_mode: Optional[str] = "acceptEdits"  # 默认自动接受编辑权限
     cwd: Optional[Union[str, Path]] = None
     mcp_config: Optional[Union[str, Path]] = None
     verbose: bool = False
@@ -100,13 +108,8 @@ def send_to_claude(
     if options is None:
         options = ClaudeCodeOptions()
     
-    # 检查 API 密钥
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        return {
-            "success": False,
-            "error": "未设置 ANTHROPIC_API_KEY 环境变量",
-            "text": ""
-        }
+    # 注意：Claude Code CLI 会自己处理认证，不需要强制检查 API Key
+    # 如果用户需要特定的 API Key，可以通过环境变量设置
     
     args = _build_args(options)
     args.append(prompt)
