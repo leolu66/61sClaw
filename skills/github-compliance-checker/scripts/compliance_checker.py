@@ -66,7 +66,7 @@ class ComplianceChecker:
         '.github',          # GitHub 配置
         'config',           # 配置文件（协调器配置）
         'scripts',          # 脚本目录
-        'shared',           # 共享目录
+        # 'shared',         # 共享目录（已从 GitHub 移除）
         'logs',             # 日志目录（已被 .gitignore 忽略）
     }
     
