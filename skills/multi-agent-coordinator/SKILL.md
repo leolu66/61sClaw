@@ -10,19 +10,75 @@
 - **主节点**：任务分配者和协调者
 - **子节点**：任务执行者
 
-### 主节点处理逻辑
+### 主节点处理逻辑（含任务计划确认）
 
 ```
-用户 ──► 创建任务 ──► 写入 commands/{node}/task-xxx.json
+用户提出需求
     │
     ▼
-监控 results/ 和 tasks.json
+[主节点] 分析需求 → 生成任务执行计划
     │
     ▼
-发现任务提交 ──► 读取结果
+展示计划给用户 → 等待确认
     │
     ▼
-确认完成 ──► 更新 tasks.json 状态为 done
+用户确认后
+    │
+    ▼
+[主节点] 预建目录 → 准备资源
+    │
+    ▼
+[主节点] 发送任务给子节点
+    │
+    ▼
+[子节点] 执行任务
+    │
+    ▼
+[子节点] 返回结果
+    │
+    ▼
+[主节点] 汇总结果 → 展示给用户
+```
+
+**任务计划确认机制**：
+
+主节点接到用户需求后，先生成执行计划，包含：
+- 执行步骤列表
+- 每个步骤的负责节点
+- 预计耗时
+- 涉及的资源/文件
+
+用户确认后才开始执行。
+
+**任务执行清单**：
+
+任务执行过程中，主节点会维护一个 Markdown 格式的执行清单文件：
+- 路径：`config/task-checklist-{planId}.md`
+- 每个步骤有 checkbox，完成时打勾
+- 失败时在步骤后记录错误原因
+- 任务结束时显示完整清单
+
+清单格式示例：
+```markdown
+# 任务执行清单
+
+**任务ID**: plan-123456
+**任务名称**: 账单分析报告生成
+**状态**: 🔄 执行中
+
+## 执行步骤
+
+- [x] **步骤 1** - 复制账单文件到共享目录 (主节点 kimi)
+- [x] **步骤 2** - 预建输出目录结构 (主节点 kimi)
+- [ ] **步骤 3** - 发送分析任务给 Claude Code (主节点 kimi)
+- [ ] **步骤 4** - 读取账单数据并分析 (子节点 claude)
+...
+
+## 执行日志
+
+[2026-03-05 21:30:15] ✅ 步骤 1 完成
+[2026-03-05 21:30:16] ✅ 步骤 2 完成
+[2026-03-05 21:30:17] ❌ 步骤 3 失败: 子节点离线
 ```
 
 **主节点指令**：
@@ -32,16 +88,124 @@
 - `确认任务 task-xxx` - 确认任务完成
 - `取消任务 task-xxx` - 取消任务
 
-### 子节点处理逻辑
+### 子节点处理逻辑（任务执行者）
+
+子节点作为任务执行者，需要自动处理接收到的任务。
+
+**触发条件**：
+当子节点收到主节点消息包含以下格式时触发：
+- `执行任务: xxx` - 执行具体任务
+- `# [TASK] 协同工作任务单` - 标准任务单格式
+
+**子节点自动处理流程**：
 
 ```
-主节点 ──► 创建任务文件 ──► commands/claude/task-xxx.json
+检测到任务指令
     │
     ▼
-我检测到任务
+[子节点] 解析任务信息
     │
     ▼
-直接读取并执行（使用我的工具）
+更新任务状态: received
+    │
+    ▼
+分析任务类型
+    │
+    ├── 账单分析 ──► 调用 billing-analyzer 技能
+    ├── 代码开发 ──► 调用代码生成技能
+    └── 其他任务 ──► 根据指令执行
+    │
+    ▼
+更新任务状态: running
+    │
+    ▼
+执行任务（使用子节点工具）
+    │
+    ▼
+生成结果文件
+    │
+    ▼
+更新任务状态: completed/failed
+    │
+    ▼
+写入结果到工作区
+    │
+    ▼
+（可选）通知主节点
+```
+
+**任务状态更新机制**：
+
+子节点通过 SQLite 数据库更新任务状态：
+
+```python
+# 状态更新代码模板
+import sys
+sys.path.insert(0, 'D:/projects/workspace-main/skills/multi-agent-coordinator/src')
+from task_state_controller import TaskStateController, TaskStatus
+
+ctrl = TaskStateController('D:/projects/workspace-main/config/task_states.db')
+
+# 接收任务时
+ctrl.update_status(task_id, TaskStatus.RECEIVED, 'claude', '已接收任务')
+
+# 开始执行时
+ctrl.update_status(task_id, TaskStatus.RUNNING, 'claude', '开始执行')
+
+# 完成时
+ctrl.update_status(task_id, TaskStatus.COMPLETED, 'claude', '执行完成')
+
+# 失败时
+ctrl.update_status(task_id, TaskStatus.FAILED, 'claude', '执行失败', '错误信息')
+```
+
+**子节点执行步骤**：
+
+1. **接收任务**
+   - 解析任务指令
+   - 提取 task_id、任务类型、输出目录
+   - 更新数据库状态为 `received`
+
+2. **准备执行**
+   - 检查工作区权限
+   - 预建输出目录
+   - 更新数据库状态为 `running`
+
+3. **执行任务**
+   - 根据任务类型调用相应技能
+   - 读取输入文件
+   - 执行分析/生成
+
+4. **生成结果**
+   - 写入报告文件
+   - 写入 result.json
+   - 更新数据库状态为 `completed` 或 `failed`
+
+5. **完成通知**
+   - 生成 `.task-completed` 标记文件
+   - （可选）通过飞书通知主节点
+
+**子节点输出要求**：
+
+每个任务必须生成：
+- `result.json` - 执行结果元数据
+- `{task_type}_report.md` - 详细报告
+- `.task-state` - 状态变更记录（可选）
+
+**result.json 格式**：
+```json
+{
+  "taskId": "plan-xxx",
+  "status": "success/failed",
+  "output": "执行结果摘要",
+  "outputFiles": ["billing_report.md"],
+  "executedAt": "2026-03-05T22:00:00Z",
+  "cost": {
+    "duration_ms": 120000,
+    "tokens": 50000
+  }
+}
+```
     │
     ▼
 写入结果到 results/claude/

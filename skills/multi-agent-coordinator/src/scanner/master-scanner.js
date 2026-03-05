@@ -113,65 +113,188 @@ class MasterScanner {
    */
   _scanResults() {
     try {
+      // 1. 扫描传统结果目录
       const resultsDir = this.config.resultsDir;
-      if (!fs.existsSync(resultsDir)) {
-        return;
+      if (fs.existsSync(resultsDir)) {
+        this._scanTraditionalResults(resultsDir);
       }
 
-      // 遍历所有子节点目录
-      const nodeDirs = fs.readdirSync(resultsDir)
-        .filter(dir => fs.statSync(path.join(resultsDir, dir)).isDirectory());
+      // 2. 扫描异步任务标记文件
+      this._scanAsyncTaskMarkers();
 
-      let foundCount = 0;
-
-      for (const nodeId of nodeDirs) {
-        const nodeResultsDir = path.join(resultsDir, nodeId);
-        const resultFiles = fs.readdirSync(nodeResultsDir)
-          .filter(f => f.endsWith('.json'));
-
-        for (const file of resultFiles) {
-          const resultId = `${nodeId}/${file}`;
-          
-          // 避免重复处理
-          if (this.processedResults.has(resultId)) {
-            continue;
-          }
-
-          const filePath = path.join(nodeResultsDir, file);
-          const result = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-          
-          this.logger.info(`发现新结果: ${result.taskId} from ${nodeId}`);
-          
-          // 触发回调
-          if (this.onResultFound) {
-            this.onResultFound(result, nodeId);
-          }
-
-          // 更新任务状态
-          this._updateTaskStatus(result.taskId, 'submitted', {
-            result: result,
-            processedBy: nodeId
-          });
-
-          this.processedResults.add(resultId);
-          foundCount++;
-        }
-      }
-
-      if (foundCount > 0) {
-        this.logger.info(`本次扫描发现 ${foundCount} 个新结果`);
-      }
-      
-      // 返回扫描统计
-      return {
-        scannedAt: Date.now(),
-        resultsFound: foundCount,
-        totalProcessed: this.processedResults.size
-      };
     } catch (error) {
       this.logger.error(`扫描结果失败: ${error.message}`);
       return { error: error.message };
     }
+  }
+
+  /**
+   * 扫描传统结果目录
+   */
+  _scanTraditionalResults(resultsDir) {
+    // 遍历所有子节点目录
+    const nodeDirs = fs.readdirSync(resultsDir)
+      .filter(dir => fs.statSync(path.join(resultsDir, dir)).isDirectory());
+
+    let foundCount = 0;
+
+    for (const nodeId of nodeDirs) {
+      const nodeResultsDir = path.join(resultsDir, nodeId);
+      const resultFiles = fs.readdirSync(nodeResultsDir)
+        .filter(f => f.endsWith('.json'));
+
+      for (const file of resultFiles) {
+        const resultId = `${nodeId}/${file}`;
+        
+        // 避免重复处理
+        if (this.processedResults.has(resultId)) {
+          continue;
+        }
+
+        const filePath = path.join(nodeResultsDir, file);
+        const result = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        
+        this.logger.info(`发现新结果: ${result.taskId} from ${nodeId}`);
+        
+        // 触发回调
+        if (this.onResultFound) {
+          this.onResultFound(result, nodeId);
+        }
+
+        // 更新任务状态
+        this._updateTaskStatus(result.taskId, 'submitted', {
+          result: result,
+          processedBy: nodeId
+        });
+
+        this.processedResults.add(resultId);
+        foundCount++;
+      }
+    }
+
+    if (foundCount > 0) {
+      this.logger.info(`传统结果扫描: 发现 ${foundCount} 个新结果`);
+    }
+  }
+
+  /**
+   * 扫描异步任务标记文件
+   * 检查子 Agent 生成的 .task-completed 和 .task-failed 文件
+   */
+  _scanAsyncTaskMarkers() {
+    try {
+      const sharedOutputDir = this.config.shared?.outputDir || 'D:\\projects\\workspace\\shared\\output';
+      if (!fs.existsSync(sharedOutputDir)) {
+        return;
+      }
+
+      // 遍历所有任务输出目录
+      const taskDirs = fs.readdirSync(sharedOutputDir)
+        .filter(dir => dir.startsWith('task-'))
+        .map(dir => path.join(sharedOutputDir, dir))
+        .filter(dir => fs.statSync(dir).isDirectory());
+
+      let completedCount = 0;
+      let failedCount = 0;
+
+      for (const taskDir of taskDirs) {
+        // 检查完成标记
+        const completedMarker = path.join(taskDir, '.task-completed');
+        const failedMarker = path.join(taskDir, '.task-failed');
+
+        if (fs.existsSync(completedMarker)) {
+          const markerData = JSON.parse(fs.readFileSync(completedMarker, 'utf-8'));
+          const planId = markerData.planId;
+          
+          if (!this.processedResults.has(`async/${planId}`)) {
+            this.logger.info(`发现异步任务完成: ${planId}`);
+            
+            // 更新任务清单
+            this._updateAsyncTaskChecklist(planId, 'completed', markerData);
+            
+            this.processedResults.add(`async/${planId}`);
+            completedCount++;
+          }
+        }
+
+        if (fs.existsSync(failedMarker)) {
+          const markerData = JSON.parse(fs.readFileSync(failedMarker, 'utf-8'));
+          const planId = markerData.planId;
+          
+          if (!this.processedResults.has(`async/${planId}`)) {
+            this.logger.warn(`发现异步任务失败: ${planId}`);
+            
+            // 更新任务清单
+            this._updateAsyncTaskChecklist(planId, 'failed', markerData);
+            
+            this.processedResults.add(`async/${planId}`);
+            failedCount++;
+          }
+        }
+      }
+
+      if (completedCount > 0 || failedCount > 0) {
+        this.logger.info(`异步任务扫描: ${completedCount} 完成, ${failedCount} 失败`);
+      }
+    } catch (error) {
+      this.logger.error(`扫描异步任务标记失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 更新异步任务清单
+   */
+  _updateAsyncTaskChecklist(planId, status, markerData) {
+    try {
+      const configDir = this.config.configDir;
+      const checklistPath = path.join(configDir, `task-checklist-${planId}.md`);
+      
+      if (!fs.existsSync(checklistPath)) {
+        this.logger.warn(`任务清单不存在: ${checklistPath}`);
+        return;
+      }
+
+      let content = fs.readFileSync(checklistPath, 'utf-8');
+      const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
+      // 更新状态
+      content = content.replace(
+        /\*\*状态\*\*: .*$/m,
+        `**状态**: ${status === 'completed' ? '✅ 已完成' : '❌ 失败'}`
+      );
+
+      // 添加扫描器检测记录
+      content += `\n## 扫描器检测\n\n`;
+      content += `- **检测时间**: ${timestamp}\n`;
+      content += `- **检测结果**: ${status === 'completed' ? '任务成功完成' : '任务执行失败'}\n`;
+      if (markerData.completedAt) {
+        content += `- **完成时间**: ${markerData.completedAt}\n`;
+      }
+      if (markerData.failedAt) {
+        content += `- **失败时间**: ${markerData.failedAt}\n`;
+      }
+      if (markerData.reason) {
+        content += `- **原因**: ${markerData.reason}\n`;
+      }
+
+      fs.writeFileSync(checklistPath, content, 'utf-8');
+      this.logger.info(`已更新任务清单: ${planId}`);
+
+      // 触发通知（如果配置了）
+      if (this.config.notificationEnabled && status === 'completed') {
+        this._sendNotification(planId, markerData);
+      }
+    } catch (error) {
+      this.logger.error(`更新任务清单失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 发送通知（飞书等）
+   */
+  _sendNotification(planId, markerData) {
+    // TODO: 集成飞书通知
+    this.logger.info(`[通知] 任务 ${planId} 已完成`);
   }
 
   /**
