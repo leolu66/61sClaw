@@ -83,6 +83,59 @@ skills/<技能名称>/
 - [ ] 有适当的错误处理和日志输出
 - [ ] 代码有注释，关键逻辑有说明
 
+**文件路径规范（重要）：**
+
+#### 原则 1：技能自包含
+
+**所有技能默认只能在自己的工作空间内读写文件**。
+
+```python
+# ✅ 正确：使用相对路径，保存在技能目录内
+output_dir = Path(__file__).parent / "output"
+
+# ❌ 错误：使用绝对路径或硬编码路径
+output_dir = "D:\\projects\\workspace\\output"
+output_dir = "C:\\Users\\xxx\\Documents"
+```
+
+**要求**：
+- 使用相对路径（相对于技能目录）
+- 默认输出到技能自己的工作空间
+- 确保技能分享后仍可用
+
+#### 原则 2：外部协作需配置
+
+**如果技能需要在工作空间外读写文件（如多智能体共享目录），必须通过配置文件设置路径**。
+
+```python
+# ✅ 正确：从配置文件读取路径
+import json
+config = json.load(open("config.json"))
+shared_dir = config.get("shared_output_dir")
+
+# ❌ 错误：硬编码共享路径
+shared_dir = "D:\\projects\\workspace\\shared\\output"
+```
+
+**要求**：
+- 不硬编码外部路径
+- 通过配置文件或环境变量传入
+- 配置项名称清晰（如 `shared_dir`, `output_path`）
+
+#### 示例配置
+
+```json
+{
+  "output_dir": "./output",
+  "shared_dir": "D:\\projects\\workspace\\shared\\output"
+}
+```
+
+**为什么需要这个规范**：
+1. **可移植性** - 技能分享后，其他用户可以直接使用
+2. **安全性** - 避免意外写入系统目录
+3. **协作性** - 明确哪些路径是配置的，哪些是固定的
+
 **文件要求：**
 - [ ] 不包含 `.skill` 构建产物
 - [ ] 不包含个人隐私配置
