@@ -55,6 +55,9 @@ class ComplianceIssue:
 class ComplianceChecker:
     """GitHub 合规检查器"""
     
+    # 确认记录文件路径（放在 workspace 根目录的 config 下）
+    APPROVALS_FILE = Path(__file__).parent.parent.parent.parent / 'config' / '.compliance_approvals.json'
+    
     # 允许在 skills 目录外存在的目录（白名单）
     ALLOWED_TOP_LEVEL_DIRS = {
         'skills',           # 技能目录（核心）
@@ -204,6 +207,89 @@ class ComplianceChecker:
         """
         self.repo_path = Path(repo_path) if repo_path else Path.cwd()
         self.issues: List[ComplianceIssue] = []
+        self.approved_items: Dict[str, dict] = self._load_approvals()
+    
+    def _load_approvals(self) -> Dict[str, dict]:
+        """加载已确认的记录"""
+        try:
+            if self.APPROVALS_FILE.exists():
+                import json
+                with open(self.APPROVALS_FILE, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"[警告] 加载确认记录失败: {e}")
+        return {}
+    
+    def _save_approvals(self):
+        """保存确认记录"""
+        try:
+            self.APPROVALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            import json
+            with open(self.APPROVALS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(self.approved_items, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[警告] 保存确认记录失败: {e}")
+    
+    def approve_item(self, item_path: str, reason: str = ""):
+        """
+        确认某个项目（下次检查将忽略）
+        
+        Args:
+            item_path: 项目路径（文件或目录）
+            reason: 确认原因
+        """
+        import time
+        self.approved_items[item_path] = {
+            'approved_at': time.time(),
+            'reason': reason,
+            'approved_by': 'user'
+        }
+        self._save_approvals()
+        print(f"[OK] 已确认: {item_path}")
+    
+    def is_approved(self, item_path: str) -> bool:
+        """检查项目是否已确认"""
+        # 直接匹配
+        if item_path in self.approved_items:
+            return True
+        
+        # 检查父目录是否已确认
+        parts = item_path.split('/')
+        for i in range(len(parts)):
+            parent_path = '/'.join(parts[:i+1])
+            if parent_path in self.approved_items:
+                return True
+        
+        return False
+    
+    def list_approvals(self):
+        """列出所有已确认的项目"""
+        if not self.approved_items:
+            print("[INFO] 没有已确认的项目")
+            return
+        
+        import time
+        print("\n=== 已确认的项目 ===")
+        for path, info in self.approved_items.items():
+            date = time.strftime('%Y-%m-%d %H:%M', time.localtime(info['approved_at']))
+            print(f"  - {path}")
+            print(f"    确认时间: {date}")
+            print(f"    原因: {info.get('reason', '无')}")
+        print()
+    
+    def revoke_approval(self, item_path: str):
+        """
+        撤销确认
+        
+        Args:
+            item_path: 项目路径
+        """
+        if item_path in self.approved_items:
+            del self.approved_items[item_path]
+            self._save_approvals()
+            print(f"[OK] 已撤销确认: {item_path}")
+        else:
+            print(f"[警告] 未找到确认记录: {item_path}")
     
     def check_non_skills_content(self, files: List[str]) -> List[ComplianceIssue]:
         """
@@ -224,6 +310,10 @@ class ComplianceChecker:
                 
             # 检查是否在 skills 目录内
             if file_path.startswith('skills/'):
+                continue
+            
+            # 检查是否已确认
+            if self.is_approved(file_path):
                 continue
             
             # 获取顶级目录或文件名
@@ -591,8 +681,31 @@ class ComplianceChecker:
 
 # 示例用法
 if __name__ == "__main__":
+    import sys
     checker = ComplianceChecker()
     
+    # 处理命令行参数
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+        
+        # 确认某个项目
+        if cmd == 'approve' and len(sys.argv) > 2:
+            path = sys.argv[2]
+            reason = sys.argv[3] if len(sys.argv) > 3 else "用户确认"
+            checker.approve_item(path, reason)
+            sys.exit(0)
+        
+        # 列出已确认的项目
+        if cmd == 'list-approvals':
+            checker.list_approvals()
+            sys.exit(0)
+        
+        # 撤销确认
+        if cmd == 'revoke' and len(sys.argv) > 2:
+            checker.revoke_approval(sys.argv[2])
+            sys.exit(0)
+    
+    # 默认执行检查
     print("=== 检查暂存区文件 ===")
     staged_issues = checker.check_staged_files()
     
@@ -618,5 +731,6 @@ if __name__ == "__main__":
         for issue in all_issues:
             risk_icon = "[H]" if issue.risk_level == RiskLevel.HIGH else "[M]" if issue.risk_level == RiskLevel.MEDIUM else "[L]"
             print(f"{risk_icon} {issue.file_path} - {issue.issue_type}")
+        print("\n提示: 使用 'python compliance_checker.py approve <path> [reason]' 确认项目")
     else:
         print("\n[OK] 没有发现合规问题")
