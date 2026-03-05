@@ -153,13 +153,14 @@ class SkillSyncManager:
             print(f"[警告] 备份失败: {e}")
             return None
     
-    def sync_skill(self, skill_name: str, dry_run: bool = False) -> SyncResult:
+    def sync_skill(self, skill_name: str, dry_run: bool = False, force: bool = False) -> SyncResult:
         """
         同步单个技能
         
         Args:
             skill_name: 技能名称
             dry_run: 是否仅预览（不实际执行）
+            force: 是否强制更新（覆盖本地特有技能保护）
         
         Returns:
             同步结果
@@ -169,13 +170,13 @@ class SkillSyncManager:
         # 检查状态
         status = self.get_skill_status(skill_name)
         
-        # 本地特有技能（远程不存在）- 保护
-        if status["local_only"]:
+        # 本地特有技能（远程不存在）- 保护（force 可跳过）
+        if status["local_only"] and not force:
             return SyncResult(
                 skill_name=skill_name,
                 success=True,
                 updated=False,
-                details=["本地特有技能，已保护"]
+                details=["本地特有技能，已保护（使用 --force 强制更新）"]
             )
         
         # 远程有但本地没有 - 安装新技能
@@ -274,13 +275,14 @@ class SkillSyncManager:
                 backup_path=backup_path
             )
     
-    def sync_all_skills(self, dry_run: bool = False, install_new: bool = True) -> Dict[str, Any]:
+    def sync_all_skills(self, dry_run: bool = False, install_new: bool = True, force: bool = False) -> Dict[str, Any]:
         """
         同步所有技能
         
         Args:
             dry_run: 是否仅预览
             install_new: 是否安装远程新技能（获取全部技能时为 True）
+            force: 是否强制更新（覆盖本地特有技能保护）
         
         Returns:
             批量同步结果
@@ -300,7 +302,7 @@ class SkillSyncManager:
         
         # 先同步本地已存在的技能
         for skill_name in local_skills:
-            result = self.sync_skill(skill_name, dry_run)
+            result = self.sync_skill(skill_name, dry_run, force)
             results.append(result)
             
             if result.success:

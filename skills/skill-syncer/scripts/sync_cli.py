@@ -54,19 +54,19 @@ def format_sync_result(result: SyncResult) -> str:
     return "\n".join(lines)
 
 
-def cmd_get(skill_name: str, dry_run: bool = False):
+def cmd_get(skill_name: str, dry_run: bool = False, force: bool = False):
     """获取单个技能"""
     syncer = SkillSyncManager()
-    result = syncer.sync_skill(skill_name, dry_run)
+    result = syncer.sync_skill(skill_name, dry_run, force)
     print(format_sync_result(result))
     
     return 0 if result.success else 1
 
 
-def cmd_get_all(dry_run: bool = False):
+def cmd_get_all(dry_run: bool = False, force: bool = False):
     """获取全部技能"""
     syncer = SkillSyncManager()
-    results = syncer.sync_all_skills(dry_run, install_new=True)  # 安装新技能
+    results = syncer.sync_all_skills(dry_run, install_new=True, force=force)  # 安装新技能
     
     print("\n" + "="*50)
     print("批量技能同步结果")
@@ -109,10 +109,10 @@ def cmd_get_all(dry_run: bool = False):
     return 0 if results['success'] else 1
 
 
-def cmd_preview(skill_name: str):
+def cmd_preview(skill_name: str, force: bool = False):
     """预览变更"""
     print(f"\n[预览模式] 将显示 '{skill_name}' 的变更，但不会实际执行\n")
-    return cmd_get(skill_name, dry_run=True)
+    return cmd_get(skill_name, dry_run=True, force=force)
 
 
 def cmd_list():
@@ -182,7 +182,9 @@ def main():
         epilog="""
 示例:
   python sync_cli.py get todo-manager
+  python sync_cli.py get todo-manager --force
   python sync_cli.py get-all
+  python sync_cli.py get-all --force
   python sync_cli.py preview multi-agent-coordinator
   python sync_cli.py list
         """
@@ -194,14 +196,17 @@ def main():
     get_parser = subparsers.add_parser("get", help="获取单个技能")
     get_parser.add_argument("skill_name", help="技能名称")
     get_parser.add_argument("--dry-run", action="store_true", help="预览模式")
+    get_parser.add_argument("--force", action="store_true", help="强制更新（覆盖本地特有技能保护）")
     
     # get-all 命令
     get_all_parser = subparsers.add_parser("get-all", help="获取全部技能")
     get_all_parser.add_argument("--dry-run", action="store_true", help="预览模式")
+    get_all_parser.add_argument("--force", action="store_true", help="强制更新（覆盖本地特有技能保护）")
     
     # preview 命令
     preview_parser = subparsers.add_parser("preview", help="预览变更")
     preview_parser.add_argument("skill_name", help="技能名称")
+    preview_parser.add_argument("--force", action="store_true", help="强制更新（覆盖本地特有技能保护）")
     
     # list 命令
     list_parser = subparsers.add_parser("list", help="列出技能")
@@ -218,11 +223,11 @@ def main():
     
     try:
         if args.command == "get":
-            return cmd_get(args.skill_name, args.dry_run)
+            return cmd_get(args.skill_name, args.dry_run, args.force)
         elif args.command == "get-all":
-            return cmd_get_all(args.dry_run)
+            return cmd_get_all(args.dry_run, args.force)
         elif args.command == "preview":
-            return cmd_preview(args.skill_name)
+            return cmd_preview(args.skill_name, args.force)
         elif args.command == "list":
             return cmd_list()
         elif args.command == "status":
