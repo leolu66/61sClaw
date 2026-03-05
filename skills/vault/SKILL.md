@@ -5,11 +5,64 @@
 ## 触发命令
 
 - `vault` / `密码箱` / `凭证` / `credentials`
+- `查 [平台名] 的 [字段]` / `查看 [平台名] 的 [字段]` - 查询指定字段
 - `保存 [平台名] 的 [字段]` - 保存凭据
 - `查询 [平台名]` / `查看 [平台名]` - 查询凭据
 - `列出所有平台` / `vault list` - 列出所有平台
 - `更新 [平台名]` - 更新凭据
 - `删除 [平台名]` - 删除凭据
+
+## 使用示例
+
+### 查询 GitHub Token
+```
+用户: 查github的token
+助手: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### 查询用户名和密码
+```
+用户: 查看github的username
+助手: leolu66
+
+用户: 查github的password
+助手: ********（解密后的密码）
+```
+
+### 查询 API Key
+```
+用户: 查智谱的api_key
+助手: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+用户: 查看moonshot的api_key
+助手: sk-kimi-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### 列出所有平台
+```
+用户: 密码箱
+助手: [显示所有已保存的平台列表]
+```
+
+## 敏感信息查询规范
+
+**以下敏感信息必须通过密码箱查询，禁止直接存储在其他位置：**
+
+| 敏感信息类型 | 示例 | 查询示例 |
+|-------------|------|---------|
+| **用户名** | Username, Account | `查github的username` |
+| **密码** | Password, 登录密码 | `查github的password` |
+| **Token** | Access Token, Private Token | `查github的token` |
+| **API Key** | API Key, Secret Key | `查智谱的api_key` |
+| **身份证号** | 身份证、ID Card | `查个人信息的身份证` |
+| **手机号** | 电话、手机 | `查个人信息的手机号` |
+| **密钥** | Secret, Key | `查阿里云的access_key_secret` |
+| **授权码** | Auth Code, 验证码 | `查飞书的app_secret` |
+
+**注意**：
+- 敏感字段（密码、密钥、token）使用 AES-256-GCM 加密存储
+- 查询时只返回纯值，无引号、无套话、无格式符号
+- 目的：便于直接复制使用
 
 ## 功能
 
@@ -38,12 +91,6 @@
 | 七牛云 | cloud | access_key, secret_key, bucket |
 | Brave Search | api | api_key |
 | 和风天气 | api | api_key |
-
-## 输出规范
-
-- **查询敏感信息**（身份证号、密码、API Key 等）：只返回纯值，无引号、无套话、无格式符号
-- **示例**：`320106200701103657`（不是 `"320106200701103657"` 或 `身份证号是：xxx`）
-- **目的**：便于直接复制使用
 
 ## 安全说明
 
