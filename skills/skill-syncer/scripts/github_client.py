@@ -84,12 +84,24 @@ class GitHubClient:
         """
         获取仓库文件树
         
+        使用 GitHub API 获取目录列表（目录列表没有 raw URL 方式）
+        但可以通过访问 skills/ 目录的 README 或特定文件来推断
+        
         Args:
             path: 目录路径
         
         Returns:
             文件列表
         """
+        # 尝试使用 raw URL 获取目录列表（通过访问一个已知文件来推断）
+        if path == "skills" or path.startswith("skills/"):
+            # 对于技能目录，尝试直接获取技能列表
+            try:
+                return self._get_skills_list_via_raw()
+            except Exception:
+                pass
+        
+        # 回退到 API 方式
         url = f"{self.base_api_url}/contents/{path}?ref={self.branch}"
         
         try:
@@ -99,6 +111,46 @@ class GitHubClient:
             return []
         except FileNotFoundError:
             return []
+    
+    def _get_skills_list_via_raw(self) -> List[Dict]:
+        """通过 raw URL 获取技能列表（避免 API 限流）"""
+        # 尝试获取 skills 目录下的几个已知技能来推断列表
+        # 这是一个变通方案，因为 GitHub 没有提供目录列表的 raw 接口
+        
+        # 常见技能列表（硬编码兜底）
+        common_skills = [
+            "ai-news-fetcher", "api-balance-checker", "audio-control",
+            "billing-analyzer", "brave-search", "claude-code-sender",
+            "code-stats", "disk-cleaner", "exchange-email-reader",
+            "feishu-notifier", "game-auto-clicker", "github-compliance-checker",
+            "gobang-game", "jhwg-auto", "log-migrator", "model-selector",
+            "mouseinfo-launcher", "multi-agent-coordinator", "one-click-commit",
+            "potplayer-music", "skill-syncer", "solitaire-game",
+            "telecom-news-fetcher", "todo-manager", "vpn-controller",
+            "weather-skill", "wechat-article-fetcher", "work-session-logger"
+        ]
+        
+        skills = []
+        for skill_name in common_skills:
+            # 尝试获取 SKILL.md 验证技能存在
+            try:
+                raw_url = f"{self.raw_url}/skills/{skill_name}/SKILL.md"
+                self._make_request(raw_url)
+                # 如果成功，说明技能存在
+                skills.append({
+                    "name": skill_name,
+                    "path": f"skills/{skill_name}",
+                    "type": "dir"
+                })
+            except Exception:
+                # 技能不存在或网络错误，跳过
+                continue
+        
+        if not skills:
+            # 如果 raw 方式失败，回退到 API
+            raise Exception("Raw URL 方式获取失败")
+        
+        return skills
     
     def get_file_content(self, path: str) -> str:
         """
