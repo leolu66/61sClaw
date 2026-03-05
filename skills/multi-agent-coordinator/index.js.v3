@@ -12,9 +12,6 @@ const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// 引入子 Agent 脚本生成器
-const { generateWorkerScript } = require('./worker-generator');
-
 const SKILL_DIR = __dirname;
 const CONFIG_DIR = path.join(SKILL_DIR, '..', '..', 'config');
 const PID_FILE = path.join(CONFIG_DIR, 'coordinator.pid');

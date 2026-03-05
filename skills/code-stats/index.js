@@ -255,12 +255,29 @@ async function main() {
   // 计算GitHub代码和文档变化（通过git命令）
   let codeAdditions = 0, codeDeletions = 0;
   let mdAdditions = 0, mdDeletions = 0;
+  let commitCount = 0;
+  let daysWithCommits = 0;
   
   try {
     const { execSync } = require('child_process');
     
+    // 获取提交次数
+    const commitOutput = execSync('git log --since="7 days ago" --oneline', { cwd: __dirname + '/../..' })
+      .toString().trim();
+    if (commitOutput) {
+      commitCount = commitOutput.split('\n').length;
+    }
+    
+    // 获取活跃天数
+    const dateOutput = execSync('git log --since="7 days ago" --pretty=format:"%ad" --date=short', { cwd: __dirname + '/../..' })
+      .toString().trim();
+    if (dateOutput) {
+      const uniqueDates = new Set(dateOutput.split('\n'));
+      daysWithCommits = uniqueDates.size;
+    }
+    
     // 获取代码变化
-    const codeStats = execSync('git log --since="2026-02-25" --pretty=tformat: --numstat -- "*.py" "*.js"', { cwd: __dirname + '/../..' })
+    const codeStats = execSync('git log --since="7 days ago" --pretty=tformat: --numstat -- "*.py" "*.js"', { cwd: __dirname + '/../..' })
       .toString().trim().split('\n');
     for (const line of codeStats) {
       const parts = line.trim().split(/\s+/);
@@ -271,7 +288,7 @@ async function main() {
     }
     
     // 获取文档变化
-    const mdStats = execSync('git log --since="2026-02-25" --pretty=tformat: --numstat -- "*.md"', { cwd: __dirname + '/../..' })
+    const mdStats = execSync('git log --since="7 days ago" --pretty=tformat: --numstat -- "*.md"', { cwd: __dirname + '/../..' })
       .toString().trim().split('\n');
     for (const line of mdStats) {
       const parts = line.trim().split(/\s+/);
@@ -292,12 +309,14 @@ async function main() {
 - **技能数量**: ${skills.length} 个
 - **总文件数**: ${totalFiles} 个
 - **总代码行数**: ${totalCodeLines.toLocaleString()} 行
-- **总文档行数**: ${EXT_STATS['.md'].contentLines.toLocaleString()} 行
+  - Python (.py): ${EXT_STATS['.py'].lines.toLocaleString()} 行 (${EXT_STATS['.py'].count} 文件)
+  - JavaScript (.js): ${EXT_STATS['.js'].lines.toLocaleString()} 行 (${EXT_STATS['.js'].count} 文件)
+- **总文档行数**: ${EXT_STATS['.md'].contentLines.toLocaleString()} 行 (${EXT_STATS['.md'].count} 文件)
 - **总大小**: ${formatSize(totalSize)}
 
 ## GitHub 提交统计（最近7天）
-- **提交次数**: ${ghStats ? ghStats.commitCount : '-'} 次
-- **活跃天数**: ${ghStats ? ghStats.daysWithCommits : '-'} 天
+- **提交次数**: ${commitCount} 次
+- **活跃天数**: ${daysWithCommits} 天
 | 类型 | 增加 | 删除 | 净变化 |
 | ------------------ | ------- | ------ | ------ |
 | **代码 (.py/.js)** | +${codeAdditions.toLocaleString()} | -${codeDeletions.toLocaleString()} | ${codeAdditions - codeDeletions >= 0 ? '+' : ''}${(codeAdditions - codeDeletions).toLocaleString()} |
