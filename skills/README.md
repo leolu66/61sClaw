@@ -96,19 +96,6 @@ skill-name/
 
 **重要原则**：技能强相关的内容必须放在技能自己的目录下，保持功能内聚性。
 
-## 获取新技能
-
-```bash
-# 获取单个技能
-python skills/skill-syncer/scripts/sync_cli.py get {skill-name}
-
-# 获取全部技能
-python skills/skill-syncer/scripts/sync_cli.py get-all
-
-# 列出可同步的技能
-python skills/skill-syncer/scripts/sync_cli.py list
-```
-
 ---
 
 *最后更新：2026-03-05 | 共 36 个技能*
