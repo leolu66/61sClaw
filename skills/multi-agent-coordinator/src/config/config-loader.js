@@ -53,23 +53,32 @@ class ConfigLoader {
   }
 
   /**
-   * 获取当前节点类型配置
+   * 获取当前节点类型配置（包含 shared 配置）
    * @returns {Object} 对应节点类型的配置
    */
   getNodeConfig() {
     const config = this.load();
     const nodeType = config.nodeType;
     
+    // 共享配置
+    const sharedConfig = config.shared || {
+      outputDir: 'D:\\projects\\hiagents\\output',
+      tasksDir: 'D:\\projects\\hiagents\\tasks',
+      inputDir: 'D:\\projects\\hiagents\\input'
+    };
+    
     if (nodeType === 'master') {
       return {
         nodeType: 'master',
         nodeId: config.nodeId || 'main',
+        shared: sharedConfig,
         ...config.master
       };
     } else if (nodeType === 'worker') {
       return {
         nodeType: 'worker',
         nodeId: config.nodeId || 'worker',
+        shared: sharedConfig,
         ...config.worker
       };
     } else {
@@ -152,6 +161,11 @@ class ConfigLoader {
       _comment: '多智能体协调器配置 - 修改后重启扫描生效',
       nodeType: 'master',
       nodeId: 'main',
+      shared: {
+        outputDir: 'D:\\projects\\hiagents\\output',
+        tasksDir: 'D:\\projects\\hiagents\\tasks',
+        inputDir: 'D:\\projects\\hiagents\\input'
+      },
       master: {
         resultScanInterval: 30000,
         heartbeatCheckInterval: 300000,

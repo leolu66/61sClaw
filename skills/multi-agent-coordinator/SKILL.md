@@ -85,6 +85,12 @@
   "nodeType": "master",
   "nodeId": "main",
   
+  "shared": {
+    "outputDir": "D:\\projects\\hiagents\\output",
+    "tasksDir": "D:\\projects\\hiagents\\tasks",
+    "inputDir": "D:\\projects\\hiagents\\input"
+  },
+  
   "master": {
     "resultScanInterval": 30000,
     "heartbeatCheckInterval": 300000,
@@ -112,6 +118,8 @@
 ### 配置说明
 
 | 配置项 | 说明 | 主节点 | 子节点 |
+|--------|------|--------|--------|
+| `shared.outputDir` | 共享输出目录 | ✅ | ✅ |
 |--------|------|--------|--------|
 | `nodeType` | 节点类型 | master | worker |
 | `nodeId` | 节点标识 | main | claude/kimi/... |
