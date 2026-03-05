@@ -14,6 +14,7 @@ GitHub 客户端
 import os
 import json
 import base64
+import subprocess
 import urllib.request
 import urllib.error
 from typing import List, Dict, Optional, Any
@@ -42,6 +43,8 @@ class GitHubClient:
         """
         发送 HTTP 请求
         
+        优先使用 curl（避免 urllib SSL 握手问题），失败时回退到 urllib
+        
         Args:
             url: 请求 URL
             headers: 请求头
@@ -57,28 +60,60 @@ class GitHubClient:
         if self.token:
             headers["Authorization"] = f"token {self.token}"
         
-        request = urllib.request.Request(url, headers=headers)
-        
+        # 优先使用 curl（避免 Windows 上 urllib 的 SSL 握手超时问题）
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                data = response.read().decode("utf-8")
-                
+            cmd = ["curl", "-s", "-L", "--max-time", "30", "-A", headers["User-Agent"]]
+            
+            # 添加自定义 headers
+            for key, value in headers.items():
+                if key != "User-Agent":  # User-Agent 已通过 -A 设置
+                    cmd.extend(["-H", f"{key}: {value}"])
+            
+            cmd.append(url)
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="ignore"
+            )
+            
+            if result.returncode == 0:
+                data = result.stdout
                 # 尝试解析 JSON
                 try:
                     return json.loads(data)
                 except json.JSONDecodeError:
                     return data
-                    
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                raise FileNotFoundError(f"文件不存在: {url}")
-            elif e.code == 403:
-                raise PermissionError(f"API 限制或权限不足: {url}")
             else:
-                raise Exception(f"HTTP 错误 {e.code}: {e.reason}")
+                # curl 失败，回退到 urllib
+                raise Exception(f"curl failed: {result.stderr}")
                 
-        except urllib.error.URLError as e:
-            raise ConnectionError(f"网络错误: {e.reason}")
+        except Exception:
+            # 回退到 urllib 方式
+            request = urllib.request.Request(url, headers=headers)
+            
+            try:
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    data = response.read().decode("utf-8")
+                    
+                    # 尝试解析 JSON
+                    try:
+                        return json.loads(data)
+                    except json.JSONDecodeError:
+                        return data
+                        
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    raise FileNotFoundError(f"文件不存在: {url}")
+                elif e.code == 403:
+                    raise PermissionError(f"API 限制或权限不足: {url}")
+                else:
+                    raise Exception(f"HTTP 错误 {e.code}: {e.reason}")
+                    
+            except urllib.error.URLError as e:
+                raise ConnectionError(f"网络错误: {e.reason}")
     
     def get_repo_tree(self, path: str = "") -> List[Dict]:
         """
