@@ -27,27 +27,17 @@ description: |
 
 #### 使用方法
 
-### 发送文本消息
+使用 `openclaw message send` CLI 命令发送通知：
 
-```python
-from message import message
-
-# 发送到用户（需要用户的 open_id）
-message(
-    action="send",
-    channel="feishu",
-    message="通知内容",
-    target="user:ou_xxxxx"  # 用户 open_id
-)
+```bash
+# 发送到用户
+openclaw message send --channel feishu --message "通知内容" --target "user:ou_xxxxx"
 
 # 发送到群聊
-message(
-    action="send",
-    channel="feishu",
-    message="通知内容",
-    target="chat:oc_xxxxx"  # 群聊 ID
-)
+openclaw message send --channel feishu --message "通知内容" --target "chat:oc_xxxxx"
 ```
+
+> 注意：此方式为纯通知推送，不会触发 AI 回复
 
 ### 获取用户 ID
 
