@@ -177,6 +177,25 @@
       "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
+      "id": "deepseek-v3.2",
+      "name": "DeepSeek V3.2",
+      "input": 4,
+      "output": 6,
+      "cache": null,
+      "context": "128K",
+      "position": 12,
+      "badge": "12",
+      "tags": [
+        "混合推理",
+        "深度思考",
+        "函数调用",
+        "高性价比"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）",
+      "description": "性能媲美 GPT-5-High，输出长度大幅降低，省算力"
+    },
+    {
       "id": "zhipu/glm-4.7",
       "name": "Zhipu GLM-4.7 (智谱直连)",
       "input": 4,
@@ -235,9 +254,9 @@
       "备选": "qwen3.5-plus"
     },
     "复杂推理": {
-      "首选": "doubao-pro",
-      "备选": "claude-4.6-sonnet",
-      "高端": "glm-5"
+      "首选": "deepseek-v3.2",
+      "备选": "doubao-pro",
+      "高端": "claude-4.6-sonnet"
     },
     "成本敏感": {
       "首选": "qwen3.5-flash",
@@ -245,6 +264,12 @@
     }
   },
   "programmingModels": [
+    {
+      "id": "deepseek-v3.2",
+      "output": 6,
+      "定位": "高性价比推理",
+      "特点": "混合推理模型，输出长度大幅降低"
+    },
     {
       "id": "MiniMax-M2.5",
       "output": 8.4,
@@ -276,5 +301,5 @@
       "特点": "全栈开发，自适应思考"
     }
   ],
-  "lastUpdated": "2026-02-27"
+  "lastUpdated": "2026-03-07"
 }
