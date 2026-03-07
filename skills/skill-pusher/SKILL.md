@@ -55,6 +55,18 @@ python scripts/push_skill.py timer-alarm general-agent
 |------|------|--------|
 | skill_name | 要推送的技能名称 | .openclaw/skills/ 下的目录名 |
 | target | 目标 Agent | feishu-agent, general-agent |
+| -f, --force | 强制推送，忽略版本比较 | 可选 |
+
+### 版本比较逻辑
+
+推送前自动比较源技能和目标技能的修改时间：
+
+1. **目标不存在** → 需要推送
+2. **源更新**（源修改时间 > 目标）→ 需要推送
+3. **日期相同** → 跳过推送
+4. **目标更新** → 跳过推送
+
+使用 `-f` 或 `--force` 参数可强制推送，忽略版本比较。
 
 ### 源技能目录
 

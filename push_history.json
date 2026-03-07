@@ -1,0 +1,27 @@
+{
+  "potplayer-music->feishu-agent": {
+    "skill": "potplayer-music",
+    "target": "feishu-agent",
+    "pushed_at": "2026-03-07T20:16:31.546304"
+  },
+  "skill-creator-local->feishu-agent": {
+    "skill": "skill-creator-local",
+    "target": "feishu-agent",
+    "pushed_at": "2026-03-07T20:19:40.928251"
+  },
+  "work-session-logger->feishu-agent": {
+    "skill": "work-session-logger",
+    "target": "feishu-agent",
+    "pushed_at": "2026-03-07T20:19:40.969887"
+  },
+  "holiday-checker->public": {
+    "skill": "holiday-checker",
+    "target": "public",
+    "pushed_at": "2026-03-07T20:26:45.937991"
+  },
+  "weather-skill->public": {
+    "skill": "weather-skill",
+    "target": "public",
+    "pushed_at": "2026-03-07T20:26:45.942646"
+  }
+}
