@@ -13,6 +13,7 @@ Examples:
 """
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -324,6 +325,91 @@ def load_external_guide():
     return SKILL_DO_GUIDE
 
 
+def get_skill_categories_path():
+    """Get the path to skill-categories.json"""
+    workspace_root = Path(__file__).parent.parent.parent.parent
+    return workspace_root / "skill-categories.json"
+
+
+def update_skill_categories(skill_name, category):
+    """
+    Update skill-categories.json to add the skill to the specified category.
+    
+    Args:
+        skill_name: Name of the skill to add
+        category: Category to add the skill to (public, shared, or private)
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    categories_path = get_skill_categories_path()
+    
+    try:
+        # Load existing categories
+        if categories_path.exists():
+            with open(categories_path, 'r', encoding='utf-8') as f:
+                categories = json.load(f)
+        else:
+            categories = {"categories": {}, "rules": {}}
+        
+        # Check if category exists
+        if category not in categories.get("categories", {}):
+            print(f"[WARNING] Category '{category}' not found in skill-categories.json")
+            print(f"   Available categories: public, shared, private")
+            return False
+        
+        # Add skill to category if not already present
+        skills_list = categories["categories"][category].get("skills", [])
+        if skill_name not in skills_list:
+            skills_list.append(skill_name)
+            categories["categories"][category]["skills"] = skills_list
+            
+            # Save updated categories
+            with open(categories_path, 'w', encoding='utf-8') as f:
+                json.dump(categories, f, ensure_ascii=False, indent=2)
+            print(f"[OK] Added '{skill_name}' to category '{category}' in skill-categories.json")
+            return True
+        else:
+            print(f"[INFO] Skill '{skill_name}' already exists in category '{category}'")
+            return True
+            
+    except Exception as e:
+        print(f"[ERROR] Error updating skill-categories.json: {e}")
+        return False
+
+
+def prompt_category_selection():
+    """
+    Interactively prompt user to select a skill category.
+    
+    Returns:
+        Selected category (public, shared, or private), or None if cancelled
+    """
+    print("\n=== 技能分类选择 ===")
+    print("请选择新技能的生效范围：\n")
+    print("  1) public  - 公共技能，所有Agent共享")
+    print("  2) shared - 共享技能，推送给小飞(feishu-agent)")
+    print("  3) private - 私有技能，保留在本地")
+    print()
+    
+    while True:
+        try:
+            choice = input("请输入选项 (1/2/3) 或按 Enter 跳过: ").strip()
+            
+            if not choice:
+                print("[INFO] 跳过分类选择，技能不会被添加到 skill-categories.json")
+                return None
+            
+            if choice in ['1', '2', '3']:
+                categories_map = {'1': 'public', '2': 'shared', '3': 'private'}
+                return categories_map[choice]
+            else:
+                print("[ERROR] 无效选项，请输入 1、2 或 3")
+        except (KeyboardInterrupt, EOFError):
+            print("\n[INFO] 取消分类选择")
+            return None
+
+
 def init_skill(skill_name, path, resources, include_examples):
     """
     Initialize a new skill directory with template SKILL.md.
@@ -409,6 +495,17 @@ def main():
         action="store_true",
         help="Create example files inside the selected resource directories",
     )
+    parser.add_argument(
+        "--category",
+        choices=["public", "shared", "private"],
+        help="Skill category: public (all agents), shared (feishu-agent), private (local only). "
+             "If not specified, will prompt interactively.",
+    )
+    parser.add_argument(
+        "--no-prompt",
+        action="store_true",
+        help="Skip interactive category selection (use with --category)",
+    )
     args = parser.parse_args()
 
     raw_skill_name = args.skill_name
@@ -432,8 +529,19 @@ def main():
 
     path = args.path
 
+    # Determine category selection
+    category = args.category
+    if not category and not args.no_prompt:
+        # Interactive prompt
+        category = prompt_category_selection()
+    elif category and not args.no_prompt:
+        # Show selected category
+        print(f"   Category: {category}")
+    
     print(f"Initializing skill: {skill_name}")
     print(f"   Location: {path}")
+    if category:
+        print(f"   Category: {category}")
     if resources:
         print(f"   Resources: {', '.join(resources)}")
         if args.examples:
@@ -443,6 +551,10 @@ def main():
     print()
 
     result = init_skill(skill_name, path, resources, args.examples)
+
+    if result and category:
+        # Update skill-categories.json
+        update_skill_categories(skill_name, category)
 
     if result:
         sys.exit(0)

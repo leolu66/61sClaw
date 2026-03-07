@@ -10,7 +10,12 @@ from datetime import datetime
 from pathlib import Path
 
 
-def get_next_log_filename(summary: str = "", log_dir: str = r"D:\\anthropic\\工作日志") -> tuple:
+def get_workspace_dir():
+    """获取当前工作区根目录"""
+    return Path(__file__).parent.parent.parent
+
+
+def get_next_log_filename(summary: str = "", log_dir: str = None) -> tuple:
     """
     生成下一个工作日志文件名
     
@@ -21,6 +26,11 @@ def get_next_log_filename(summary: str = "", log_dir: str = r"D:\\anthropic\\工
     Returns:
         (filepath, filename): 完整路径和文件名
     """
+    # 默认使用工作区的 logs/daily 目录
+    if log_dir is None:
+        workspace_dir = get_workspace_dir()
+        log_dir = str(workspace_dir / "logs" / "daily")
+    
     # 确保目录存在
     os.makedirs(log_dir, exist_ok=True)
     
@@ -189,7 +199,7 @@ def generate_log_template(
 
 def create_log(
     summary: str,
-    log_dir: str = r"D:\\anthropic\\工作日志",
+    log_dir: str = None,
     start_time: str = None,
     end_time: str = None,
     tasks: list = None,
@@ -202,7 +212,7 @@ def create_log(
     
     Args:
         summary: 简短概述（2-4个关键词，用+连接）
-        log_dir: 日志存放目录
+        log_dir: 日志存放目录（默认为工作区的 logs/daily）
         start_time: 开始时间 (HH:MM)
         end_time: 结束时间 (HH:MM)
         tasks: 任务列表
@@ -213,6 +223,10 @@ def create_log(
     Returns:
         生成的文件路径
     """
+    # 默认使用工作区的 logs/daily 目录
+    if log_dir is None:
+        workspace_dir = get_workspace_dir()
+        log_dir = str(workspace_dir / "logs" / "daily")
     # 生成文件名
     filepath, filename, seq = get_next_log_filename(summary, log_dir)
     

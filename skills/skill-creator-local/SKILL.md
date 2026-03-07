@@ -40,6 +40,26 @@ python skills/skill-creator-local/scripts/init_skill.py my-skill --path skills/ 
 python skills/skill-creator-local/scripts/package_skill.py skills/my-skill
 ```
 
+## 技能分类选择
+
+创建新技能时，需要选择技能的生效范围。系统支持三种分类：
+
+| 分类 | 说明 | 目标目录 | 适用场景 |
+|------|------|----------|----------|
+| **public** | 公共技能，所有Agent共享 | `.openclaw/skills` | 通用工具，如音频控制、天气查询、搜索等 |
+| **shared** | 共享技能，推送给小飞 | `workspace-feishu-agent/skills` | 需要推送给移动端小飞的技能 |
+| **private** | 私有技能，保留本地 | `workspace-main/skills` | 本地专用技能，如游戏、鼠标工具等 |
+
+### 选择建议
+
+- **选择 public** 如果技能是通用工具，所有 Agent 都可能用到
+- **选择 shared** 如果需要把技能推送给移动端的小飞
+- **选择 private** 如果技能是本地专用的，不需要共享
+
+### 自动更新
+
+创建技能时，脚本会自动将技能名称添加到 `skill-categories.json` 的对应分类中。
+
 ## 自动注入的规范
 
 创建技能时，以下规范会自动追加到生成的 SKILL.md 中：

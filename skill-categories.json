@@ -62,8 +62,36 @@
     }
   },
   "rules": {
-    "public_keywords": ["audio-control", "weather", "brave-search", "holiday-checker"],
-    "shared_keywords": ["todo", "vault", "email", "balance", "exchange", "api-balance", "model", "qiniu", "syncer", "logger", "ai-news", "telecom-news"],
-    "private_keywords": ["game", "gobang", "solitaire", "skill-pusher", "mouseinfo", "mouse", "wechat", "youtube", "workspace"]
+    "public_keywords": [
+      "audio-control",
+      "weather",
+      "brave-search",
+      "holiday-checker"
+    ],
+    "shared_keywords": [
+      "todo",
+      "vault",
+      "email",
+      "balance",
+      "exchange",
+      "api-balance",
+      "model",
+      "qiniu",
+      "syncer",
+      "logger",
+      "ai-news",
+      "telecom-news"
+    ],
+    "private_keywords": [
+      "game",
+      "gobang",
+      "solitaire",
+      "skill-pusher",
+      "mouseinfo",
+      "mouse",
+      "wechat",
+      "youtube",
+      "workspace"
+    ]
   }
 }
