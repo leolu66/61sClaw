@@ -1,0 +1,69 @@
+{
+  "version": "2026-03-07",
+  "categories": {
+    "public": {
+      "description": "公共技能，所有Agent共享",
+      "target": ".openclaw/skills",
+      "skills": [
+        "audio-control",
+        "brave-search",
+        "holiday-checker",
+        "weather-skill"
+      ]
+    },
+    "shared": {
+      "description": "共享技能，推送给小飞(feishu-agent)",
+      "target": "workspace-feishu-agent/skills",
+      "skills": [
+        "ai-news-fetcher",
+        "api-balance-checker",
+        "exchange-email-reader",
+        "model-recommender",
+        "model-selector",
+        "model-switcher",
+        "qiniu-sync",
+        "skill-creator-local",
+        "telecom-news-fetcher",
+        "todo-manager",
+        "vault",
+        "work-session-logger"
+      ]
+    },
+    "private": {
+      "description": "私有技能，保留在本地",
+      "target": "workspace-main/skills",
+      "skills": [
+        "auto-tester",
+        "backup-manager",
+        "billing-analyzer",
+        "claude-code-sender",
+        "code-stats",
+        "cross-device-msg",
+        "disk-cleaner",
+        "feishu-notifier",
+        "game-auto-clicker",
+        "github-compliance-checker",
+        "gobang-game",
+        "jhwg-auto",
+        "log-migrator",
+        "mouseinfo-launcher",
+        "multi-agent-coordinator",
+        "one-click-commit",
+        "potplayer-music",
+        "skill-pusher",
+        "skill-syncer",
+        "solitaire-game",
+        "timer-alarm",
+        "vpn-controller",
+        "wechat-article-fetcher",
+        "workspace-sync",
+        "youtube-bestpartners"
+      ]
+    }
+  },
+  "rules": {
+    "public_keywords": ["audio-control", "weather", "brave-search", "holiday-checker"],
+    "shared_keywords": ["todo", "vault", "email", "balance", "exchange", "api-balance", "model", "qiniu", "syncer", "logger", "ai-news", "telecom-news"],
+    "private_keywords": ["game", "gobang", "solitaire", "skill-pusher", "mouseinfo", "mouse", "wechat", "youtube", "workspace"]
+  }
+}
