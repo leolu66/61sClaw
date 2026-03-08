@@ -24,8 +24,11 @@ class TaskManager {
     // 推断任务类型（如果未指定）
     const inferredType = type || this._inferTaskType(title, description);
 
-    // 设置默认提醒策略
-    const defaultStrategy = this._getDefaultStrategy(taskType, reminderStrategy);
+    // 确定优先级
+    const taskPriority = priority || 'medium';
+
+    // 设置默认提醒策略（高优先级任务自动使用更频繁的提醒）
+    const defaultStrategy = this._getDefaultStrategy(taskType, reminderStrategy, taskPriority);
 
     // 生成唯一编号（日期+序号）
     const uniqueId = this._generateUniqueId();
@@ -41,7 +44,7 @@ class TaskManager {
       description: description || '',
       type: inferredType,
       deadline: parsedDeadline,
-      priority: priority || 'medium',
+      priority: taskPriority,
       status: 'pending',
       createdAt: dayjs().toISOString(),
       completedAt: null,
@@ -249,13 +252,32 @@ class TaskManager {
    * 获取默认提醒策略
    * @param {string} taskType - 任务类型（daily/weekly/monthly）
    * @param {Object} customStrategy - 用户自定义策略
+   * @param {string} priority - 任务优先级
    * @returns {Object} 提醒策略
    */
-  _getDefaultStrategy(taskType, customStrategy) {
+  _getDefaultStrategy(taskType, customStrategy, priority) {
+    // 高优先级任务默认每2小时提醒一次
+    const isHighPriority = priority === 'high';
+
     const defaults = {
-      daily: { type: 'daily', frequency: 'once', exceptions: {}, customTime: '09:00' },
-      weekly: { type: 'weekly', frequency: 'someday', exceptions: {}, customTime: '10:00' },
-      monthly: { type: 'monthly', frequency: 'someday', exceptions: {}, customTime: '10:00' }
+      daily: {
+        type: 'daily',
+        frequency: isHighPriority ? 'every2h' : 'once',
+        exceptions: {},
+        customTime: '09:00'
+      },
+      weekly: {
+        type: 'weekly',
+        frequency: isHighPriority ? 'everyday' : 'someday',
+        exceptions: {},
+        customTime: '10:00'
+      },
+      monthly: {
+        type: 'monthly',
+        frequency: isHighPriority ? 'everyMonday' : 'someday',
+        exceptions: {},
+        customTime: '10:00'
+      }
     };
 
     return customStrategy || defaults[taskType] || defaults.daily;
