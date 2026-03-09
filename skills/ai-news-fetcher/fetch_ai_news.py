@@ -537,21 +537,28 @@ def main():
     print()
     print(markdown_output)
     
-    # 保存到指定文件
-    if args.output:
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        output_path = OUTPUT_DIR / args.output
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(markdown_output)
-        print(f"\n💾 已保存到: {output_path}")
+    # 保存到 output 目录（按时间命名）
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
     
-    # 同时保存到默认日志目录（保持旧版行为）
-    log_dir = Path(__file__).parent.parent.parent / "logs" / "daily"
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / f"ai-news-{datetime.now().strftime('%Y%m%d-%H')}.md"
-    with open(log_file, "w", encoding="utf-8") as f:
+    # 主文件：带时间戳
+    output_path = OUTPUT_DIR / f"{timestamp}.md"
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(markdown_output)
-    print(f"💾 已缓存到: {log_file}")
+    print(f"\n💾 已保存到: {output_path}")
+    
+    # 同时更新 latest.md（始终指向最新）
+    latest_path = OUTPUT_DIR / "latest.md"
+    with open(latest_path, "w", encoding="utf-8") as f:
+        f.write(markdown_output)
+    print(f"💾 已更新: {latest_path}")
+    
+    # 如果指定了额外输出文件
+    if args.output:
+        custom_path = OUTPUT_DIR / args.output
+        with open(custom_path, "w", encoding="utf-8") as f:
+            f.write(markdown_output)
+        print(f"💾 额外保存到: {custom_path}")
 
 
 if __name__ == "__main__":

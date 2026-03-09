@@ -176,10 +176,26 @@ python spider_cli.py probe "https://example.com"
 | 采集方式 | 硬编码 Python | YAML 配置驱动 |
 | 添加新站点 | 修改代码 | 添加 YAML 配置 |
 | 缓存机制 | ✅ 4小时文件缓存 | ✅ 保留 |
-| Markdown输出 | ✅ 表格格式 | ✅ 保留 |
+| Markdown输出 | ✅ 表格格式 | ✅ 保留，改为时间戳命名 |
 | 时间格式化 | ✅ 相对时间 | ✅ 保留 |
 | 摘要截断 | ✅ 30字限制 | ✅ 保留 |
 | Skill触发 | ✅ 自动触发 | ✅ 保留 |
+| 历史记录 | ❌ 覆盖旧文件 | ✅ 保留所有历史 |
+
+## 输出文件
+
+采集结果会保存到以下位置：
+
+| 文件 | 说明 |
+|------|------|
+| `output/{YYYYMMDD}_{HHMM}.md` | 完整版报告（带时间戳） |
+| `output/latest.md` | 最新报告（始终指向最近一次） |
+| `output/{YYYYMMDD}_{HHMM}_feishu.md` | 飞书精简版（带时间戳） |
+| `output/latest_feishu.md` | 最新飞书版（始终指向最近一次） |
+| `cache/ai_news_{hash}.json` | 缓存数据（4小时内有效） |
+
+**历史记录**：每次执行都会生成带时间戳的新文件，不会覆盖历史数据。  
+**快速访问**：`latest.md` 和 `latest_feishu.md` 始终指向最新报告。
 
 ## License
 
