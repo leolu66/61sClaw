@@ -1,0 +1,62 @@
+# AI科技评论 (leiphone.yaml)
+site:
+  name: "AI科技评论"
+  base_url: "https://www.leiphone.com"
+  enabled: true
+
+fetch:
+  method: "requests"
+  encoding: "utf-8"
+  strategy:
+    requests_per_minute: 10
+    delay_between_requests: 6
+    max_retries: 3
+
+selectors:
+  container:
+    css: "body"
+    xpath: "//body"
+  
+  item: "li"
+  
+  fields:
+    title:
+      primary:
+        selector: "h3 a"
+        attribute: "text"
+      example: "有人上门安装龙虾几天赚26万！马化腾：没想到能火成这样"
+      
+    link:
+      primary:
+        selector: "h3 a"
+        attribute: "href"
+      transform: "absolute_url"
+      example: "https://www.leiphone.com/category/zaobao/wjRWFyHbXjkbGyCJ.html"
+      
+    summary:
+      primary:
+        selector: "p, .des"
+        attribute: "text"
+        max_length: 200
+      example: "原豆包PC端负责人齐俊元创业，押注GUI Agent手机"
+      
+    author:
+      primary:
+        selector: "a[href*='author']"
+        attribute: "text"
+      example: "巫夏清"
+      
+    time:
+      primary:
+        selector: ".time, span:last-child"
+        attribute: "text"
+      example: "9小时前"
+
+anti_crawl:
+  detected: false
+  status: "normal"
+
+filters:
+  min_title_length: 10
+
+extractor: "default"

@@ -1,0 +1,49 @@
+# AiBase (aibase.yaml)
+site:
+  name: "AiBase"
+  base_url: "https://news.aibase.cn"
+  enabled: true
+
+fetch:
+  method: "playwright"
+  encoding: "utf-8"
+  strategy:
+    requests_per_minute: 10
+    delay_between_requests: 6
+    max_retries: 3
+    timeout: 30
+  
+  playwright:
+    headless: true
+    wait_for: "networkidle"
+    wait_timeout: 30000
+
+selectors:
+  container:
+    css: ""
+    xpath: ""
+  
+  item: "a[href^='/news/']"
+  
+  fields:
+    title:
+      primary:
+        selector: ""
+        attribute: "text"
+      example: "Claude破解数学难题"
+      
+    link:
+      primary:
+        selector: ""
+        attribute: "href"
+      transform: "absolute_url"
+      example: "https://news.aibase.cn/news/26055"
+
+anti_crawl:
+  detected: false
+  status: "normal"
+
+filters:
+  min_title_length: 10
+
+extractor: "aibase"
