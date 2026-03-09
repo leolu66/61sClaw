@@ -1,0 +1,79 @@
+# 36氪 (36kr.yaml)
+site:
+  name: "36氪"
+  base_url: "https://36kr.com"
+  enabled: true
+
+fetch:
+  method: "playwright"  # 36氪需要动态渲染
+  encoding: "utf-8"
+  strategy:
+    requests_per_minute: 5     # 降低频率，防止触发反爬
+    delay_between_requests: 12
+    max_retries: 2
+    timeout: 30
+  
+  playwright:
+    headless: true
+    wait_for: "networkidle"
+    wait_timeout: 30000
+
+selectors:
+  container:
+    css: ".kr-information-left > div > div"
+    xpath: "//div[@class='kr-information-left']/div/div"
+  
+  item: ".information-flow-list > div"
+  
+  fields:
+    title:
+      primary:
+        selector: ".kr-flow-article-item .article-item-info p a"
+        attribute: "text"
+      example: "OpenClaw一夜掏空你钱包？终于有人管管了"
+      
+    link:
+      primary:
+        selector: ".kr-flow-article-item .article-item-info p a"
+        attribute: "href"
+      transform: "absolute_url"
+      example: "https://36kr.com/p/..."
+      
+    summary:
+      primary:
+        selector: ".kr-flow-article-item .article-item-info > a"
+        attribute: "text"
+        max_length: 200
+      example: "Vercel成为了OpenClaw的新伙伴，也给腾讯阿里百度带来了启示"
+      
+    author:
+      primary:
+        selector: ".kr-flow-article-item .article-item-info div a"
+        attribute: "text"
+      example: "字母AI"
+      
+    time:
+      primary:
+        selector: ".kr-flow-article-item .article-item-info div span"
+        attribute: "text"
+      example: "分钟前"
+
+anti_crawl:
+  detected: true
+  type: "滑块验证"
+  trigger_condition: "短时间多次查询"
+  recovery_time: "一段时间后自动恢复"
+  bypass_method: "降低频率，使用Playwright"
+  status: "degraded"
+  
+  mitigation:
+    enabled: true
+    cooldown_minutes: 60
+    alternative_sources:
+      - "其他AI新闻站点"
+    manual_intervention: true
+
+filters:
+  min_title_length: 10
+
+extractor: "default"

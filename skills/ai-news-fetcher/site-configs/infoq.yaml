@@ -1,75 +1,57 @@
-# InfoQ (infoq.yaml)
+# InfoQ AI 简报
+# https://www.infoq.cn/aibriefs
+# 特殊格式：数据在 Vue SSR JSON 中，需要特殊解析
+
+_schema_version: "1.0"
+
 site:
-  name: "InfoQ"
+  name: "InfoQ AI简报"
   base_url: "https://www.infoq.cn"
   enabled: true
-
-fetch:
-  method: "playwright"  # InfoQ使用Vue/Nuxt，需要动态渲染
-  encoding: "utf-8"
-  strategy:
-    requests_per_minute: 10
-    delay_between_requests: 6
-    max_retries: 3
+  config_version: "2024-03-09-v1"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      Accept: "text/html,application/xhtml+xml"
     timeout: 30
-  
-  playwright:
-    headless: true
-    wait_for: "networkidle"
-    wait_timeout: 30000
+    delay: 2
 
-selectors:
-  container:
-    css: "._aibriefs-list_u5zau_105"
-    xpath: "//div[contains(@class,'_aibriefs-list_')]"
+# InfoQ 使用 Vue SSR，数据在 <script type="application/json"> 中
+# 需要自定义提取逻辑，这里标记为特殊类型
+list_page:
+  url: "https://www.infoq.cn/aibriefs"
   
-  item: "._content-item_gicxd_98 > div"
-  
+  item_selector:
+    type: "json_ssr"
+    value: "aibriefsList.list"  # JSON 路径
+    
   fields:
     title:
-      primary:
-        selector: "._title_ndgee_69"
-        attribute: "text"
-      example: "LangChain发布智能体可观测性新指南，探讨生产环境监控挑战"
-      
-    link:
-      primary:
-        selector: "a"
-        attribute: "href"
-      transform: "absolute_url"
-      example: "https://www.infoq.cn/article/xxxxx"
-      
+      type: "json_ssr_field"
+      value: "title"
+      required: true
+    
     summary:
-      primary:
-        selector: "._desc_ndgee_165"
-        attribute: "text"
-        max_length: 300
-      example: "近日，LangChain发布了一篇关于智能体（Agent）可观测性的新概念指南。文中观点认为，与传统软件不同，智能体面临自然语言输入无界、大语言模型（LLM）对提示词细微变化敏感等挑战，因此其生产环境监控需要不同的方法。"
-      
-    time:
-      primary:
-        selector: "._item-time_ndgee_82"
-        attribute: "text"
-      example: "8 小时前"
+      type: "json_ssr_field"
+      value: "description"
+      default: ""
+    
+    link:
+      type: "json_ssr_field"
+      value: "original_link"
+      transform: "absolute_url"
+    
+    author:
+      type: "constant"
+      value: "InfoQ"
+    
+    # 时间戳需要转换
+    publish_time:
+      type: "json_ssr_field"
+      value: "collect_time"
+      transform: "timestamp_to_iso"
 
-# InfoQ特殊结构：按天分区域，需要特殊处理
-structure:
-  type: "grouped_by_date"
-  date_sections:
-    - name: "今天"
-      selector: "._aibriefs-list_u5zau_105 > div:nth-child(1)"
-    - name: "昨天"
-      selector: "._aibriefs-list_u5zau_105 > div:nth-child(2)"
-    - name: "前天"
-      selector: "._aibriefs-list_u5zau_105 > div:nth-child(3)"
-    - name: "更早"
-      selector: "._aibriefs-list_u5zau_105 > div:nth-child(4)"
-
-anti_crawl:
-  detected: false
-  status: "normal"
-
-filters:
-  min_title_length: 10
-
-extractor: "infoq"  # 需要自定义提取器处理按天分组的结构
+dedup:
+  field: "url"
+  method: "url_normalize"

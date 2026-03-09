@@ -1,68 +1,61 @@
-# 极客公园 (geekpark.yaml)
+# 极客公园 - AI 新浪潮观察专栏
+# https://www.geekpark.net/column/304
+
+_schema_version: "1.0"
+
 site:
   name: "极客公园"
   base_url: "https://www.geekpark.net"
   enabled: true
-
-fetch:
-  method: "playwright"
-  encoding: "utf-8"
-  strategy:
-    requests_per_minute: 5
-    delay_between_requests: 12
-    max_retries: 2
+  config_version: "2026-03-09-v1"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     timeout: 30
-  
-  playwright:
-    headless: true
-    wait_for: "networkidle"
-    wait_timeout: 30000
+    delay: 2
+    use_playwright: true  # 使用 Playwright 渲染
 
-selectors:
-  container:
-    css: ".main-content .article-list"
-    xpath: "//div[@class='main-content']//div[@class='article-list']"
+list_page:
+  url: "https://www.geekpark.net/column/304"
+  pagination: "https://www.geekpark.net/column/304?page={page}"
+  page_start: 1
+  page_max: 2
   
-  item: "article"
+  item_selector:
+    type: "css"
+    value: "article"
   
   fields:
-    title:
-      primary:
-        selector: ".article-info a h3"
-        attribute: "text"
-      example: "未来不远机器人 2 个月内再获数亿元融资，累计完成 3 万+小时家庭服务"
-      
     link:
-      primary:
-        selector: ".article-info a"
-        attribute: "href"
+      type: "css"
+      value: "a[href^='/news/']"
+      attribute: "href"
       transform: "absolute_url"
-      example: "https://www.geekpark.net/news/xxxxxx"
-      
+    
+    title:
+      type: "css"
+      value: "h3"
+      transform: "text"
+    
     summary:
-      primary:
-        selector: ".article-info p"
-        attribute: "text"
-        max_length: 200
-      example: "国内首个聚焦家庭通用机器人的公司——未来不远，再次宣布完成新一轮数亿元融资。除了持续进入更多真实家庭实现 C 端商业化，团队还会持续在基础研究和前沿探索加大人才和资金投入。"
-      
+      type: "css"
+      value: "p"
+      transform: "text"
+      default: ""
+    
+    publish_time:
+      type: "css"
+      value: ".article-time"
+      transform: "text"
+      default: ""
+    
     author:
-      primary:
-        selector: ".article-meta a"
-        attribute: "text"
-      example: "极客老友"
-      
-    time:
-      primary:
-        selector: ".article-info div"
-        attribute: "text"
-      example: "17 分钟前"
+      type: "css"
+      value: ".article-author"
+      transform: "text"
+      default: "极客公园"
 
-anti_crawl:
-  detected: false
-  status: "normal"
-
-filters:
-  min_title_length: 10
-
-extractor: "default"
+dedup:
+  field: "url"
+  method: "url_normalize"

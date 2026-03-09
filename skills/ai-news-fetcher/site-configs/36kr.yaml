@@ -1,79 +1,62 @@
-# 36氪 (36kr.yaml)
+# 36氪 AI频道
+# https://36kr.com/information/AI/
+# 注意：有反爬机制，短时间多次访问会触发滑块验证
+
+_schema_version: "1.0"
+
 site:
-  name: "36氪"
+  name: "36氪AI"
   base_url: "https://36kr.com"
   enabled: true
-
-fetch:
-  method: "playwright"  # 36氪需要动态渲染
-  encoding: "utf-8"
-  strategy:
-    requests_per_minute: 5     # 降低频率，防止触发反爬
-    delay_between_requests: 12
-    max_retries: 2
+  config_version: "2024-03-09-v2"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      Accept: "text/html,application/xhtml+xml"
+      Accept-Language: "zh-CN,zh;q=0.9"
     timeout: 30
-  
-  playwright:
-    headless: true
-    wait_for: "networkidle"
-    wait_timeout: 30000
+    # 延迟设长一点，避免触发反爬
+    delay: 3
 
-selectors:
-  container:
-    css: ".kr-information-left > div > div"
-    xpath: "//div[@class='kr-information-left']/div/div"
+list_page:
+  url: "https://36kr.com/information/AI/"
+  # 36氪有分页但可能触发反爬，先只采集首页
   
-  item: ".information-flow-list > div"
+  item_selector:
+    type: "css"
+    value: ".kr-flow-article-item"
   
   fields:
-    title:
-      primary:
-        selector: ".kr-flow-article-item .article-item-info p a"
-        attribute: "text"
-      example: "OpenClaw一夜掏空你钱包？终于有人管管了"
-      
+    # 链接
     link:
-      primary:
-        selector: ".kr-flow-article-item .article-item-info p a"
-        attribute: "href"
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-item-title')]/@href"
       transform: "absolute_url"
-      example: "https://36kr.com/p/..."
-      
+    
+    # 标题
+    title:
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-item-title')]/text()"
+      required: true
+    
+    # 摘要
     summary:
-      primary:
-        selector: ".kr-flow-article-item .article-item-info > a"
-        attribute: "text"
-        max_length: 200
-      example: "Vercel成为了OpenClaw的新伙伴，也给腾讯阿里百度带来了启示"
-      
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-item-description')]/text()"
+      default: ""
+    
+    # 作者
     author:
-      primary:
-        selector: ".kr-flow-article-item .article-item-info div a"
-        attribute: "text"
-      example: "字母AI"
-      
-    time:
-      primary:
-        selector: ".kr-flow-article-item .article-item-info div span"
-        attribute: "text"
-      example: "分钟前"
+      type: "xpath"
+      value: ".//*[contains(@class, 'kr-flow-bar-author')]/text()"
+      default: "36氪"
+    
+    # 时间（相对时间如"13分钟前"）
+    publish_time:
+      type: "xpath"
+      value: ".//*[contains(@class, 'kr-flow-bar-time')]/text()"
 
-anti_crawl:
-  detected: true
-  type: "滑块验证"
-  trigger_condition: "短时间多次查询"
-  recovery_time: "一段时间后自动恢复"
-  bypass_method: "降低频率，使用Playwright"
-  status: "degraded"
-  
-  mitigation:
-    enabled: true
-    cooldown_minutes: 60
-    alternative_sources:
-      - "其他AI新闻站点"
-    manual_intervention: true
-
-filters:
-  min_title_length: 10
-
-extractor: "default"
+dedup:
+  field: "url"
+  method: "url_normalize"

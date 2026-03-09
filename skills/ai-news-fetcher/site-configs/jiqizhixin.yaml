@@ -1,0 +1,64 @@
+# 机器之心 - AI 科技媒体
+# https://www.jiqizhixin.com
+
+_schema_version: "1.0"
+
+site:
+  name: "机器之心"
+  base_url: "https://www.jiqizhixin.com"
+  enabled: false  # 网站无法访问，暂时禁用
+  config_version: "2024-03-09-v1"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    timeout: 30
+    delay: 2
+
+list_page:
+  url: "https://www.jiqizhixin.com/articles"
+  pagination: "https://www.jiqizhixin.com/articles?page={page}"
+  page_start: 1
+  page_max: 3
+  
+  item_selector:
+    type: "xpath"
+    value: "//div[contains(@class, 'article-item')]"
+  
+  fields:
+    link:
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-title')]/@href"
+      transform: "absolute_url"
+
+detail_page:
+  fields:
+    title:
+      type: "xpath"
+      value: "//h1[contains(@class, 'article-title')]//text()"
+      required: true
+      transform: "join_text"
+    
+    summary:
+      type: "xpath"
+      value: "//div[contains(@class, 'article-summary')]//text()"
+      default: ""
+      transform: "join_text"
+    
+    author:
+      type: "xpath"
+      value: "//span[contains(@class, 'author-name')]//text()"
+      default: "机器之心"
+    
+    publish_time:
+      type: "xpath"
+      value: "//time/@datetime"
+      transform: "parse_datetime"
+    
+    content:
+      type: "xpath"
+      value: "//div[contains(@class, 'article-content')]"
+
+dedup:
+  field: "url"
+  method: "url_normalize"
