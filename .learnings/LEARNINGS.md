@@ -107,3 +107,43 @@ Self-Improvement 技能是被动技能，无自动触发词，需手动记录或
 
 ---
 
+
+
+## [LRN-20260308-003] best_practice
+
+**Logged**: 2026-03-08T00:41:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: config
+
+### Summary
+Windows 系统编码保持默认（GBK），不改为 UTF-8，避免系统级风险
+
+### Details
+**尝试：** 配置 PowerShell 永久 UTF-8 编码
+- 修改 $PROFILE 添加 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`
+- 重启后配置文件未自动加载，编码仍为 GB2312
+
+**决策：** 不改系统编码配置
+- 系统级 UTF-8 配置风险较大
+- 可能影响其他应用程序兼容性
+- 保持默认 GBK 编码更稳定
+
+**替代方案：**
+- Python 脚本中主动处理编码（`io.TextIOWrapper`）
+- 使用 `--raw` 参数获取 JSON 数据
+- 需要时手动转换编码，而非系统级修改
+
+### Suggested Action
+1. 保持 Windows 默认编码（GBK）
+2. 脚本层面处理编码问题
+3. 优先使用 JSON/结构化数据交换，避免依赖控制台编码
+
+### Metadata
+- Source: conversation
+- Related Files: .learnings/LEARNINGS.md
+- Tags: encoding, windows, utf-8, system-config, risk-management
+- See Also: LRN-20260308-001
+
+---
+

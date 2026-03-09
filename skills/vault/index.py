@@ -76,8 +76,8 @@ def handle_query(query: str) -> str:
     # 初始化 vault
     vault = Vault()
     
-    # 查询凭据
-    cred = vault.get(platform)
+    # 查询凭据（敏感信息解密显示）
+    cred = vault.get(platform, show_sensitive=True)
     if not cred:
         return f"[ERROR] 未找到平台 '{platform}' 的凭据"
     

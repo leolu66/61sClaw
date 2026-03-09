@@ -294,6 +294,32 @@
           "sentAt": null
         }
       ]
+    },
+    {
+      "id": "734038cf-9b8b-4bd1-b499-c6994e057150",
+      "uniqueId": "20260309-001",
+      "todoNumber": 4,
+      "title": "小程序需求讨论会议",
+      "description": "腾讯会议：542-343-412，链接：https://meeting.tencent.com/dm/NGyiSPVw0Lxc，邀请人：陆震",
+      "type": "work",
+      "deadline": "2026-03-09T13:45:00.000+08:00",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-03-09T02:12:59.284Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "13:30"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-03-09T05:30:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
     }
   ],
   "config": {
