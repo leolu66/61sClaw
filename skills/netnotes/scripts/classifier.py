@@ -66,7 +66,7 @@ class ArticleClassifier:
             return result['choices'][0]['message']['content'].strip()
             
         except Exception as e:
-            print(f"   LLM调用失败: {e}")
+            print(f"     LLM调用失败: {e}")
             return None
     
     def _keyword_classify(self, title: str, content: str) -> str:
@@ -84,6 +84,23 @@ class ArticleClassifier:
         
         return "其他"
     
+    def _clean_text(self, text: str) -> str:
+        """清理文本中的emoji等特殊字符"""
+        import re
+        # 移除emoji
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F1E0-\U0001F1FF"  # flags
+            "\U00002702-\U000027B0"
+            "\U000024C2-\U0001F251"
+            "]+",
+            flags=re.UNICODE
+        )
+        return emoji_pattern.sub('', text)
+
     def classify(self, title: str, content: str, summary: str = "") -> str:
         """
         对文章进行分类
@@ -100,7 +117,7 @@ class ArticleClassifier:
         
         # 如果没有API配置，返回关键词结果
         if not self.api_key or not self.base_url:
-            print("   未配置LLM API，使用关键词分类")
+            print("     未配置LLM API，使用关键词分类")
             return keyword_result
         
         # 使用大模型分类
@@ -154,13 +171,15 @@ class ArticleClassifier:
         result = self._call_llm(prompt)
         
         if result:
-            # 限制长度
+            # 限制长度并清理emoji
+            result = self._clean_text(result)
             if len(result) > 100:
                 result = result[:97] + "..."
             return result
         
         # 失败时返回简单摘要
         text = content.replace('\n', ' ').strip()
+        text = self._clean_text(text)
         if len(text) > 100:
             return text[:97] + "..."
         return text

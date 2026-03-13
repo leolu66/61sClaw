@@ -56,7 +56,7 @@ class WebCrawler:
             response.encoding = response.apparent_encoding or 'utf-8'
             return response.text
         except Exception as e:
-            print(f"   requests获取失败: {e}")
+            print(f"     requests获取失败: {e}")
             return None
     
     def _fetch_with_playwright(self, url: str) -> Optional[str]:
@@ -74,7 +74,7 @@ class WebCrawler:
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                 })
                 
-                print("   使用Playwright渲染页面...")
+                print("     使用Playwright渲染页面...")
                 page.goto(url, wait_until='networkidle', timeout=60000)
                 
                 # 等待页面加载
@@ -85,10 +85,10 @@ class WebCrawler:
                 browser.close()
                 return html
         except ImportError:
-            print("   Playwright未安装，尝试使用requests")
+            print("     Playwright未安装，尝试使用requests")
             return None
         except Exception as e:
-            print(f"   Playwright获取失败: {e}")
+            print(f"     Playwright获取失败: {e}")
             return None
     
     def _extract_title(self, soup: BeautifulSoup) -> str:

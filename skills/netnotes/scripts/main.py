@@ -93,40 +93,42 @@ def main():
     if not args.force:
         existing = db.get_article_by_url(url)
         if existing:
-            print(f"⚠️ 文章已存在: {existing['title']}")
-            print(f"   分类: {existing['category']}")
-            print(f"   路径: {existing['file_path']}")
-            print(f"   使用 --force 可强制重新保存")
+            print(f"[!] 文章已存在: {existing['title']}")
+            print(f"    分类: {existing['category']}")
+            print(f"    路径: {existing['file_path']}")
+            print(f"    使用 --force 可强制重新保存")
             return
     
-    print(f"🔍 正在抓取: {url}")
+    print(f"[INFO] 正在抓取: {url}")
     
     # 抓取网页
     try:
         article = crawler.fetch(url)
         if not article:
-            print("❌ 抓取失败，无法获取文章内容")
+            print("[ERROR] 抓取失败，无法获取文章内容")
             return
     except Exception as e:
-        print(f"❌ 抓取出错: {e}")
+        print(f"[ERROR] 抓取出错: {e}")
         return
     
-    print(f"✅ 抓取成功: {article['title']}")
-    print(f"   字数: {len(article['content'])}")
+    print(f"[OK] 抓取成功: {article['title']}")
+    print(f"     字数: {len(article['content'])}")
     
     # 生成摘要
-    print("📝 正在生成摘要...")
+    print("[INFO] 正在生成摘要...")
     summary = classifier.generate_summary(article['title'], article['content'])
-    print(f"   摘要: {summary}")
+    # 清理emoji避免编码错误
+    summary_clean = summary.encode('gbk', errors='ignore').decode('gbk')
+    print(f"     摘要: {summary_clean}")
     
     # 分类
     if args.category:
         category = args.category
-        print(f"📁 使用指定分类: {category}")
+        print(f"[INFO] 使用指定分类: {category}")
     else:
-        print("🤖 正在分析分类...")
+        print("[INFO] 正在分析分类...")
         category = classifier.classify(article['title'], article['content'], summary)
-        print(f"   推荐分类: {category}")
+        print(f"     推荐分类: {category}")
     
     # 构建Markdown内容
     md_content = f"""# {article['title']}
@@ -149,9 +151,9 @@ def main():
 """
     
     # 保存文件
-    print(f"💾 正在保存到 {category}...")
+    print(f"[INFO] 正在保存到 {category}...")
     file_path = save_article(md_content, article['title'], category, notebooks_dir)
-    print(f"   保存路径: {file_path}")
+    print(f"     保存路径: {file_path}")
     
     # 记录到数据库
     db.add_article(
@@ -162,11 +164,11 @@ def main():
         file_path=file_path
     )
     
-    print("✅ 完成！")
-    print(f"\n📊 文章信息:")
-    print(f"   标题: {article['title']}")
-    print(f"   分类: {category}")
-    print(f"   路径: {file_path}")
+    print("[OK] 完成！")
+    print(f"\n[INFO] 文章信息:")
+    print(f"     标题: {article['title']}")
+    print(f"     分类: {category}")
+    print(f"     路径: {file_path}")
 
 
 if __name__ == "__main__":

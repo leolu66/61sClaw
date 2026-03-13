@@ -25,7 +25,7 @@ def cmd_list(args):
         print("没有找到文章")
         return
     
-    print(f"\n📚 文章列表 (共 {len(articles)} 篇)\n")
+    print(f"\n[文章列表] 共 {len(articles)} 篇\n")
     print(f"{'ID':<6} {'分类':<10} {'标题':<40} {'保存时间'}")
     print("-" * 80)
     
@@ -47,7 +47,7 @@ def cmd_search(args):
         print(f"没有找到包含 '{args.keyword}' 的文章")
         return
     
-    print(f"\n🔍 搜索结果: '{args.keyword}' (共 {len(articles)} 篇)\n")
+    print(f"\n[搜索结果] '{args.keyword}' (共 {len(articles)} 篇)\n")
     print(f"{'ID':<6} {'分类':<10} {'标题':<40} {'摘要'}")
     print("-" * 100)
     
@@ -65,13 +65,13 @@ def cmd_stats(args):
     
     stats = db.get_statistics()
     
-    print("\n📊 NetNotes 统计\n")
+    print("\n[NetNotes 统计]\n")
     print(f"总文章数: {stats['total']} 篇\n")
     
     if stats['categories']:
         print("分类分布:")
         for category, count in stats['categories'].items():
-            bar = "█" * (count // 5 + 1)
+            bar = "#" * (count // 5 + 1)
             print(f"  {category:<10} {count:>3} 篇 {bar}")
 
 
@@ -87,7 +87,7 @@ def cmd_view(args):
         print(f"未找到 ID 为 {args.id} 的文章")
         return
     
-    print(f"\n📄 文章详情\n")
+    print(f"\n[文章详情]\n")
     print(f"ID:       {article['id']}")
     print(f"标题:     {article['title']}")
     print(f"分类:     {article['category']}")
