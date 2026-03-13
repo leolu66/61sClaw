@@ -37,16 +37,42 @@ def init_directories():
 
 def sanitize_filename(title: str) -> str:
     """清理文件名中的非法字符"""
+    import re
+    
     # Windows 非法字符: < > : " / \ | ? *
     illegal_chars = '<>:"/\\|?*'
     for char in illegal_chars:
         title = title.replace(char, '_')
     
-    # 限制长度
-    if len(title) > 100:
-        title = title[:100]
+    # 移除换行符和控制字符
+    title = re.sub(r'[\n\r\t]', ' ', title)
+    title = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', title)
     
-    return title.strip()
+    # 移除emoji
+    emoji_pattern = re.compile(
+        "["
+        "\U0001F600-\U0001F64F"
+        "\U0001F300-\U0001F5FF"
+        "\U0001F680-\U0001F6FF"
+        "\U0001F1E0-\U0001F1FF"
+        "\U00002702-\U000027B0"
+        "\U000024C2-\U0001F251"
+        "]+",
+        flags=re.UNICODE
+    )
+    title = emoji_pattern.sub('', title)
+    
+    # 清理多余空格
+    title = ' '.join(title.split())
+    
+    # 限制长度
+    if len(title) > 80:
+        title = title[:80]
+    
+    # 去除首尾空格和点
+    title = title.strip('. ')
+    
+    return title.strip() or "未命名文章"
 
 
 def save_article(content: str, title: str, category: str, notebooks_dir: Path) -> str:
