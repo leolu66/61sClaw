@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NetNotes 管理工具 - 查询、搜索、统计
+NetNotes 管理工具 - 查询、搜索、统计、标签管理
 """
 
 import sys
@@ -26,13 +26,13 @@ def cmd_list(args):
         return
     
     print(f"\n[文章列表] 共 {len(articles)} 篇\n")
-    print(f"{'ID':<6} {'分类':<10} {'标题':<40} {'保存时间'}")
-    print("-" * 80)
+    print(f"{'ID':<6} {'分类':<10} {'标签':<20} {'标题':<30}")
+    print("-" * 90)
     
     for article in articles:
-        title = article['title'][:37] + "..." if len(article['title']) > 40 else article['title']
-        created = article['created_at'][:16] if article['created_at'] else ""
-        print(f"{article['id']:<6} {article['category']:<10} {title:<40} {created}")
+        title = article['title'][:27] + "..." if len(article['title']) > 30 else article['title']
+        tags_str = ', '.join(article['tags'])[:17] + "..." if article['tags'] and len(', '.join(article['tags'])) > 20 else ', '.join(article['tags']) if article['tags'] else '-'
+        print(f"{article['id']:<6} {article['category']:<10} {tags_str:<20} {title:<30}")
 
 
 def cmd_search(args):
@@ -48,13 +48,13 @@ def cmd_search(args):
         return
     
     print(f"\n[搜索结果] '{args.keyword}' (共 {len(articles)} 篇)\n")
-    print(f"{'ID':<6} {'分类':<10} {'标题':<40} {'摘要'}")
-    print("-" * 100)
+    print(f"{'ID':<6} {'分类':<10} {'标签':<20} {'标题':<30}")
+    print("-" * 90)
     
     for article in articles:
-        title = article['title'][:37] + "..." if len(article['title']) > 40 else article['title']
-        summary = article['summary'][:47] + "..." if article['summary'] and len(article['summary']) > 50 else (article['summary'] or "")
-        print(f"{article['id']:<6} {article['category']:<10} {title:<40} {summary}")
+        title = article['title'][:27] + "..." if len(article['title']) > 30 else article['title']
+        tags_str = ', '.join(article['tags'])[:17] + "..." if article['tags'] and len(', '.join(article['tags'])) > 20 else ', '.join(article['tags']) if article['tags'] else '-'
+        print(f"{article['id']:<6} {article['category']:<10} {tags_str:<20} {title:<30}")
 
 
 def cmd_stats(args):
@@ -66,7 +66,8 @@ def cmd_stats(args):
     stats = db.get_statistics()
     
     print("\n[NetNotes 统计]\n")
-    print(f"总文章数: {stats['total']} 篇\n")
+    print(f"总文章数: {stats['total']} 篇")
+    print(f"总标签数: {stats['tag_count']} 个\n")
     
     if stats['categories']:
         print("分类分布:")
@@ -91,10 +92,74 @@ def cmd_view(args):
     print(f"ID:       {article['id']}")
     print(f"标题:     {article['title']}")
     print(f"分类:     {article['category']}")
+    print(f"标签:     {', '.join(article['tags']) if article['tags'] else '无'}")
     print(f"URL:      {article['url']}")
     print(f"保存时间: {article['created_at']}")
     print(f"文件路径: {article['file_path']}")
     print(f"\n摘要:\n{article['summary']}")
+
+
+def cmd_tags(args):
+    """列出所有标签"""
+    base_dir = Path(__file__).parent.parent
+    data_dir = base_dir / "data"
+    db = ArticleDatabase(data_dir / "netnotes.db")
+    
+    tags = db.get_all_tags()
+    
+    if not tags:
+        print("还没有标签")
+        return
+    
+    print(f"\n[标签列表] 共 {len(tags)} 个\n")
+    print(f"{'标签名':<20} {'文章数':<10}")
+    print("-" * 35)
+    
+    for tag in tags:
+        print(f"{tag['name']:<20} {tag['count']:<10}")
+
+
+def cmd_tag_search(args):
+    """按标签搜索文章"""
+    base_dir = Path(__file__).parent.parent
+    data_dir = base_dir / "data"
+    db = ArticleDatabase(data_dir / "netnotes.db")
+    
+    articles = db.search_by_tag(args.tag, limit=args.limit)
+    
+    if not articles:
+        print(f"没有找到标签为 '{args.tag}' 的文章")
+        return
+    
+    print(f"\n[标签搜索] '{args.tag}' (共 {len(articles)} 篇)\n")
+    print(f"{'ID':<6} {'分类':<10} {'标签':<20} {'标题':<30}")
+    print("-" * 90)
+    
+    for article in articles:
+        title = article['title'][:27] + "..." if len(article['title']) > 30 else article['title']
+        tags_str = ', '.join(article['tags'])[:17] + "..." if article['tags'] and len(', '.join(article['tags'])) > 20 else ', '.join(article['tags']) if article['tags'] else '-'
+        print(f"{article['id']:<6} {article['category']:<10} {tags_str:<20} {title:<30}")
+
+
+def cmd_add_tags(args):
+    """为文章添加标签"""
+    base_dir = Path(__file__).parent.parent
+    data_dir = base_dir / "data"
+    db = ArticleDatabase(data_dir / "netnotes.db")
+    
+    # 检查文章是否存在
+    article = db.get_article_by_id(args.id)
+    if not article:
+        print(f"未找到 ID 为 {args.id} 的文章")
+        return
+    
+    # 解析标签
+    tags = [t.strip() for t in args.tags.split(',') if t.strip()]
+    
+    # 添加标签
+    db.add_tags_to_article(args.id, tags)
+    
+    print(f"[OK] 已为文章 '{article['title']}' 添加标签: {', '.join(tags)}")
 
 
 def main():
@@ -121,6 +186,22 @@ def main():
     view_parser = subparsers.add_parser('view', help='查看文章详情')
     view_parser.add_argument('id', type=int, help='文章ID')
     view_parser.set_defaults(func=cmd_view)
+    
+    # tags 命令
+    tags_parser = subparsers.add_parser('tags', help='列出所有标签')
+    tags_parser.set_defaults(func=cmd_tags)
+    
+    # tag 命令（按标签搜索）
+    tag_parser = subparsers.add_parser('tag', help='按标签搜索文章')
+    tag_parser.add_argument('tag', help='标签名')
+    tag_parser.add_argument('-l', '--limit', type=int, default=50, help='限制数量')
+    tag_parser.set_defaults(func=cmd_tag_search)
+    
+    # add-tags 命令
+    add_tags_parser = subparsers.add_parser('add-tags', help='为文章添加标签')
+    add_tags_parser.add_argument('id', type=int, help='文章ID')
+    add_tags_parser.add_argument('tags', help='标签，多个用逗号分隔')
+    add_tags_parser.set_defaults(func=cmd_add_tags)
     
     args = parser.parse_args()
     

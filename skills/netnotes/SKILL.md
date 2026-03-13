@@ -1,6 +1,6 @@
 # NetNotes - 互联网笔记本
 
-一个智能的互联网文章收藏和管理工具，支持自动抓取、分类和归档网页内容。
+一个智能的互联网文章收藏和管理工具，支持自动抓取、分类、标签和归档网页内容。
 
 ---
 
@@ -20,14 +20,16 @@ NetNotes 帮助用户收藏和管理互联网文章：
 2. 处理反爬机制（使用Playwright）
 3. 将内容转换为Markdown格式
 4. 使用大模型自动分析并推荐分类
-5. 用户确认后保存到对应专题笔记本
-6. 记录文章元数据到SQLite数据库
+5. 支持为文章添加多个标签
+6. 用户确认后保存到对应专题笔记本
+7. 记录文章元数据到SQLite数据库
+8. 支持按标签检索文章
 
 ### 输入/输出
-- **输入**: 网页URL（支持大多数新闻网站、博客等）
+- **输入**: 网页URL（支持大多数新闻网站、博客等），可选标签
 - **输出**: 
   - Markdown格式文章文件（保存在对应专题目录）
-  - 数据库记录（包含时间、URL、标题、分类、摘要）
+  - 数据库记录（包含时间、URL、标题、分类、摘要、标签）
 
 ### 依赖条件
 - Python 3.8+
@@ -52,8 +54,11 @@ NetNotes 帮助用户收藏和管理互联网文章：
 # 保存一篇文章
 python scripts/main.py <网页URL>
 
+# 保存并添加标签
+python scripts/main.py <网页URL> --tags "标签1,标签2,标签3"
+
 # 示例
-python scripts/main.py "https://example.com/article"
+python scripts/main.py "https://example.com/article" --tags "AI,教程,OpenClaw"
 ```
 
 ### 交互流程
@@ -61,7 +66,7 @@ python scripts/main.py "https://example.com/article"
 1. **提供URL**: 用户发送网页链接
 2. **自动抓取**: 系统抓取正文内容
 3. **智能分类**: 大模型分析内容并推荐分类
-4. **用户确认**: 显示推荐分类，等待用户确认或修改
+4. **添加标签**: 用户可指定标签（可选）
 5. **保存归档**: 确认后保存到对应目录并记录数据库
 
 ### 笔记本分类
@@ -74,6 +79,28 @@ python scripts/main.py "https://example.com/article"
 5. **技术其他** - 其他技术类文章
 6. **其他** - 无法分类的内容
 
+### 标签功能
+
+**保存时添加标签**:
+```bash
+python scripts/main.py "https://example.com/article" --tags "AI,深度学习,PyTorch"
+```
+
+**查看所有标签**:
+```bash
+python scripts/manager.py tags
+```
+
+**按标签搜索文章**:
+```bash
+python scripts/manager.py tag "AI"
+```
+
+**为已有文章添加标签**:
+```bash
+python scripts/manager.py add-tags <文章ID> "新标签1,新标签2"
+```
+
 ---
 
 ## 目录结构
@@ -85,7 +112,9 @@ skills/netnotes/
 │   ├── main.py           # 主程序入口
 │   ├── crawler.py        # 网页抓取模块
 │   ├── classifier.py     # 文章分类模块
-│   └── database.py       # 数据库操作模块
+│   ├── database.py       # 数据库操作模块
+│   ├── manager.py        # 管理工具
+│   └── init.py           # 初始化脚本
 ├── notebooks/            # 笔记本目录（自动创建）
 │   ├── AI/
 │   ├── 运营商/
@@ -115,6 +144,54 @@ CREATE TABLE articles (
 );
 ```
 
+**tags表**:
+```sql
+CREATE TABLE tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**article_tags表**（文章-标签关联）:
+```sql
+CREATE TABLE article_tags (
+    article_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (article_id, tag_id),
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+```
+
+---
+
+## 管理工具
+
+```bash
+# 查看文章列表
+python scripts/manager.py list
+
+# 搜索文章
+python scripts/manager.py search "关键词"
+
+# 查看统计
+python scripts/manager.py stats
+
+# 查看文章详情
+python scripts/manager.py view <文章ID>
+
+# 列出所有标签
+python scripts/manager.py tags
+
+# 按标签搜索
+python scripts/manager.py tag "标签名"
+
+# 为文章添加标签
+python scripts/manager.py add-tags <文章ID> "标签1,标签2"
+```
+
 ---
 
 ## 注意事项
@@ -123,6 +200,7 @@ CREATE TABLE articles (
 - 文章文件名使用网页标题（自动清理非法字符）
 - 相同URL的文章不会重复保存
 - 摘要由大模型生成，不超过100字
+- 标签支持多对多关系，一篇文章可以有多个标签
 
 ---
 

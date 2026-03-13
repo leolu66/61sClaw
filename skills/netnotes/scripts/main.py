@@ -75,6 +75,7 @@ def main():
     parser = argparse.ArgumentParser(description='NetNotes - 互联网笔记本')
     parser.add_argument('url', help='要保存的网页URL')
     parser.add_argument('--category', '-c', help='指定分类（跳过自动分类）')
+    parser.add_argument('--tags', '-t', help='标签，多个标签用逗号分隔，如：AI,OpenClaw,教程')
     parser.add_argument('--force', '-f', action='store_true', help='强制重新保存已存在的文章')
     
     args = parser.parse_args()
@@ -95,6 +96,7 @@ def main():
         if existing:
             print(f"[!] 文章已存在: {existing['title']}")
             print(f"    分类: {existing['category']}")
+            print(f"    标签: {', '.join(existing['tags']) if existing['tags'] else '无'}")
             print(f"    路径: {existing['file_path']}")
             print(f"    使用 --force 可强制重新保存")
             return
@@ -130,13 +132,20 @@ def main():
         category = classifier.classify(article['title'], article['content'], summary)
         print(f"     推荐分类: {category}")
     
+    # 处理标签
+    tags = []
+    if args.tags:
+        tags = [t.strip() for t in args.tags.split(',') if t.strip()]
+        print(f"[INFO] 使用标签: {', '.join(tags)}")
+    
     # 构建Markdown内容
+    tags_section = f"**标签**: {', '.join(tags)}  \n" if tags else ""
     md_content = f"""# {article['title']}
 
 **来源**: [{url}]({url})  
 **保存时间**: {article['fetch_time']}  
-**分类**: {category}
-
+**分类**: {category}  
+{tags_section}
 ---
 
 ## 摘要
@@ -156,18 +165,20 @@ def main():
     print(f"     保存路径: {file_path}")
     
     # 记录到数据库
-    db.add_article(
+    article_id = db.add_article(
         url=url,
         title=article['title'],
         category=category,
         summary=summary,
-        file_path=file_path
+        file_path=file_path,
+        tags=tags
     )
     
     print("[OK] 完成！")
     print(f"\n[INFO] 文章信息:")
     print(f"     标题: {article['title']}")
     print(f"     分类: {category}")
+    print(f"     标签: {', '.join(tags) if tags else '无'}")
     print(f"     路径: {file_path}")
 
 
