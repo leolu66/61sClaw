@@ -86,11 +86,11 @@
       "type": "work",
       "deadline": "2026-03-08T23:59:59.999+08:00",
       "priority": "high",
-      "status": "pending",
+      "status": "cancelled",
       "createdAt": "2026-02-28T19:53:49.262Z",
-      "completedAt": null,
+      "completedAt": "2026-03-13T14:08:44.421Z",
       "uniqueId": "20260228-005",
-      "todoNumber": 6,
+      "todoNumber": null,
       "comments": [],
       "timeframe": "weekly",
       "specificDate": "2026-03-14",
@@ -113,8 +113,8 @@
       "title": "火山引擎方案整理",
       "description": "客户希望能把业界主流的厂商和方案做一个对标呈现",
       "type": "work",
-      "deadline": "2026-03-08T23:59:59.999+08:00",
-      "priority": "high",
+      "deadline": "2028-02-03T15:59:59.999Z",
+      "priority": "medium",
       "status": "pending",
       "createdAt": "2026-02-28T19:55:01.655Z",
       "completedAt": null,
@@ -130,7 +130,7 @@
       "specificDate": "2026-03-14",
       "reminders": [
         {
-          "scheduledTime": "2026-03-08T01:00:00.000Z",
+          "scheduledTime": "2028-02-03T01:00:00.000Z",
           "sent": false,
           "sentAt": null
         }
@@ -316,6 +316,35 @@
       "reminders": [
         {
           "scheduledTime": "2026-03-09T05:30:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "71b7d0e6-e3cb-4dbe-9488-fc76f6dc64fe",
+      "uniqueId": "20260313-001",
+      "todoNumber": 4,
+      "title": "打电话给税务局询问经营所得年度汇总申报",
+      "description": "【温馨提示】根据系统测算，您可能还需要办理多处经营所得年度汇总申报。请尽早在2026年3月31日前，通过自然人电子税务局WEB端，办理多处经营所得汇总申报。咨询电话：0573-82823129",
+      "type": "personal",
+      "deadline": "2028-02-03T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-03-13T14:04:46.412Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "twice"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2028-02-03T01:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2028-02-03T10:00:00.000Z",
           "sent": false,
           "sentAt": null
         }
