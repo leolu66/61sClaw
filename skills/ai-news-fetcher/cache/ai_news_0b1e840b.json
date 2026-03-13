@@ -1,129 +1,153 @@
 [
   {
-    "title": "OpenClaw 3.8继续炸场，龙虾不睡觉，全球程序员连夜赶工",
-    "url": "https://36kr.com/p/3715635756691590",
-    "summary": "OpenClaw 3.7发布不到24小时，3.8稳定版就紧跟着上线了——这只龙虾真的不睡觉。新版带来了ACP溯源功能，让你的AI智能体终于能分清「谁在跟它说话」；官方备份工具openclaw backup正式上线，手滑党有救了。",
-    "publish_time": "3小时前",
+    "title": "面对AI的爆发式发展，多数人都没有准备好",
+    "url": "https://36kr.com/p/3672896611246720",
+    "summary": "未来是用来设计的，而不是用来预测的。",
+    "publish_time": "21分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "从Sora惊恐到即梦反杀，中国的AI视频生成之路",
-    "url": "https://36kr.com/p/3715645989369221",
-    "summary": "突破技术封锁之后，中国AI视频生成的真问题才开始浮现",
-    "publish_time": "3小时前",
+    "title": "Claude杀入Office全家桶，全球4.5亿打工人一夜变天，OpenAI惨烈出局",
+    "url": "https://36kr.com/p/3716669527258755",
+    "summary": "700元AI卷死人类",
+    "publish_time": "36分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "Claude考场突然“觉醒”，自行写代码偷答案，人类考试，管不住AI了",
-    "url": "https://36kr.com/p/3715635749400962",
-    "summary": "AI成精现场！一场高难度测试中，Claude竟中途「觉醒」，意识到自己在被考试。它果断放弃老实做题，直接顺网线摸进GitHub老师办公室，自己写代码破解加密题库，把答案全抄了！人类的试卷，以后怕是管不住AI了！",
-    "publish_time": "3小时前",
+    "title": "突发，Anthropic起诉美国政府，指控特朗普“越权封杀”",
+    "url": "https://36kr.com/p/3716670396642946",
+    "summary": "37位来自OpenAI、谷歌的AI科学家发文声援。",
+    "publish_time": "38分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "Anthropic 用一份报告，说透了 AI 时代的就业真相",
-    "url": "https://36kr.com/p/3715635446968454",
-    "summary": "寻找个人的“非线性能力”",
-    "publish_time": "3小时前",
+    "title": "28岁Alexandr Wang，没走，小扎晒出合照",
+    "url": "https://36kr.com/p/3716668922983817",
+    "summary": "一切谣言，不攻自破。",
+    "publish_time": "44分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "马斯克不看好的赛道：融资35亿",
-    "url": "https://36kr.com/p/3715630108406151",
-    "summary": "不看好的原因解决了。",
-    "publish_time": "3小时前",
+    "title": "一夜裁员4000人，前推特CEO挥刀，硅谷白领的安全感崩了",
+    "url": "https://36kr.com/p/3716669008983682",
+    "summary": "推动AI创新的人，也被AI「优化」出局，一场4000人大裁员，AI竟成了裁员遮羞布。",
+    "publish_time": "52分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "让图灵奖得主大呼“Shock”！Claude1 小时破解困扰高德纳 30 年的数学悬案",
-    "url": "https://news.aibase.cn/news/26055",
-    "summary": "高德纳惊叹AI一小时解决其钻研数周的数学难题。这位计算机科学泰斗在短文中透露，Claude Opus 4.6仅用一小时就破解了他可以追溯到30年前的数学问题，展现了人工智能在逻辑推理领域的惊人潜力。",
-    "publish_time": "2026-03-09T18:03:16",
+    "title": "日产万字、48 小时写完 500 万字：AI “文学平替”正重塑网文生态",
+    "url": "https://news.aibase.cn/news/26089",
+    "summary": "2026年网文界面临AI冲击，AI写作工具以千倍速度挑战人类作者。传统“爆肝”日更模式在AI“工业化生产”面前显得无力，引发行业生存危机。",
+    "publish_time": "2026-03-10T15:50:09",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "零成本启动AI创业:深圳龙岗重磅扶持OpenClaw，最高200万奖金",
-    "url": "https://news.aibase.cn/news/26054",
-    "summary": "近日，开源智能体项目OpenClaw走红，引发“养龙虾”热潮。深圳龙岗区迅速跟进，发布“龙虾十条”政策，以“零成本启动”吸引全球开发者和一人公司入驻，并提供全生命周期服务支持智能体发展。",
-    "publish_time": "2026-03-09T17:37:19",
+    "title": "​腾讯全系“龙虾”产品矩阵发布：WorkBuddy、QClaw等，个人与企业均可一键开启 AI 特工时代",
+    "url": "https://news.aibase.cn/news/26088",
+    "summary": "腾讯发布“龙虾特工队”AI产品矩阵，主打具备记忆与执行能力的“自动化行动特工”，实现从对话到执行的跨越。该矩阵面向普通用户、开发者和企业提供解决方案，旨在降低AI部署门槛并解决安全顾虑。",
+    "publish_time": "2026-03-10T15:40:09",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "​并非“AI 取代人”，而是“钱被 AI 抢了”：甲骨文史上最大裁员背后的资金位移",
-    "url": "https://news.aibase.cn/news/26053",
-    "summary": "全球科技行业裁员潮背后，是企业将员工薪酬预算大规模转向购买AI芯片和建设数据中心。甲骨文计划裁员3万人，核心逻辑是资金挪移而非AI完全替代人力。",
-    "publish_time": "2026-03-09T17:23:53",
+    "title": "受特斯拉AI6 芯片生产计划变更波及，韩国AI黑马DX-M2 量产推迟至 2026 年三季度",
+    "url": "https://news.aibase.cn/news/26087",
+    "summary": "特斯拉生产计划变动导致三星2nm产线排期调整，韩国AI芯片企业DeepX的下一代NPU芯片DX-M2量产被迫推迟半年，预计2026年第三季度后才能开始测试。这凸显了半导体代工行业大客户优先的排产规则对小企业的影响。",
+    "publish_time": "2026-03-10T15:12:45",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "联想百应联手美团推出OpenClaw远程部署服务，同步发布AI终端NUC",
-    "url": "https://news.aibase.cn/news/26052",
-    "summary": "联想百应与美团合作推出OpenClaw远程部署服务，通过专业工程师远程操作和全流程透明化，解决AI应用技术部署难题。用户可在美团App搜索“龙虾安装”获取服务，由认证工程师一键配置，实现AI部署“零门槛”，推动技术从极客圈向大众市场普及。",
-    "publish_time": "2026-03-09T17:11:54",
+    "title": "万名作家联名出版“空白书”：石黑一雄等文坛巨匠集体抗议 AI 侵权",
+    "url": "https://news.aibase.cn/news/26086",
+    "summary": "万名作家联合出版空白书《别偷这本书》，抗议AI公司未经许可使用其作品训练模型。诺贝尔奖得主石黑一雄等知名作家参与，以象征性行动呼吁尊重创作者权益。",
+    "publish_time": "2026-03-10T14:50:55",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "MiniMax 语音与音乐模型上架 OpenClaw，定制音色、完整作曲一键解锁",
-    "url": "https://news.aibase.cn/news/26051",
-    "summary": "国产AI公司MiniMax将其语音和音乐模型集成到OpenClaw“小龙虾”插件中，使其具备语音交互和音乐创作能力，提升了沟通体验。",
-    "publish_time": "2026-03-09T16:50:18",
+    "title": "不用再切屏了！Shazam 深度入驻 ChatGPT，路边听到的歌一问便知",
+    "url": "https://news.aibase.cn/news/26085",
+    "summary": "苹果与OpenAI将Shazam音乐识别服务深度整合进ChatGPT应用，用户只需在聊天界面输入指令，即可快速识别歌曲，无需切换应用。该功能覆盖iOS、Android及网页版，操作简便，提升了听歌识曲的便捷性。",
+    "publish_time": "2026-03-10T14:21:18",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "AnthropicAI设计主管Jenny Wen谈AI时代设计工作演变",
-    "url": "https://x.com/lennysan/status/2028484407108194507",
-    "summary": "近日，AnthropicAI设计主管Jenny Wen分享了其对AI时代设计工作演变的观点。她认为，在工程师能快速部署多个编码代理的环境下，传统的探索-发散-收敛设计流程正在失效。设计工作正分化为两种模式：一是支持执行，即与工程师协作、进行代码级打磨；二是设定3-6个月的短期愿景。Jenny Wen指出，建立信任应通过快速发布（如研究预览版）、公开迭代和响应反馈来实现，而非追求完美。在招聘方面，她认为当前最被忽视的是思维灵活、学习快、无历史包袱的新毕业生，并建议关注全能型人才、深度专家和灵活新人三种类型。关于AI界面，她认为聊天界面因其无限灵活性将长期存在，未来将是聊天与模型动态生成的UI元素（如Claude的交互式小组件）的混合模式。此外，Jenny Wen本人已从管理岗转回独立贡献者以获取硬技能。她强调，AI在品味和判断力上会进步，但设计师仍需对产出负责。对于设计工具，她认为Figma仍是快速探索多种设计方向的最佳工具。",
-    "publish_time": "2026-03-09T23:04:05.344000",
+    "title": "阿里巴巴通义千问团队完成Qwen 3.5产品线，发布小型模型系列",
+    "url": "https://x.com/WesRoth/status/2028727071258948054",
+    "summary": "阿里巴巴通义千问团队近日通过发布Qwen 3.5 Small Model Series，正式完成了其Qwen 3.5产品线的布局。该系列是一组面向边缘计算的高效人工智能模型，具备原生多模态能力，能够理解文本、图像和视频。这些模型可以直接在手机、笔记本电脑或物联网设备上运行，无需依赖大型服务器GPU。据文中介绍，该系列中最小的0.8B模型所需显存小于2GB，而9B模型在性能上已超越上一代的30B大型模型，并与GPT-5-Nano展开竞争。",
+    "publish_time": "2026-03-10T15:04:05.491000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "MiniMax发布上市后首份财报：2025年营收7900万美元，同比增长159%",
-    "url": "https://x.com/MiniMax_AI/status/2028481244611436735",
-    "summary": "人工智能公司MiniMax近日发布了其作为港交所上市公司后的首份财报，披露了2025年关键业绩。数据显示，该公司2025年营收达到7900万美元，同比增长159%，其中超过70%的收入来自国际市场。毛利率从12.2%提升至25.4%。用户规模方面，其产品已覆盖全球200多个国家和地区，用户数超过2.36亿，并拥有21.4万企业客户与开发者。公司宣布，在2026年将从模型公司转型为智能时代的AI平台，并聚焦于编程、职场效率和多模态创作三大领域。",
-    "publish_time": "2026-03-09T23:03:25.106000",
+    "title": "阿里通义千问 Qwen3.5-9B 模型上架 LM Studio，本地运行内存需求约 7GB",
+    "url": "https://x.com/Alibaba_Qwen/status/2028664203872251943",
+    "summary": "近日，阿里巴巴通义千问团队宣布，其 Qwen3.5-9B 模型已在 LM Studio 平台上架。根据官方信息，该模型的一个主要特点是本地运行所需内存资源较低，约为 7GB。关于该模型的具体性能表现、发布日期、LM Studio 版本要求等更多技术细节，文中未提及。",
+    "publish_time": "2026-03-10T11:04:15.937000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "GoogleDeepMind 发布 Nano Banana 2，旨在提升视觉创作效率与可及性",
-    "url": "https://x.com/GoogleDeepMind/status/2028455939318181895",
-    "summary": "近日，GoogleDeepMind 宣布推出 Nano Banana 2。据其介绍，该版本旨在使复杂的视觉创作过程变得更快、成本更低，并让更多人能够使用。推文未提供关于 Nano Banana 2 的具体技术细节、性能指标或应用场景等进一步信息。",
-    "publish_time": "2026-03-09T21:23:25.070000",
+    "title": "阿里通义千问 Qwen 3.5 Small 模型新增支持 MLX 框架",
+    "url": "https://x.com/Alibaba_Qwen/status/2028659618889773560",
+    "summary": "阿里巴巴通义千问官方近日宣布，其 Qwen 3.5 Small 模型现已支持苹果的 MLX 框架。该信息于 2026年3月3日发布。原文未提供关于模型性能、具体实现细节、版本兼容性或任何技术指标的信息。",
+    "publish_time": "2026-03-10T10:43:15.179000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "火山引擎推出Supabase云上开发工具箱，助力AI Agent开发者提升效率",
-    "url": "https://mp.weixin.qq.com/s?__biz=MzI1MzYzMjE0MQ==&mid=2247518720&idx=2&sn=74698bbbbcbfd267c0f858ecbc61b066",
-    "summary": "火山引擎近日推出火山Supabase，这是一个100%兼容开源Supabase生态的云上开发工具箱，旨在帮助AI Agent开发者摆脱后端基础设施的束缚，实现Vibe Coding。该服务在成本控制、数据安全和开发效率三方面进行了升级：采用全链路Serverless架构，据称最高可节省23倍成本；提供Data as Git能力，支持数据分支和时间点回溯；通过自然语言交互和标准化API，据称可使开发效率提升80%以上。目前，该服务已应用于豆包、扣子、TRAE等AI Agent平台。",
-    "publish_time": "2026-03-09T21:12:05.290000",
+    "title": "阿里巴巴Qwen 3.5系列小模型登陆Ollama平台",
+    "url": "https://x.com/Alibaba_Qwen/status/2028654745905475989",
+    "summary": "近日，阿里巴巴Qwen团队宣布，其Qwen 3.5系列的小模型现已在Ollama平台上可用。此次公告主要确认了该系列模型在Ollama上的产品可用性，但未提供具体的模型版本、性能指标、技术细节或使用限制。",
+    "publish_time": "2026-03-10T10:23:11.826000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "字节跳动开源 OpenViking，为 OpenClaw 等 Agent 提供长期记忆解决方案",
-    "url": "https://mp.weixin.qq.com/s?__biz=MzI1MzYzMjE0MQ==&mid=2247518720&idx=1&sn=7d779257a93ee5581d3cb0afe469778e",
-    "summary": "字节跳动技术团队近日发布文章，介绍了其开源项目 OpenViking，这是一个面向 AI Agent 的上下文数据库，旨在解决 OpenClaw 等 Agent 在长周期任务中面临的长期记忆问题。文章指出，OpenClaw 原生的 memory-core 模块存在任务完成率偏低、记忆碎片化检索低效、Token 成本激增以及跨场景协作困难等痛点。OpenViking 通过“虚拟文件系统”范式组织上下文，并提供插件化无缝集成方案。\n\n团队使用 LoCoMo10 评测集（包含 1540 条用例）进行了对比测试。结果显示，当 OpenViking 插件与 OpenClaw 结合（关闭原生记忆）时，任务完成率达 52.08%，输入 Token 总计 4,264,396；开启原生记忆时，任务完成率为 51.23%，输入 Token 总计 2,099,622。文中观点认为，相较于原生 OpenClaw，在开启原生记忆的组合下，任务完成率提升了 43%，输入 Token 成本降低了 91%。此次测试基于 OpenViking 0.1.18 版本，使用的模型为 seed-2.0-code。",
-    "publish_time": "2026-03-09T21:12:05.289000",
+    "title": "Google Cloud 宣布 Gemini 3.1 Pro 模型进入预览阶段",
+    "url": "https://x.com/GoogleCloudTech/status/2028651576311660640",
+    "summary": "Google Cloud 近日宣布其 Gemini 3.1 Pro 模型已进入预览阶段。根据官方消息，该模型能够帮助用户将不同来源的数据整合到单一视图中，从而可视化复杂主题，并应对需要深度上下文理解和规划能力的挑战。目前，该预览版已开放试用。",
+    "publish_time": "2026-03-10T10:04:25.836000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "突发！薪资谈判破裂，芯片巨头8.9万人要罢工；养龙虾的第一批受害者出现了！OpenClaw给装惨用户自动转了笔钱；腾讯视频回应收视率造假",
+    "url": "https://www.leiphone.com/category/zaobao/Qv1K7AeGqwTPvqlL.html",
+    "summary": "曝一加将于今日宣布涨价，多品牌手机3月拟启动调价；叮咚买菜梁昌霖辞任CEO，王松接任",
+    "publish_time": "4小时前",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "华为乾崑发布全球量产最高规格896线激光雷达",
+    "url": "https://www.leiphone.com/category/transportation/EmYk7MZvKdnpzU5F.html",
+    "summary": "新一代双光路图像级激光雷达,从点云级到图像级开启3D成像时代",
+    "publish_time": "6小时前",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "微软、亚马逊市值蒸发8千亿美元，透露了什么？",
+    "url": "https://www.leiphone.com/category/industrycloud/25KixfmrSBFG6YeH.html",
+    "summary": "美股AI巨头们正在迎来「成人礼」大考。",
+    "publish_time": "6小时前",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
   },
   {
     "title": "OpenClaw创始人点赞！深圳千人「龙虾聚会」，藏着 AI 硬件 5 大潜在趋势",
     "url": "https://www.leiphone.com/category/weiwu/1u8xeRYB2T6RfWdu.html",
     "summary": "在深圳，只要你想，一个周末可以参加三场「龙虾聚会」。",
-    "publish_time": "6小时前",
+    "publish_time": "昨天 18:06",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
@@ -131,39 +155,31 @@
     "title": "独家丨直指2000 Tokens/s，北大系「流式推理芯片」公司完成数千万元融资",
     "url": "https://www.leiphone.com/category/chips/SMIG5HNXO304w3np.html",
     "summary": "不做 GPU，只做速度。",
-    "publish_time": "6小时前",
+    "publish_time": "昨天 18:06",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
   {
-    "title": "「微光点亮」获红杉、蓝驰、蚂蚁、鼎晖等超亿元融资，宋紫薇入局AI时尚硬件",
-    "url": "https://www.leiphone.com/category/weiwu/xb78XJ6ie0mQCARn.html",
-    "summary": "内部正在研发首款时尚 AI 原生终端，硬件形态或将以落地镜为全新载体。",
-    "publish_time": "7小时前",
-    "source": "AI科技评论",
-    "site_url": "https://www.leiphone.com"
+    "title": "机器人全程自主收拾客厅！390亿美元估值机器人端到端新技能，英伟达持续加注",
+    "url": "https://www.qbitai.com/2026/03/385126.html",
+    "summary": "团队自研具身大脑Helix 02作支撑",
+    "publish_time": "2小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
   },
   {
-    "title": "机器人主持发布会，海信把话语权交给用户",
-    "url": "https://www.leiphone.com/category/smarthome/6cC74UXgODIndKCG.html",
-    "summary": "不止世界杯营销，也是一场 “用户共创” 的进化",
-    "publish_time": "8小时前",
-    "source": "AI科技评论",
-    "site_url": "https://www.leiphone.com"
-  },
-  {
-    "title": "有人上门安装龙虾几天赚26万！马化腾：没想到能火成这样；伊朗客户失联了！价值6000万的500台中国车被困海上；路虎揽胜回应魏建军致歉",
-    "url": "https://www.leiphone.com/category/zaobao/wjRWFyHbXjkbGyCJ.html",
-    "summary": "原豆包PC端负责人齐俊元创业，押注GUI Agent手机；乐动机器人完成港股上市备案，阿里CEO为股东",
-    "publish_time": "14小时前",
-    "source": "AI科技评论",
-    "site_url": "https://www.leiphone.com"
+    "title": "Meta亚历山大王走人？小扎回应了",
+    "url": "https://www.qbitai.com/2026/03/385127.html",
+    "summary": "刚满29岁的Meta AI一号位",
+    "publish_time": "2小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
   },
   {
     "title": "卡帕西开源Agent自进化训练框架，5分钟一轮实验，48h内揽星9.5k",
     "url": "https://www.qbitai.com/2026/03/384953.html",
     "summary": "下一步要模拟整个博士社群",
-    "publish_time": "7小时前",
+    "publish_time": "昨天 15:46",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
@@ -171,7 +187,7 @@
     "title": "企业微信支持接入OpenClaw，仅需3步即可快速上手",
     "url": "https://www.qbitai.com/2026/03/384944.html",
     "summary": "",
-    "publish_time": "8小时前",
+    "publish_time": "昨天 15:12",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
@@ -179,25 +195,17 @@
     "title": "文远知行与吉利远程深化战略合作，2026年交付2000台前装量产Robotaxi GXR",
     "url": "https://www.qbitai.com/2026/03/384835.html",
     "summary": "",
-    "publish_time": "10小时前",
+    "publish_time": "昨天 13:31",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
   {
-    "title": "龙虾最大痛点被官方插件升级！对话永不忘记，GPT和Gemini最强模型都可接入",
-    "url": "https://www.qbitai.com/2026/03/384907.html",
-    "summary": "",
-    "publish_time": "10小时前",
-    "source": "量子位",
-    "site_url": "https://www.qbitai.com"
-  },
-  {
-    "title": "88岁图灵奖得主，用Claude一小时破解30年数学悬案",
-    "url": "https://www.qbitai.com/2026/03/384890.html",
-    "summary": "",
-    "publish_time": "10小时前",
-    "source": "量子位",
-    "site_url": "https://www.qbitai.com"
+    "title": "30天养虾秘籍公开！第4天差点团灭，最后跑出“AI军团”，超全避坑干货在此",
+    "url": "https://zhidx.com/p/538543.html",
+    "summary": "“30天养虾秘籍”来了。",
+    "publish_time": "2026-03-10T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
   },
   {
     "title": "通研院重磅成果！一套策略让人形机器人学会后空翻、霹雳舞，准确率超90%",
@@ -232,18 +240,10 @@
     "site_url": "https://zhidx.com"
   },
   {
-    "title": "直面Meta，千问AI眼镜MWC全球发布展台“挤爆”！全能AI助手硬控老外",
-    "url": "https://zhidx.com/p/537807.html",
-    "summary": "1997元将现货开卖，刚入围移动通信奥斯卡，直面海外科技巨头。",
-    "publish_time": "2026-03-04T00:00:00",
-    "source": "智东西",
-    "site_url": "https://zhidx.com"
-  },
-  {
     "title": "浏览器已死？Tabbit 实测：AI接管鼠标，人类负责修bug｜AI 上新",
     "url": "https://www.geekpark.net/news/360826",
     "summary": "未来，浏览器不再是「窗口」，而是工作台。",
-    "publish_time": "6 小时前",
+    "publish_time": "1 天前",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
   },
@@ -251,7 +251,7 @@
     "title": "未来不远机器人 2 个月内再获数亿元融资，累计完成 3 万+小时家庭服务",
     "url": "https://www.geekpark.net/news/360816",
     "summary": "国内首个聚焦家庭通用机器人的公司——未来不远，再次宣布完成新一轮数亿元融资。除了持续进入更多真实家庭...",
-    "publish_time": "8 小时前",
+    "publish_time": "2026/03/09",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
   },
@@ -259,7 +259,7 @@
     "title": "再次刷新具身智能单轮融资金额，银河通用拿下 25 亿融资",
     "url": "https://www.geekpark.net/news/360789",
     "summary": "具身智能融资进入「重装时代」。",
-    "publish_time": "13 小时前",
+    "publish_time": "2026/03/09",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
   },

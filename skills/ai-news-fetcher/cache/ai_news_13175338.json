@@ -1,0 +1,170 @@
+[
+  {
+    "title": "OpenAI总裁被令交出个人日记：查AI底账",
+    "url": "https://36kr.com/p/3719250750453120",
+    "summary": "OpenAI总裁被令交出个人日记：查AI底账",
+    "publish_time": "36分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "AI正在批量制造伪专家，这些关键信号要警惕",
+    "url": "https://36kr.com/p/3719200825357701",
+    "summary": "“伪专家”泛滥的危机。",
+    "publish_time": "38分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "月薪达2.5—5万，网易、三七互娱、边锋网络入局，广州游戏厂商开抢AI漫剧人才",
+    "url": "https://36kr.com/p/3719201164637574",
+    "summary": "2026年广州游戏厂商抢AI漫剧人才，推动行业变革。",
+    "publish_time": "48分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "百度发布首款手机龙虾应用红手指Operator，实现跨App自动化交互",
+    "url": "https://news.aibase.cn/news/26150",
+    "summary": "百度智能云推出全球首款手机AI应用“红手指Operator”，结合此前发布的网页端服务DuClaw，形成“云端+移动端”布局，推动AI自动化在多场景应用。该应用已上线安卓市场，核心在于移动端AI Agent与OpenClaw的协同，其中OpenClaw负责PC端任务处理。",
+    "publish_time": "2026-03-12T10:06:15",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "腾讯WorkBuddy发布升级:支持微信一键直连与自动化任务执行",
+    "url": "https://news.aibase.cn/news/26149",
+    "summary": "腾讯云代码助手团队升级WorkBuddy桌面智能体，新增微信扫码一键直连功能，用户可通过手机微信远程操控PC端智能体。同时，产品接入企业微信WebSocket长链接，提升了远程连接的稳定性和断连重连效率。",
+    "publish_time": "2026-03-12T09:50:13",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "基准测试不等于真实能力?研究称AI代码“通过率”或被高估最高达7倍",
+    "url": "https://news.aibase.cn/news/26148",
+    "summary": "研究指出，SWE-bench Verified基准测试可能高估AI编程能力。该测试中被判“通过”的AI代码方案，约一半在实际项目审核中会被拒绝，显示自动化评测与真实工程质量存在明显差距。这一发现对AI辅助软件工程评估标准提出了重要质疑。",
+    "publish_time": "2026-03-12T09:35:58",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "PyTorch 邀请技术专家提交 KubeCon + CloudNativeCon + OpenInfraSummit + PyTorchCon 中国站演讲提案",
+    "url": "https://x.com/PyTorch/status/2029376373777711269",
+    "summary": "PyTorch 官方近日发布消息，邀请对 #CloudNative、#OpenInfra 或 #PyTorch 领域有见解的技术人士，为即将在中国举办的 #KubeCon + #CloudNativeCon + #OpenInfraSummit + #PyTorchCon 联合会议提交演讲提案。会议涵盖的主题包括 #AI、基础设施、#Kubernetes、#ML 系统以及 #OpenSource 领导力等。提案提交的截止日期为 5月3日。",
+    "publish_time": "2026-03-12T10:05:26.757000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "shizhediao 建议升级预训练数据集，尝试 ClimbMix-400B",
+    "url": "https://x.com/shizhediao/status/2029370289461575741",
+    "summary": "近日，作者 shizhediao 在社交平台发文，建议用户升级其预训练数据集，可尝试使用 ClimbMix-400B 来替代 FineWeb-EDU、DCLM 或 X 等数据集。文中观点认为，ClimbMix 采用了基于聚类的迭代数据混合方法，旨在提升预训练的效率和数据质量。该消息附带了相关论文和数据的链接，并呼吁社区进行实验以进一步推动相关工作。",
+    "publish_time": "2026-03-12T09:44:13.111000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "Nemotron-CLIMBMix 成为 nanochat speedrun 默认配方",
+    "url": "https://x.com/shizhediao/status/2029368392541495457",
+    "summary": "近日，在由 Andrej Karpathy 发起的 Time-to-GPT-2 排行榜实验中，社区重新评估了 CLIMBMix 模型，发现其为 nanochat 的 GPT-2 speedrun 时间带来了迄今为止最大的单次改进。因此，Nemotron-CLIMBMix 正在成为 nanochat speedrun 中的默认配方。作者表示，看到这一想法得到社区的验证和采纳非常有成就感。",
+    "publish_time": "2026-03-12T09:44:13.110000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "董明珠痛批无效加班：领导不走我不走这种内耗毫无意义；曝比亚迪考虑进军F1一级方程式赛事；不安全还烧钱？月薪两万养不起一只龙虾",
+    "url": "https://www.leiphone.com/category/zaobao/IKQJ4pLTxrP8x37t.html",
+    "summary": "员工入职大疆1个月被发了5次钱；Meta 计划 2027 年底前部署四代自研 AI 芯片，应对算力需求并降低外部依赖",
+    "publish_time": "48分钟前",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "奇瑞全新QQ3 EV公布预售价，最高续航420公里.",
+    "url": "https://www.leiphone.com/category/transportation/4cFLIaUS2P3eKhDM.html",
+    "summary": "新车共推出4款车型，提供310公里和420公里两种续航版本，预售价区间为6.89万元至8.99万元。",
+    "publish_time": "昨天 17:21",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "昊铂A800上市，补贴后16.48万元起",
+    "url": "https://www.leiphone.com/category/industrynews/yHp2Z7VzxuDzQtYg.html",
+    "summary": "3月4日，昊铂品牌惊蛰之夜暨昊铂A800上市发布会在广汽集团番禺总部举行。",
+    "publish_time": "昨天 15:22",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "让龙虾看懂屏幕！谷歌多模态新成果，文本图像视频音频进同一空间",
+    "url": "https://www.qbitai.com/2026/03/386485.html",
+    "summary": "谷歌首个原生多模态（Multimodal）嵌入模型",
+    "publish_time": "16小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "LeCun三顾茅庐，谢赛宁终于入伙！新公司获投10亿美元",
+    "url": "https://www.qbitai.com/2026/03/386308.html",
+    "summary": "成立两个月半，估值35亿！",
+    "publish_time": "16小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "养虾人狂吃国产模型！4.19万亿Token调用量激增34.9%超越美国",
+    "url": "https://www.qbitai.com/2026/03/386183.html",
+    "summary": "国产模型包揽龙虾应用前三",
+    "publish_time": "17小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "获宇树、小米合作，复旦教授联手前英特尔首席科学家创业，打造具身智能的OpenAI",
+    "url": "https://zhidx.com/p/538887.html",
+    "summary": "给机器人造生成式大脑，这家公司想成为中国版Skild AI。",
+    "publish_time": "2026-03-11T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "30天养虾秘籍公开！第4天差点团灭，最后跑出“AI军团”，超全避坑干货在此",
+    "url": "https://zhidx.com/p/538543.html",
+    "summary": "“30天养虾秘籍”来了。",
+    "publish_time": "2026-03-10T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "通研院重磅成果！一套策略让人形机器人学会后空翻、霹雳舞，准确率超90%",
+    "url": "https://zhidx.com/p/538483.html",
+    "summary": "人形机器人学会数十种极限动作。",
+    "publish_time": "2026-03-08T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "开源龙虾太野？青藤 WorkClaw 企业版来了：好用不折腾，安全又可控",
+    "url": "https://www.geekpark.net/news/360945",
+    "summary": "企业真正缺的往往不是「再装一个智能体」，而是一套默认安全、可治理、可审计的企业级控制平台。",
+    "publish_time": "16 小时前",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
+  },
+  {
+    "title": "成立一年半累计融资超 20 亿，这个团队想搞定具身智能最难的「数据瓶颈」",
+    "url": "https://www.geekpark.net/news/360880",
+    "summary": "用「无本体数采」的方式训练具身模型，灵初智能的这条路径是 VLA 之后行业最热的方向之一。",
+    "publish_time": "2026/03/11",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
+  },
+  {
+    "title": "抛弃 OpenAI 旧爱，微软把 Claude 塞进 Office",
+    "url": "https://www.geekpark.net/news/360866",
+    "summary": "微软选择了 Anthropic，而不是 OpenAI。",
+    "publish_time": "2026/03/10",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
+  }
+]
