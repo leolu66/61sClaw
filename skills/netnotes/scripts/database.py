@@ -345,8 +345,8 @@ class ArticleDatabase:
             params.append(tag)
         else:
             base_query = '''
-                SELECT id, url, title, category, summary, file_path, created_at
-                FROM articles
+                SELECT a.id, a.url, a.title, a.category, a.summary, a.file_path, a.created_at
+                FROM articles a
                 WHERE 1=1
             '''
         
