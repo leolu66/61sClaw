@@ -312,6 +312,105 @@ class ArticleDatabase:
         
         return articles
     
+    def advanced_search(self, keyword: str = None, tag: str = None, category: str = None,
+                        date_from: str = None, date_to: str = None, limit: int = 50) -> List[Dict]:
+        """
+        高级组合查询
+        
+        Args:
+            keyword: 关键词（搜索标题和摘要）
+            tag: 标签名
+            category: 分类
+            date_from: 开始日期 (YYYY-MM-DD)
+            date_to: 结束日期 (YYYY-MM-DD)
+            limit: 限制数量
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # 构建查询
+        conditions = []
+        params = []
+        
+        # 基础查询
+        if tag:
+            # 需要关联标签表
+            base_query = '''
+                SELECT DISTINCT a.id, a.url, a.title, a.category, a.summary, a.file_path, a.created_at
+                FROM articles a
+                JOIN article_tags at ON a.id = at.article_id
+                JOIN tags t ON at.tag_id = t.id
+            '''
+            conditions.append('t.name = ?')
+            params.append(tag)
+        else:
+            base_query = '''
+                SELECT id, url, title, category, summary, file_path, created_at
+                FROM articles
+                WHERE 1=1
+            '''
+        
+        # 添加关键词条件
+        if keyword:
+            conditions.append('(a.title LIKE ? OR a.summary LIKE ?)')
+            search_pattern = f'%{keyword}%'
+            params.extend([search_pattern, search_pattern])
+        
+        # 添加分类条件
+        if category:
+            conditions.append('a.category = ?')
+            params.append(category)
+        
+        # 添加日期条件
+        if date_from:
+            conditions.append('a.created_at >= ?')
+            params.append(f'{date_from} 00:00:00')
+        
+        if date_to:
+            conditions.append('a.created_at <= ?')
+            params.append(f'{date_to} 23:59:59')
+        
+        # 组装SQL
+        sql = base_query
+        if conditions:
+            sql += ' AND ' + ' AND '.join(conditions)
+        sql += ' ORDER BY a.created_at DESC LIMIT ?'
+        params.append(limit)
+        
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
+        conn.close()
+        
+        articles = []
+        for row in rows:
+            article = {
+                'id': row[0],
+                'url': row[1],
+                'title': row[2],
+                'category': row[3],
+                'summary': row[4],
+                'file_path': row[5],
+                'created_at': row[6]
+            }
+            article['tags'] = self.get_article_tags(row[0])
+            articles.append(article)
+        
+        return articles
+        for row in rows:
+            article = {
+                'id': row[0],
+                'url': row[1],
+                'title': row[2],
+                'category': row[3],
+                'summary': row[4],
+                'file_path': row[5],
+                'created_at': row[6]
+            }
+            article['tags'] = self.get_article_tags(row[0])
+            articles.append(article)
+        
+        return articles
+    
     def get_all_tags(self) -> List[Dict]:
         """获取所有标签及其使用次数"""
         conn = sqlite3.connect(self.db_path)
