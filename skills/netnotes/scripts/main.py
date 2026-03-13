@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NetNotes - 互联网笔记本主程序
+NetNotes - 互联网笔记本主程序（交互式版本）
 """
 
 import sys
@@ -71,11 +71,48 @@ def save_article(content: str, title: str, category: str, notebooks_dir: Path) -
     return str(file_path)
 
 
+def interactive_confirm_category(classifier, title, content, summary):
+    """交互式确认分类"""
+    # 自动分类
+    suggested_category = classifier.classify(title, content, summary)
+    
+    print(f"\n[INFO] 推荐分类: {suggested_category}")
+    print("[INFO] 可选分类: AI, 运营商, 管理, 社会生活, 技术其他, 其他")
+    
+    # 询问确认
+    user_input = input("确认分类请按回车，或输入新分类: ").strip()
+    
+    if user_input:
+        # 验证输入的分类是否有效
+        valid_categories = ["AI", "运营商", "管理", "社会生活", "技术其他", "其他"]
+        if user_input in valid_categories:
+            return user_input
+        else:
+            print(f"[WARN] 无效分类 '{user_input}'，使用推荐分类")
+            return suggested_category
+    
+    return suggested_category
+
+
+def interactive_input_tags():
+    """交互式输入标签"""
+    print("\n[INFO] 标签格式: 多个标签用逗号分隔，如: OpenClaw,架构解析,AI工具")
+    user_input = input("需要添加什么标签? (直接回车跳过) ").strip()
+    
+    if not user_input:
+        return []
+    
+    # 解析标签
+    tags = [t.strip() for t in user_input.split(',') if t.strip()]
+    return tags
+
+
 def main():
     parser = argparse.ArgumentParser(description='NetNotes - 互联网笔记本')
     parser.add_argument('url', help='要保存的网页URL')
     parser.add_argument('--category', '-c', help='指定分类（跳过自动分类）')
-    parser.add_argument('--tags', '-t', help='标签，多个标签用逗号分隔，如：AI,OpenClaw,教程')
+    parser.add_argument('--tags', '-t', help='标签，多个标签用逗号分隔（非交互模式使用）')
+    parser.add_argument('--non-interactive', '-n', action='store_true', help='非交互模式，自动保存')
     parser.add_argument('--force', '-f', action='store_true', help='强制重新保存已存在的文章')
     
     args = parser.parse_args()
@@ -123,20 +160,32 @@ def main():
     summary_clean = summary.encode('gbk', errors='ignore').decode('gbk')
     print(f"     摘要: {summary_clean}")
     
-    # 分类
+    # 处理分类
     if args.category:
         category = args.category
         print(f"[INFO] 使用指定分类: {category}")
-    else:
-        print("[INFO] 正在分析分类...")
+    elif args.non_interactive:
+        # 非交互模式，自动分类
         category = classifier.classify(article['title'], article['content'], summary)
-        print(f"     推荐分类: {category}")
+        print(f"[INFO] 自动分类: {category}")
+    else:
+        # 交互式确认分类
+        category = interactive_confirm_category(classifier, article['title'], article['content'], summary)
+        print(f"[INFO] 确认分类: {category}")
     
     # 处理标签
-    tags = []
     if args.tags:
+        # 命令行指定标签
         tags = [t.strip() for t in args.tags.split(',') if t.strip()]
         print(f"[INFO] 使用标签: {', '.join(tags)}")
+    elif args.non_interactive:
+        # 非交互模式，无标签
+        tags = []
+    else:
+        # 交互式输入标签
+        tags = interactive_input_tags()
+        if tags:
+            print(f"[INFO] 添加标签: {', '.join(tags)}")
     
     # 构建Markdown内容
     tags_section = f"**标签**: {', '.join(tags)}  \n" if tags else ""
@@ -174,7 +223,7 @@ def main():
         tags=tags
     )
     
-    print("[OK] 完成！")
+    print("\n[OK] 完成！")
     print(f"\n[INFO] 文章信息:")
     print(f"     标题: {article['title']}")
     print(f"     分类: {category}")

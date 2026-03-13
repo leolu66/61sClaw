@@ -20,10 +20,12 @@ NetNotes 帮助用户收藏和管理互联网文章：
 2. 处理反爬机制（使用Playwright）
 3. 将内容转换为Markdown格式
 4. 使用大模型自动分析并推荐分类
-5. 支持为文章添加多个标签
-6. 用户确认后保存到对应专题笔记本
-7. 记录文章元数据到SQLite数据库
-8. 支持按标签检索文章
+5. **交互式确认分类**（用户可修改）
+6. **交互式输入标签**（支持多个标签，自动创建）
+7. 保存文章，标签自动创建（如不存在）并关联
+8. 保存到对应专题笔记本
+9. 记录文章元数据到SQLite数据库
+10. 支持按标签检索文章
 
 ### 输入/输出
 - **输入**: 网页URL（支持大多数新闻网站、博客等），可选标签
@@ -61,13 +63,46 @@ python scripts/main.py <网页URL> --tags "标签1,标签2,标签3"
 python scripts/main.py "https://example.com/article" --tags "AI,教程,OpenClaw"
 ```
 
-### 交互流程
+### 交互式保存流程
 
-1. **提供URL**: 用户发送网页链接
-2. **自动抓取**: 系统抓取正文内容
-3. **智能分类**: 大模型分析内容并推荐分类
-4. **添加标签**: 用户可指定标签（可选）
-5. **保存归档**: 确认后保存到对应目录并记录数据库
+```
+$ python scripts/main.py "https://example.com/article"
+
+[INFO] 正在抓取: https://example.com/article
+[OK] 抓取成功: 文章标题
+     字数: 3556
+[INFO] 正在生成摘要...
+     摘要: 文章摘要内容...
+
+[INFO] 推荐分类: 技术其他
+[INFO] 可选分类: AI, 运营商, 管理, 社会生活, 技术其他, 其他
+确认分类请按回车，或输入新分类: 
+
+[INFO] 标签格式: 多个标签用逗号分隔，如: OpenClaw,架构解析,AI工具
+需要添加什么标签? (直接回车跳过) OpenClaw,架构解析,AI工具
+[INFO] 添加标签: OpenClaw, 架构解析, AI工具
+
+[INFO] 正在保存到 技术其他...
+     保存路径: C:\...\技术其他\文章标题.md
+
+[OK] 完成！
+
+[INFO] 文章信息:
+     标题: 文章标题
+     分类: 技术其他
+     标签: OpenClaw, 架构解析, AI工具
+     路径: C:\...\技术其他\文章标题.md
+```
+
+### 非交互式保存（自动化）
+
+```bash
+# 跳过交互，自动分类，无标签
+python scripts/main.py "https://example.com/article" --non-interactive
+
+# 指定分类和标签
+python scripts/main.py "https://example.com/article" --category "AI" --tags "深度学习,PyTorch"
+```
 
 ### 笔记本分类
 
@@ -81,7 +116,14 @@ python scripts/main.py "https://example.com/article" --tags "AI,教程,OpenClaw"
 
 ### 标签功能
 
-**保存时添加标签**:
+**交互式添加标签**（默认模式）:
+```bash
+python scripts/main.py "https://example.com/article"
+# 程序会询问: "需要添加什么标签? (直接回车跳过)"
+# 用户输入: OpenClaw,架构解析,AI工具
+```
+
+**非交互式添加标签**:
 ```bash
 python scripts/main.py "https://example.com/article" --tags "AI,深度学习,PyTorch"
 ```
@@ -100,6 +142,12 @@ python scripts/manager.py tag "AI"
 ```bash
 python scripts/manager.py add-tags <文章ID> "新标签1,新标签2"
 ```
+
+**标签特性**:
+- 标签无需预定义，输入时自动创建
+- 支持一篇文章多个标签
+- 标签不存在时自动创建并关联
+- 标签已存在时直接建立关联
 
 ---
 
