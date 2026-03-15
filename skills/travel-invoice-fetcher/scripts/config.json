@@ -1,0 +1,15 @@
+{
+  "base_path": "D:\\Users\\luzhe\\报销凭证",
+  "imap_server": "imap.qq.com",
+  "imap_port": 993,
+  "search_days": 7,
+  "email_subject_keywords": ["发票"],
+  "auto_extract": true,
+  "supported_archives": [".zip", ".rar", ".7z"],
+  "date_formats": [
+    "%Y-%m-%d",
+    "%m-%d",
+    "%Y/%m/%d",
+    "%m/%d"
+  ]
+}
