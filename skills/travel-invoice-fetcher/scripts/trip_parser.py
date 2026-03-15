@@ -99,6 +99,13 @@ class TripParser:
         # 检测是否有全局交通方式（如"都是飞机"）
         global_transport = self._extract_global_transport(text)
         
+        # 首先尝试作为整体解析（处理日期和城市在一起的情况）
+        segment = self._parse_single_segment(text, global_transport)
+        if segment:
+            segments.append(segment)
+            return segments
+        
+        # 如果整体解析失败，尝试分段解析
         for part in parts:
             part = part.strip()
             if not part:
@@ -223,8 +230,16 @@ class TripParser:
         """提取城市名称"""
         cities = []
         
-        # 按优先级匹配城市
-        # 先匹配完整城市名
+        # 先尝试匹配 "X到Y" 或 "X至Y" 格式（明确的方向性）
+        # 支持：广州到南京、广州市到南京市、广州至南京等
+        direction_pattern = r'([\u4e00-\u9fa5]{2,10}?)\s*(?:到|至|去|前往)\s*([\u4e00-\u9fa5]{2,10}?)(?:市|县|区|省)?(?:[，,；;]|$)'
+        match = re.search(direction_pattern, text)
+        if match:
+            departure = match.group(1).replace('市', '').replace('省', '')
+            destination = match.group(2).replace('市', '').replace('省', '')
+            return [departure, destination]
+        
+        # 按优先级匹配城市（原有逻辑）
         for city in sorted(self.CITY_ALIASES.keys(), key=len, reverse=True):
             if city in text and city not in cities:
                 # 检查是否是其他词的一部分

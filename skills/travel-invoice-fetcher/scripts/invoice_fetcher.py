@@ -8,9 +8,15 @@
 import json
 import os
 import sys
+import io
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
+
+# 设置 UTF-8 编码（Windows 兼容）
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 # 添加脚本目录到路径
 script_dir = Path(__file__).parent
@@ -41,43 +47,54 @@ def load_config() -> Dict:
 
 def get_vault_credentials() -> Optional[Dict]:
     """
-    从 vault 读取邮箱凭据
+    读取邮箱凭据
     
     Returns:
         包含 email 和 password 的字典，或 None
     """
     try:
-        # 尝试从 vault 读取
-        # 注意：这里使用环境变量方式，实际使用时需要配置 vault
-        vault_key = "qq_email"
+        # 首先检查 IMAP_QQ_AUTH_CODE 环境变量（推荐方式）
+        auth_code = os.environ.get("IMAP_QQ_AUTH_CODE")
+        if auth_code:
+            # 默认使用 QQ 邮箱
+            return {"email": "lu.zhen9@qq.com", "password": auth_code}
         
-        # 首先检查环境变量
-        email = os.environ.get("QQ_EMAIL")
-        password = os.environ.get("QQ_EMAIL_PASSWORD")
-        
-        if email and password:
-            return {"email": email, "password": password}
-        
-        # 尝试从 .vault 文件读取（如果存在）
-        vault_path = Path.home() / ".vault" / "credentials.json"
-        if vault_path.exists():
-            with open(vault_path, "r", encoding="utf-8") as f:
-                vault_data = json.load(f)
-                if vault_key in vault_data:
-                    return vault_data[vault_key]
+        # 检查用户级环境变量（永久设置）
+        import subprocess
+        try:
+            result = subprocess.run(
+                ['powershell', '-Command', '[Environment]::GetEnvironmentVariable(\"IMAP_QQ_AUTH_CODE\", \"User\")'],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return {"email": "lu.zhen9@qq.com", "password": result.stdout.strip()}
+        except:
+            pass
         
         # 尝试从工作区 vault 目录读取
-        workspace_vault = Path("C:/Users/luzhe/.openclaw/workspace-main/vault/credentials.json")
+        vault_key = "qq_email"
+        workspace_vault = Path.home() / ".openclaw" / "vault" / "credentials.json"
         if workspace_vault.exists():
             with open(workspace_vault, "r", encoding="utf-8") as f:
                 vault_data = json.load(f)
-                if vault_key in vault_data:
-                    return vault_data[vault_key]
+                cred_data = vault_data.get('credentials', {}).get(vault_key)
+                if cred_data:
+                    # 从 vault 结构中提取字段
+                    fields = {}
+                    for field in cred_data.get('fields', []):
+                        key = field.get('key')
+                        value = field.get('value', '')
+                        fields[key] = value
+                    
+                    email = fields.get('email', 'lu.zhen9@qq.com')
+                    password = fields.get('password')
+                    if password:
+                        return {"email": email, "password": password}
         
         return None
         
     except Exception as e:
-        print(f"⚠️ 读取 vault 凭据失败: {e}")
+        print(f"⚠️ 读取凭据失败: {e}")
         return None
 
 
@@ -180,11 +197,58 @@ def fetch_invoices_for_trips(
                     error_msg = f"下载附件失败 ({email_data.get('subject', 'Unknown')}): {e}"
                     print(f"   ❌ {error_msg}")
                     results["errors"].append(error_msg)
+            
+            # 整理文件：将非PDF文件移入bak子目录
+            organize_files(trip_dir)
     
     finally:
         fetcher.disconnect()
     
     return results
+
+
+def organize_files(trip_dir: Path):
+    """
+    整理行程目录下的文件
+    - 创建bak子目录
+    - 将非PDF文件移入bak目录
+    
+    Args:
+        trip_dir: 行程目录路径
+    """
+    try:
+        # 创建bak子目录
+        bak_dir = trip_dir / "bak"
+        bak_dir.mkdir(exist_ok=True)
+        
+        # 遍历目录下的所有文件
+        moved_count = 0
+        for file_path in trip_dir.iterdir():
+            if file_path.is_file():
+                # 检查是否为PDF文件
+                if file_path.suffix.lower() != ".pdf":
+                    # 移动非PDF文件到bak目录
+                    target_path = bak_dir / file_path.name
+                    # 如果目标文件已存在，添加数字后缀
+                    counter = 1
+                    original_target = target_path
+                    while target_path.exists():
+                        stem = original_target.stem
+                        suffix = original_target.suffix
+                        target_path = bak_dir / f"{stem}_{counter}{suffix}"
+                        counter += 1
+                    
+                    file_path.rename(target_path)
+                    moved_count += 1
+                    print(f"   📦 已移动: {file_path.name} -> bak/")
+        
+        if moved_count > 0:
+            print(f"   ✅ 已整理 {moved_count} 个非PDF文件到 bak/ 目录")
+        else:
+            print(f"   ℹ️  无需整理，所有文件都是PDF格式")
+            
+    except Exception as e:
+        print(f"   ⚠️ 整理文件时出错: {e}")
 
 
 def print_summary(segments: List[TripSegment], results: Dict):

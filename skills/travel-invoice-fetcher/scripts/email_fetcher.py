@@ -76,7 +76,8 @@ class EmailFetcher:
     def search_invoice_emails(
         self, 
         days: int = 7,
-        subject_keywords: List[str] = None
+        subject_keywords: List[str] = None,
+        exclude_telecom: bool = True
     ) -> List[str]:
         """
         搜索发票邮件
@@ -84,9 +85,10 @@ class EmailFetcher:
         Args:
             days: 搜索最近几天的邮件
             subject_keywords: 邮件主题关键词列表
+            exclude_telecom: 是否排除通信运营商发票（移动、联通、电信）
             
         Returns:
-            邮件ID列表
+            邮件数据列表
         """
         if not self.mail:
             print("❌ 未连接邮箱")
@@ -94,6 +96,9 @@ class EmailFetcher:
         
         if subject_keywords is None:
             subject_keywords = ["发票"]
+        
+        # 通信运营商关键词（排除这些发票）
+        telecom_keywords = ["移动", "联通", "电信", "中国移动", "中国联通", "中国电信"]
         
         try:
             # 选择收件箱
@@ -117,10 +122,19 @@ class EmailFetcher:
                 return []
             
             email_ids = message_ids[0].split()
-            print(f"📧 找到 {len(email_ids)} 封邮件")
+            total_emails = len(email_ids)
+            print(f"📧 找到 {total_emails} 封邮件")
+            
+            # 限制处理的邮件数量，避免太慢
+            max_process = 50
+            if total_emails > max_process:
+                email_ids = email_ids[-max_process:]  # 只处理最新的50封
+                print(f"⏱️  为加快速度，只处理最新的 {max_process} 封邮件")
             
             # 筛选包含关键词的邮件
             invoice_emails = []
+            skipped_telecom = 0
+            
             for email_id in email_ids:
                 try:
                     status, msg_data = self.mail.fetch(email_id, "(RFC822)")
@@ -132,6 +146,14 @@ class EmailFetcher:
                     
                     # 解码邮件主题
                     subject = self._decode_subject(msg.get("Subject", ""))
+                    
+                    # 检查是否为通信运营商发票（需要排除）
+                    if exclude_telecom:
+                        is_telecom = any(telecom in subject for telecom in telecom_keywords)
+                        if is_telecom:
+                            skipped_telecom += 1
+                            print(f"  ⏭️  跳过通信发票: {subject}")
+                            continue
                     
                     # 检查主题是否包含关键词
                     for keyword in subject_keywords:
@@ -151,6 +173,8 @@ class EmailFetcher:
                     continue
             
             print(f"📋 共找到 {len(invoice_emails)} 封发票邮件")
+            if skipped_telecom > 0:
+                print(f"   (已排除 {skipped_telecom} 封通信运营商发票)")
             return invoice_emails
             
         except Exception as e:
