@@ -93,31 +93,43 @@ class TripParser:
         text = text.strip()
         segments = []
         
-        # 尝试解析多段行程（用逗号、分号或"；"分隔）
-        parts = re.split(r'[,，;；]', text)
-        
         # 检测是否有全局交通方式（如"都是飞机"）
         global_transport = self._extract_global_transport(text)
         
-        # 首先尝试作为整体解析（处理日期和城市在一起的情况）
+        # 尝试按空格分割多段行程（每段包含完整的日期和城市信息）
+        # 匹配模式: X月X日到X月X日，城市A到城市B，交通工具
+        trip_pattern = r'(\d{1,2}月\d{1,2}日[到至~]\d{1,2}月\d{1,2}日，[^，]+?到[^，]+(?:，[^ ]+)?)'
+        trip_matches = re.findall(trip_pattern, text)
+        
+        if len(trip_matches) > 1:
+            # 找到多段行程
+            for trip_text in trip_matches:
+                segment = self._parse_single_segment(trip_text, global_transport)
+                if segment:
+                    segments.append(segment)
+            if segments:
+                return segments
+        
+        # 尝试用逗号、分号分隔
+        parts = re.split(r'[,，;；]', text)
+        if len(parts) > 1:
+            for part in parts:
+                part = part.strip()
+                if not part:
+                    continue
+                # 跳过纯交通方式描述
+                if self._is_transport_only(part):
+                    continue
+                segment = self._parse_single_segment(part, global_transport)
+                if segment:
+                    segments.append(segment)
+            if segments:
+                return segments
+        
+        # 单段行程解析
         segment = self._parse_single_segment(text, global_transport)
         if segment:
             segments.append(segment)
-            return segments
-        
-        # 如果整体解析失败，尝试分段解析
-        for part in parts:
-            part = part.strip()
-            if not part:
-                continue
-                
-            # 跳过纯交通方式描述（如"都是飞机"）
-            if self._is_transport_only(part):
-                continue
-                
-            segment = self._parse_single_segment(part, global_transport)
-            if segment:
-                segments.append(segment)
         
         return segments
     

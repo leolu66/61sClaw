@@ -24,6 +24,96 @@ sys.path.insert(0, str(script_dir))
 
 from trip_parser import TripParser, TripSegment
 from email_fetcher import EmailFetcher
+from fol_importer import FOLImporter, FOLApplication
+
+
+def import_from_fol(count: int = 1) -> List[TripSegment]:
+    """
+    从 FOL 系统导入行程
+    
+    Args:
+        count: 导入最近几条申请单，默认1条
+        
+    Returns:
+        TripSegment 列表
+    """
+    print(f"\n📥 从 FOL 系统导入最近 {count} 条申请单...")
+    
+    # 调用 fol-login 技能获取申请单列表
+    fol_skill_path = Path.home() / ".openclaw" / "workspace-main" / "skills" / "fol-login"
+    login_script = fol_skill_path / "login.py"
+    
+    if not login_script.exists():
+        print("❌ 未找到 fol-login 技能，请确保已安装")
+        return []
+    
+    # 使用浏览器自动化获取申请单列表（简化版：读取本地缓存或手动输入）
+    print("⚠️ 请手动复制 FOL 系统中'我的申请单'列表内容")
+    print("操作步骤：")
+    print("  1. 登录 FOL 系统: https://fol.iwhalecloud.com/")
+    print("  2. 进入 费用申请 -> 我的申请单")
+    print("  3. 复制表格中的申请单信息")
+    print("  4. 粘贴到下方（输入 END 结束）：")
+    
+    lines = []
+    while True:
+        try:
+            line = input()
+            if line.strip() == "END":
+                break
+            lines.append(line)
+        except EOFError:
+            break
+    
+    content = "\n".join(lines)
+    
+    if not content.strip():
+        print("⚠️ 未输入任何内容")
+        return []
+    
+    # 解析申请单
+    importer = FOLImporter()
+    applications = importer.parse_application_list(content)
+    
+    print(f"✅ 解析到 {len(applications)} 条申请单")
+    
+    # 取最近 N 条
+    applications = applications[:count]
+    
+    segments = []
+    for app in applications:
+        print(f"\n📋 处理申请单: {app.form_no}")
+        print(f"   描述: {app.description}")
+        
+        # 询问是否查看详情
+        print(f"   请输入该申请单的行程详情（从详情页复制出发日期、结束日期、出发地、出差地、交通工具，或输入 SKIP 跳过）：")
+        detail_lines = []
+        while True:
+            try:
+                line = input()
+                if line.strip() in ["SKIP", "END"]:
+                    break
+                detail_lines.append(line)
+            except EOFError:
+                break
+        
+        detail_text = "\n".join(detail_lines)
+        
+        if detail_text.strip() and detail_text.strip() != "SKIP":
+            # 解析详情
+            detail_info = importer.parse_application_detail(detail_text)
+            segment = importer.to_trip_segment(app, detail_info)
+        else:
+            # 从描述推断
+            segment = importer.to_trip_segment(app)
+        
+        if segment:
+            segments.append(segment)
+            print(f"   ✅ 行程: {segment.departure_city} -> {segment.destination_city}")
+        else:
+            print(f"   ⚠️ 无法转换为行程")
+    
+    return segments
 
 
 def load_config() -> Dict:
@@ -149,6 +239,16 @@ def fetch_invoices_for_trips(
         "errors": []
     }
     
+    # 计算搜索天数：从最早的行程开始日期到今天的天数
+    if segments:
+        earliest_start = min(segment.start_date for segment in segments)
+        today = datetime.now()
+        search_days = (today - earliest_start).days + 7  # 加7天缓冲期
+        search_days = max(search_days, config.get("search_days", 7))  # 至少使用配置的默认天数
+        print(f"🔍 搜索范围: 自 {earliest_start.strftime('%Y-%m-%d')} 起，共 {search_days} 天")
+    else:
+        search_days = config.get("search_days", 7)
+    
     # 初始化邮件抓取器
     fetcher = EmailFetcher(
         email_address=credentials["email"],
@@ -165,7 +265,7 @@ def fetch_invoices_for_trips(
     try:
         # 搜索发票邮件
         emails = fetcher.search_invoice_emails(
-            days=config.get("search_days", 7),
+            days=search_days,
             subject_keywords=config.get("email_subject_keywords", ["发票"])
         )
         
@@ -285,32 +385,55 @@ def main():
     if len(sys.argv) < 2:
         print("\n使用方法:")
         print(f"  python {sys.argv[0]} \"行程描述\"")
+        print(f"  python {sys.argv[0]} --fol [数量]        # 从FOL导入行程，默认1条")
+        print(f"  python {sys.argv[0]} --fol-import 3       # 从FOL导入最近3条")
         print("\n示例:")
         print(f'  python {sys.argv[0]} "2月8日到3月16日，南京到北京，高铁"')
         print(f'  python {sys.argv[0]} "3月1日-3月5日上海出差，3月10日-3月15日深圳出差，都是飞机"')
+        print(f'  python {sys.argv[0]} --fol                # 导入FOL最近1条')
+        print(f'  python {sys.argv[0]} --fol 3              # 导入FOL最近3条')
         sys.exit(1)
-    
-    # 获取行程描述
-    trip_description = " ".join(sys.argv[1:])
-    print(f"\n📝 行程描述: {trip_description}")
     
     # 加载配置
     config = load_config()
     
-    # 解析行程
-    print("\n🔍 解析行程...")
-    parser = TripParser()
-    segments = parser.parse(trip_description)
+    # 解析命令行参数
+    arg1 = sys.argv[1].lower()
+    segments = []
     
-    if not segments:
-        print("❌ 无法解析行程，请检查输入格式")
-        print("\n支持的格式:")
-        print('  - "2月8日到3月16日，南京到北京，高铁"')
-        print('  - "3月1日-3月5日上海出差，3月10日-3月15日深圳出差，都是飞机"')
-        print('  - "2025-02-08到2025-03-16，南京到北京"')
-        sys.exit(1)
-    
-    print(f"✅ 解析到 {len(segments)} 段行程")
+    if arg1 in ['--fol', '--fol-import', 'fol', 'fol-import']:
+        # 从 FOL 导入
+        count = 1
+        if len(sys.argv) >= 3:
+            try:
+                count = int(sys.argv[2])
+            except ValueError:
+                print(f"⚠️ 无效的数量参数: {sys.argv[2]}，使用默认值 1")
+        
+        segments = import_from_fol(count)
+        
+        if not segments:
+            print("❌ 未能从 FOL 导入任何行程")
+            sys.exit(1)
+    else:
+        # 正常行程描述解析
+        trip_description = " ".join(sys.argv[1:])
+        print(f"\n📝 行程描述: {trip_description}")
+        
+        # 解析行程
+        print("\n🔍 解析行程...")
+        parser = TripParser()
+        segments = parser.parse(trip_description)
+        
+        if not segments:
+            print("❌ 无法解析行程，请检查输入格式")
+            print("\n支持的格式:")
+            print('  - "2月8日到3月16日，南京到北京，高铁"')
+            print('  - "3月1日-3月5日上海出差，3月10日-3月15日深圳出差，都是飞机"')
+            print('  - "2025-02-08到2025-03-16，南京到北京"')
+            sys.exit(1)
+        
+        print(f"✅ 解析到 {len(segments)} 段行程")
     
     # 创建目录
     print("\n📁 创建行程目录...")
