@@ -13,11 +13,12 @@
 3. [测试模式](#3-测试模式)
 4. [调用流程](#4-调用流程)
 5. [核心组件](#5-核心组件)
-6. [数据流](#6-数据流)
-7. [文件交互](#7-文件交互)
-8. [时序说明](#8-时序说明)
-9. [使用指南](#9-使用指南)
-10. [扩展规划](#10-扩展规划)
+6. [test-hook 详解](#6-test-hook-详解)
+7. [数据流](#7-数据流)
+8. [文件交互](#8-文件交互)
+9. [时序说明](#9-时序说明)
+10. [使用指南](#10-使用指南)
+11. [扩展规划](#11-扩展规划)
 
 ---
 
@@ -366,7 +367,190 @@ extractTestId(msg)                 // 提取测试ID
 
 ---
 
-## 6. 数据流
+## 6. test-hook 详解
+
+### 6.1 为什么需要 test-hook？
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     异步测试的挑战                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   问题：test-executor 发送消息后，如何获取 Main Agent 的响应？   │
+│                                                             │
+│   方案A：同步等待（不可行）                                    │
+│   test-executor ──发送消息──▶ Main Agent                     │
+│          ▲                      │                           │
+│          │                      │ 处理中...                  │
+│          │                      ▼                           │
+│          │              响应生成中（阻塞）                     │
+│          │                      │                           │
+│          └────等待响应──────────┘                           │
+│                                                             │
+│   ❌ 无法实现：test-executor 无法直接获取 Main Agent 响应        │
+│                                                             │
+│   方案B：异步文件同步（采用）                                  │
+│   test-executor ──发送消息──▶ Main Agent                     │
+│          │                      │                           │
+│          │                      ▼                           │
+│          │              处理并生成响应                        │
+│          │                      │                           │
+│          │                      ▼                           │
+│          │              test-hook 记录结果                    │
+│          │                      │                           │
+│          │                      ▼                           │
+│          │              写入 result 文件                      │
+│          │                      │                           │
+│          └────读取文件──────────┘                           │
+│                                                             │
+│   ✅ 可行：通过文件系统异步传递结果                             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 test-hook 的核心作用
+
+| 作用 | 说明 |
+|------|------|
+| **检测测试标记** | 识别消息中的 `【测试:ID】` 格式 |
+| **验证响应内容** | 检查响应是否包含预期的关键词 |
+| **记录测试结果** | 将结果写入文件，供 test-executor 读取 |
+| **桥接异步 gap** | 连接 Main Agent 的响应和 test-executor 的等待 |
+
+### 6.3 工作流程时序
+
+```
+时间轴 ───────────────────────────────────────────────────────▶
+
+T0:  test-executor          Main Agent              test-hook
+      │                        │                       │
+      │──发送【测试:ID】你好───▶│                       │
+      │                        │                       │
+      │                        │──处理消息             │
+      │                        │──生成响应             │
+      │                        │                       │
+T1:   │                        │──调用 test-hook─────▶│
+      │                        │  (msg, response)      │
+      │                        │                       │──检测标记
+      │                        │                       │──验证响应
+      │                        │                       │──写入文件
+      │                        │                       │
+T2:   │◀──读取 result 文件─────│◀──────────────────────│
+      │                        │                       │
+      │──返回测试结果          │                       │
+      │                        │                       │
+```
+
+### 6.4 文件位置
+
+```
+workspace-test-agent/
+└── test-results/
+    ├── 260302-006.pending.json    # 测试等待中（发送后生成）
+    └── 260302-006.result.json     # 测试结果（响应后生成）
+```
+
+**完整路径**：
+```javascript
+// Windows
+C:\Users\luzhe\.openclaw\workspace-test-agent\test-results\260302-006.result.json
+
+// 代码中获取方式
+const TEST_RESULTS_DIR = path.join(
+  process.env.USERPROFILE,
+  '.openclaw/workspace-test-agent/test-results'
+);
+```
+
+### 6.5 文件生命周期
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    文件生命周期                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  T0: test-executor 发送消息                                  │
+│      └── 生成: 260302-006.pending.json                       │
+│          { testId, input, expected, status: "pending" }      │
+│                                                             │
+│  T1: Main Agent 响应                                         │
+│      └── test-hook 检测标记                                  │
+│                                                             │
+│  T2: test-hook 记录结果                                      │
+│      └── 生成: 260302-006.result.json                        │
+│          { testId, response, validation, success }           │
+│                                                             │
+│  T3: test-executor 读取结果                                  │
+│      └── 读取 result.json                                    │
+│      └── 删除: pending.json + result.json (清理)              │
+│                                                             │
+│  [完成] 文件被清理，不残留                                    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 6.6 代码层面的解释
+
+**test-executor.js**（发送方）：
+```javascript
+// 1. 发送消息（异步，不等待响应）
+execSync('openclaw agent --message "【测试:ID】input"');
+
+// 2. 记录 pending（表示测试已发送）
+fs.writeFileSync('260302-006.pending.json', {...});
+
+// 3. 轮询等待 result 文件
+while (等待中) {
+  if (fs.existsSync('260302-006.result.json')) {
+    return 读取结果;
+  }
+}
+```
+
+**test-hook.js**（接收方）：
+```javascript
+// Main Agent 响应后调用
+function checkAndRecordTest(originalMessage, response) {
+  // 1. 检测是否是测试消息
+  const testId = extractTestId(originalMessage); // "260302-006"
+  if (!testId) return; // 不是测试消息，忽略
+  
+  // 2. 验证响应
+  const validation = validateResponse(response, expected);
+  
+  // 3. 写入 result 文件
+  fs.writeFileSync('260302-006.result.json', {
+    testId,
+    response,
+    validation,
+    success: validation.success
+  });
+}
+```
+
+### 6.7 为什么不用其他方式？
+
+| 方案 | 问题 | 结论 |
+|------|------|------|
+| 同步函数调用 | Main Agent 和 test-executor 是不同进程 | ❌ 不可行 |
+| 共享内存 | 跨进程复杂，需要额外服务 | ❌ 过于复杂 |
+| 数据库 | 需要部署数据库服务 | ❌ 重量级 |
+| 消息队列 | 需要部署 MQ 服务 | ❌ 重量级 |
+| **文件系统** | 简单、可靠、无需额外依赖 | ✅ **采用** |
+
+### 6.8 总结
+
+**test-hook 是解决异步测试问题的关键组件**：
+
+1. **问题**：test-executor 发送消息后，无法同步获取 Main Agent 的响应
+2. **方案**：通过文件系统异步传递结果
+3. **角色**：test-hook 作为"记录员"，在 Main Agent 响应后写入结果
+4. **位置**：`workspace-test-agent/test-results/260302-XXX.result.json`
+5. **生命周期**：pending → result → 读取后清理
+
+---
+
+## 7. 数据流
 
 ### 6.1 数据流向图
 
@@ -476,7 +660,7 @@ extractTestId(msg)                 // 提取测试ID
 
 ---
 
-## 7. 文件交互
+## 8. 文件交互
 
 ### 7.1 文件结构
 
@@ -517,7 +701,7 @@ workspace-test-agent/               # 测试 Agent 工作区
 
 ---
 
-## 8. 时序说明
+## 9. 时序说明
 
 ### 8.1 时序图
 
@@ -564,7 +748,7 @@ workspace-test-agent/               # 测试 Agent 工作区
 
 ---
 
-## 9. 使用指南
+## 10. 使用指南
 
 ### 9.1 执行测试
 
@@ -635,7 +819,7 @@ workspace-test-agent/               # 测试 Agent 工作区
 
 ---
 
-## 10. 扩展规划
+## 11. 扩展规划
 
 ### 10.1 可能的扩展
 
