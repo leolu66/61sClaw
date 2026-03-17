@@ -13,11 +13,27 @@
 - `保存` / `更新` / `删除` + `[平台名]`
 - `列出所有平台` / `vault list`
 
+### "密码箱"关键词触发分析
+
+**触发场景**：
+1. **单独使用** - 用户说"密码箱"时，列出所有已保存的平台列表
+2. **组合使用** - "密码箱" + 动作/平台名，如：
+   - "密码箱查一下github" → 查询 GitHub 凭据
+   - "密码箱保存知乎" → 保存知乎账号
+   - "密码箱列出所有" → 列出所有平台
+
+**匹配规则**：
+- 消息包含"密码箱"关键词
+- 优先级：高于通用对话，低于明确技能调用
+- 上下文：在任意对话上下文中均可触发
+
 **示例匹配**：
 - "查一下zmp的密码" ✅
 - "查github的token" ✅
 - "zmp密码是多少" ✅
 - "查看moonshot的api_key" ✅
+- "密码箱" → 列出所有平台 ✅
+- "密码箱查知乎" → 查询知乎凭据 ✅
 
 ## 使用示例
 
@@ -85,6 +101,85 @@
 - **更新凭据** - 修改已有凭据
 - **删除凭据** - 删除指定平台的凭据
 
+## 扩展指南：添加新平台
+
+vault 技能使用**预设平台模板**机制，如需添加新平台（如知乎、Twitter 等），需按以下步骤操作：
+
+### 步骤1：在 PLATFORM_TEMPLATES 中添加平台模板
+
+编辑 `scripts/vault.py`，在 `PLATFORM_TEMPLATES` 字典中添加新平台：
+
+```python
+"zhihu": {
+    "name": "知乎",
+    "category": "website",  # 分类：llm/cloud/api/code/email/website/other
+    "icon": "📚",  # Emoji 图标
+    "fields": [
+        {"key": "url", "label": "网址", "type": "url", "isSensitive": False, "isRequired": False},
+        {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": True},
+        {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
+    ]
+}
+```
+
+**字段类型说明**：
+| 类型 | 说明 | 示例 |
+|------|------|------|
+| `text` | 普通文本 | 用户名、手机号 |
+| `password` | 密码（加密存储） | 登录密码 |
+| `token` | API Token（加密存储） | API Key、Access Token |
+| `url` | URL 地址 | 网址、控制台地址 |
+| `email` | 邮箱地址 | 邮箱账号 |
+
+**isSensitive 标记**：
+- `True`：敏感字段，使用 AES-256-GCM 加密存储
+- `False`：普通字段，明文存储
+
+### 步骤2：加密敏感字段
+
+使用 vault 的加密功能对密码等敏感字段加密：
+
+```bash
+cd ~/.openclaw/workspace-main/skills/vault
+python -c "
+import sys
+sys.path.insert(0, 'scripts')
+from vault import Vault
+vault = Vault()
+encrypted = vault._encrypt_sensitive('你的密码')
+print(encrypted)
+"
+```
+
+### 步骤3：写入 credentials.json
+
+按以下 JSON 结构添加到 `~/.openclaw/vault/credentials.json`：
+
+```json
+"zhihu": {
+  "id": "uuid-随机生成",
+  "slug": "zhihu",
+  "name": "知乎",
+  "category": "website",
+  "icon": "📚",
+  "fields": [
+    {"key": "url", "label": "网址", "type": "url", "isSensitive": false, "isRequired": false, "value": "https://www.zhihu.com"},
+    {"key": "username", "label": "用户名", "type": "text", "isSensitive": false, "isRequired": true, "value": "18651870622"},
+    {"key": "password", "label": "密码", "type": "password", "isSensitive": true, "isRequired": true, "value": "加密后的密码字符串"}
+  ],
+  "tags": [],
+  "notes": "",
+  "createdAt": "2026-03-17T13:05:00.000000",
+  "updatedAt": "2026-03-17T13:05:00.000000"
+}
+```
+
+### 步骤4：验证
+
+```bash
+vault get zhihu
+```
+
 ## 存储位置
 
 - **数据文件**: `~/.openclaw/vault/credentials.json`
@@ -104,6 +199,7 @@
 | 七牛云 | cloud | access_key, secret_key, bucket |
 | Brave Search | api | api_key |
 | 和风天气 | api | api_key |
+| **知乎** | **website** | **url, username, password** |
 
 ## 安全说明
 

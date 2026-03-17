@@ -162,6 +162,16 @@ PLATFORM_TEMPLATES = {
             {"key": "api_key", "label": "API Key", "type": "token", "isSensitive": True, "isRequired": True}
         ]
     },
+    "zhihu": {
+        "name": "知乎",
+        "category": "website",
+        "icon": "📚",
+        "fields": [
+            {"key": "url", "label": "网址", "type": "url", "isSensitive": False, "isRequired": False},
+            {"key": "username", "label": "用户名", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
+        ]
+    },
     "email": {
         "name": "公司邮箱",
         "category": "email",
