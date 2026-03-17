@@ -42,7 +42,7 @@ SOURCE_DIRS = {
 }
 
 # 分类配置文件路径
-CATEGORIES_FILE = Path(__file__).parent.parent.parent.parent / 'skill-categories.json'
+CATEGORIES_FILE = Path(__file__).parent.parent / 'skill-categories.json'
 
 # 推送历史记录文件
 PUSH_HISTORY_FILE = Path(__file__).parent.parent.parent.parent / 'push_history.json'
