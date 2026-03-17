@@ -4,10 +4,8 @@ description: |
   使用 Brave Search API 进行网页搜索。
   
   触发命令：
-  - 搜索 xxx
   - Brave Search xxx
   - web search xxx
-  - 百度一下 xxx
   
   当用户需要进行网络搜索时使用此技能。注意：需要开启 VPN 才能访问 Brave Search API。
 ---

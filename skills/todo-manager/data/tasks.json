@@ -259,9 +259,15 @@
       "type": "personal",
       "deadline": "2028-02-04T15:59:59.999Z",
       "priority": "high",
-      "status": "pending",
+      "status": "completed",
       "createdAt": "2026-03-08T02:40:49.936Z",
-      "completedAt": null,
+      "completedAt": "2026-03-17T00:14:00.000Z",
+      "comments": [
+        {
+          "content": "升级高级会员",
+          "createdAt": "2026-03-17T00:14:00.000Z"
+        }
+      ],
       "reminderStrategy": {
         "type": "daily",
         "frequency": "every2h",
@@ -328,11 +334,17 @@
       "title": "打电话给税务局询问经营所得年度汇总申报",
       "description": "【温馨提示】根据系统测算，您可能还需要办理多处经营所得年度汇总申报。请尽早在2026年3月31日前，通过自然人电子税务局WEB端，办理多处经营所得汇总申报。咨询电话：0573-82823129",
       "type": "personal",
-      "deadline": "2028-02-03T15:59:59.999Z",
+      "deadline": "2026-03-31T23:59:59.999+08:00",
       "priority": "high",
       "status": "pending",
       "createdAt": "2026-03-13T14:04:46.412Z",
       "completedAt": null,
+      "comments": [
+        {
+          "content": "询问得知工商变更后，税务信息没有同步更新",
+          "createdAt": "2026-03-17T00:15:00.000Z"
+        }
+      ],
       "reminderStrategy": {
         "type": "daily",
         "frequency": "twice"
