@@ -1,0 +1,8 @@
+{
+  "ownerId": "kn7d9tgyz5fxw3t93bz27t97zn7zxtqc",
+  "slug": "pdf-extract",
+  "version": "1.0.0",
+  "publishedAt": 1770135673109,
+  "customized": true,
+  "customNote": "适配 Windows 环境，使用 pdfplumber 替代 pdftotext"
+}
