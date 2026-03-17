@@ -45,7 +45,7 @@ SOURCE_DIRS = {
 CATEGORIES_FILE = Path(__file__).parent.parent / 'skill-categories.json'
 
 # 推送历史记录文件
-PUSH_HISTORY_FILE = Path(__file__).parent.parent.parent.parent / 'push_history.json'
+PUSH_HISTORY_FILE = Path(__file__).parent.parent / 'push_history.json'
 
 
 def load_push_history() -> dict:
