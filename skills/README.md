@@ -54,7 +54,7 @@
 | 技能名 | 来源 | 描述 | 触发词 |
 |--------|------|------|--------|
 | **audio-control** 🏠 | 自研 | 音频设备控制 | `静音`、`取消静音` |
-| **backup-manager** 🏠 | 自研 | 备份管理 | - |
+| **desktop-control** 🌐 | 外部 | 桌面自动化（鼠标、键盘、屏幕控制） | - |
 | **disk-cleaner** 🏠 | 自研 | C 盘清理分析 | `清理C盘` |
 | **github-compliance-checker** 🏠 | 自研 | GitHub 合规检查 | `检查GitHub` |
 | **holiday-checker** 🏠 | 自研 | 节假日查询 | `查假期` |
@@ -118,9 +118,11 @@
 |--------|------|------|------|
 | **agent-browser-clawdbot** 🌐 | 0.1.0 | 浏览器自动化 CLI | ClawHub |
 | **baidu-search** 🌐 | 1.1.2 | 百度 AI 搜索 | ClawHub |
+| **desktop-control** 🌐 | 1.0.0 | 桌面自动化（鼠标、键盘、屏幕控制） | ClawHub |
 | **ontology** 🌐 | 1.0.4 | 本体/知识图谱 | ClawHub |
 | **pdf-extract** 🌐 | 1.0.0 | PDF 文本提取（已适配 Windows） | ClawHub |
 | **playwright** 🌐 | 1.0.3 | Playwright 浏览器自动化 | ClawHub |
+| **self-improving-agent** 🌐 | 3.0.4 | 自我改进（记录学习、错误、修正） | ClawHub |
 | **skill-finder** 🌐 | 1.1.5 | 技能查找器 | ClawHub |
 | **sonoscli** 🌐 | - | Sonos 音响控制 | ClawHub |
 
@@ -146,9 +148,9 @@ skill-name/
 | 类型 | 数量 |
 |------|------|
 | 自研技能 🏠 | 52 个 |
-| 外部引用 🌐 | 7 个 |
-| **总计** | **59 个** |
+| 外部引用 🌐 | 9 个 |
+| **总计** | **61 个** |
 
 ---
 
-*最后更新：2026-03-17 | 共 59 个技能*
+*最后更新：2026-03-17 | 共 61 个技能*
