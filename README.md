@@ -114,9 +114,8 @@
 | **desktop-control** | 桌面自动化（鼠标、键盘、屏幕控制） | ClawHub |
 | **ontology-1.0.4** | 知识图谱 | ClawHub |
 | **playwright-1.0.3** | Playwright 浏览器控制 | ClawHub |
-| **skill-finder-1.1.5** | 技能查找器 | ClawHub |
-| **sonoscli** | Sonos 音响控制 | ClawHub |
 | **self-improving-agent** | 自我改进 Agent | ClawHub |
+| **skill-finder-1.1.5** | 技能查找器 | ClawHub |
 
 ## 技能来源说明
 
