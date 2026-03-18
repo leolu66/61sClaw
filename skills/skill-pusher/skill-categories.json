@@ -75,7 +75,8 @@
         "ngrok-manager",
         "playwright-1.0.3",
         "sonoscli",
-        "travel-invoice-fetcher"
+        "travel-invoice-fetcher",
+        "self-improving-proactive"
       ]
     }
   },
@@ -126,7 +127,8 @@
       "ngrok",
       "playwright",
       "sonoscli",
-      "travel-invoice"
+      "travel-invoice",
+      "self-improving-proactive"
     ]
   }
 }
