@@ -39,7 +39,8 @@
         "netnotes",
         "ontology-1.0.4",
         "SKILL_DO.md",
-        "SKILL_TEMPLATE.md"
+        "SKILL_TEMPLATE.md",
+        "evernote"
       ]
     },
     "private": {
@@ -110,7 +111,8 @@
       "image-recognition",
       "imap-email",
       "netnotes",
-      "ontology"
+      "ontology",
+      "evernote"
     ],
     "private_keywords": [
       "game",

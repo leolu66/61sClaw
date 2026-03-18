@@ -93,5 +93,10 @@
     "skill": "SKILL_TEMPLATE.md",
     "target": "feishu-agent",
     "pushed_at": "2026-03-18T10:50:59.131309"
+  },
+  "evernote->feishu-agent": {
+    "skill": "evernote",
+    "target": "feishu-agent",
+    "pushed_at": "2026-03-18T21:39:04.607290"
   }
 }
