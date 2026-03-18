@@ -1,5 +1,5 @@
 {
-  "version": "2026-03-07",
+  "version": "2026-03-18",
   "categories": {
     "public": {
       "description": "公共技能，所有Agent共享",
@@ -8,7 +8,13 @@
         "audio-control",
         "brave-search",
         "holiday-checker",
-        "weather-skill"
+        "weather-skill",
+        "potplayer-music",
+        "self-improving-agent",
+        "desktop-control",
+        "baidu-search-1.1.2",
+        "skill-finder-1.1.5",
+        "pdf-extract"
       ]
     },
     "shared": {
@@ -26,7 +32,14 @@
         "telecom-news-fetcher",
         "todo-manager",
         "vault",
-        "work-session-logger"
+        "work-session-logger",
+        "volc-search",
+        "image-recognition",
+        "imap-email-reader",
+        "netnotes",
+        "ontology-1.0.4",
+        "SKILL_DO.md",
+        "SKILL_TEMPLATE.md"
       ]
     },
     "private": {
@@ -49,7 +62,6 @@
         "mouseinfo-launcher",
         "multi-agent-coordinator",
         "one-click-commit",
-        "potplayer-music",
         "skill-pusher",
         "skill-syncer",
         "solitaire-game",
@@ -57,7 +69,13 @@
         "vpn-controller",
         "wechat-article-fetcher",
         "workspace-sync",
-        "youtube-bestpartners"
+        "youtube-bestpartners",
+        "agent-browser-clawdbot-0.1.0",
+        "fol-login",
+        "ngrok-manager",
+        "playwright-1.0.3",
+        "sonoscli",
+        "travel-invoice-fetcher"
       ]
     }
   },
@@ -66,7 +84,13 @@
       "audio-control",
       "weather",
       "brave-search",
-      "holiday-checker"
+      "holiday-checker",
+      "potplayer",
+      "music",
+      "baidu-search",
+      "skill-finder",
+      "pdf-extract",
+      "desktop-control"
     ],
     "shared_keywords": [
       "todo",
@@ -80,7 +104,12 @@
       "syncer",
       "logger",
       "ai-news",
-      "telecom-news"
+      "telecom-news",
+      "volc-search",
+      "image-recognition",
+      "imap-email",
+      "netnotes",
+      "ontology"
     ],
     "private_keywords": [
       "game",
@@ -91,7 +120,13 @@
       "mouse",
       "wechat",
       "youtube",
-      "workspace"
+      "workspace",
+      "agent-browser",
+      "fol-login",
+      "ngrok",
+      "playwright",
+      "sonoscli",
+      "travel-invoice"
     ]
   }
 }

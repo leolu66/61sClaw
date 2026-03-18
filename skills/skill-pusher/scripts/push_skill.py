@@ -147,7 +147,11 @@ def push_all_by_category(target: str = None) -> list:
     
     for skill_name in skills:
         print(f"\n=== 推送 {skill_name} ===")
-        result = push_skill(skill_name, actual_target if actual_target else None)
+        # 判断是文档文件还是技能目录
+        if skill_name.endswith('.md'):
+            result = push_doc(skill_name, actual_target if actual_target else None)
+        else:
+            result = push_skill(skill_name, actual_target if actual_target else None)
         results.append({'skill': skill_name, 'result': result, 'category': actual_target})
     
     return results
@@ -229,6 +233,12 @@ def check_skill_exists(skill_name: str) -> bool:
     return skill_path.exists() and skill_path.is_dir()
 
 
+def check_doc_exists(doc_name: str) -> bool:
+    """检查源文档是否存在"""
+    doc_path = Path(SKILLS_SOURCE_DIR) / doc_name
+    return doc_path.exists() and doc_path.is_file() and doc_name.endswith('.md')
+
+
 def check_workspace_exists(target: str) -> bool:
     """检查目标 Agent workspace 是否存在"""
     # public 目标：全局技能库
@@ -246,9 +256,16 @@ def check_workspace_exists(target: str) -> bool:
 
 
 def get_latest_mtime(skill_path: Path) -> float:
-    """获取技能目录下所有文件的最大修改时间"""
+    """获取技能目录或文档文件的最大修改时间"""
     latest = 0
-    if skill_path.exists() and skill_path.is_dir():
+    if not skill_path.exists():
+        return latest
+    
+    if skill_path.is_file():
+        # 单个文件
+        return skill_path.stat().st_mtime
+    elif skill_path.is_dir():
+        # 目录
         for file_path in skill_path.rglob('*'):
             if file_path.is_file():
                 mtime = file_path.stat().st_mtime
@@ -342,6 +359,75 @@ def compare_skill_versions(source_path: Path, target_path: Path, skill_name: str
             'target_time': target_time,
             'reason': f'目标技能已是最新'
         }
+
+
+def push_doc(doc_name: str, target: str = None, force: bool = False) -> bool:
+    """推送文档文件到目标 Agent
+    
+    Args:
+        doc_name: 文档名称（如 SKILL_DO.md）
+        target: 目标 Agent
+        force: 是否强制推送（忽略版本比较）
+    """
+    
+    # 1. 检查源文档是否存在
+    print(f"📋 检查文档 '{doc_name}'...")
+    if not check_doc_exists(doc_name):
+        print(f"❌ 文档不存在: {doc_name}")
+        return False
+    print(f"✅ 文档存在")
+    
+    # 2. 检查目标 Agent workspace 是否存在
+    print(f"📋 检查目标 workspace '{target}'...")
+    if not check_workspace_exists(target):
+        return False
+    print(f"✅ Workspace 存在")
+    
+    # 3. 确定源路径和目标路径
+    source_path = Path(SKILLS_SOURCE_DIR) / doc_name
+    
+    if target == 'public':
+        # 推送到全局技能库
+        target_dir = Path(r'C:\Users\luzhe\.openclaw\skills')
+    else:
+        target_workspace = AGENT_WORKSPACES[target]
+        target_dir = Path(target_workspace) / 'skills'
+    
+    target_path = target_dir / doc_name
+    
+    # 4. 比较版本（除非强制推送）
+    if not force:
+        print(f"📋 比较文档版本...")
+        version_info = compare_skill_versions(source_path, target_path, doc_name, target, use_history=True)
+        print(f"   {version_info['reason']}")
+        
+        if not version_info['needs_push']:
+            print(f"⏭️  跳过推送（目标已是最新）")
+            return None  # 返回 None 表示无需推送
+    
+    # 5. 复制文档到目标目录
+    print(f"📋 复制文档到目标 workspace...")
+    
+    # 确保目标目录存在
+    target_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 复制文件
+    shutil.copy2(source_path, target_path)
+    print(f"✅ 文档已复制到: {target_path}")
+    
+    # 记录推送时间
+    if target:
+        record_push(doc_name, target)
+        print(f"📝 已记录推送时间")
+    
+    # 返回文档信息
+    doc_info = {
+        'name': doc_name,
+        'description': f'技能开发规范文档: {doc_name}',
+        'usage': f'请参考 {doc_name} 文件'
+    }
+    
+    return doc_info
 
 
 def push_skill(skill_name: str, target: str = None, force: bool = False, use_history: bool = True) -> bool:
@@ -537,12 +623,17 @@ def main():
             target = 'general-agent'
         print(f"📌 根据分类 '{cat}' 自动确定目标: {target}")
     
-    print(f"🚀 开始推送技能 '{skill_name}' 到 '{target}'")
+    print(f"🚀 开始推送 '{skill_name}' 到 '{target}'")
     print("=" * 50)
     
     try:
-        # 指定技能名称时，强制推送（不检查版本）
-        result = push_skill(skill_name, target, force=True, use_history=False)
+        # 判断是文档文件还是技能目录
+        if skill_name.endswith('.md'):
+            # 文档文件推送
+            result = push_doc(skill_name, target, force=True)
+        else:
+            # 技能目录推送
+            result = push_skill(skill_name, target, force=True, use_history=False)
         
         if result is None:
             # 无需推送
