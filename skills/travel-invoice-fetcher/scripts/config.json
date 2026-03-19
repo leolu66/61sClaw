@@ -11,5 +11,17 @@
     "%m-%d",
     "%Y/%m/%d",
     "%m/%d"
-  ]
+  ],
+  "expense_report": {
+    "auto_generate": true,
+    "match_threshold": 0.5,
+    "output_filename": "报销单.xlsx",
+    "report_filename": "发票匹配报告.txt",
+    "supported_formats": [".xml", ".pdf"],
+    "invoice_types": {
+      "train": ["铁路电子客票", "火车票", "中国铁路"],
+      "taxi": ["旅客运输服务", "出租车", "网约车", "滴滴", "T3", "曹操"],
+      "flight": ["航空运输电子客票行程单", "机票", "航班", "航空", "登机牌"]
+    }
+  }
 }

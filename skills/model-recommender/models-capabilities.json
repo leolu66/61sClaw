@@ -50,6 +50,29 @@
       "source_name": "WhaleCloud 代理（公司结算）"
     },
     {
+      "id": "MiniMax-M2.7",
+      "name": "MiniMax M2.7",
+      "input": 2.1,
+      "output": 8.4,
+      "cache": 0.3,
+      "context": "200K",
+      "position": 3.5,
+      "badge": "🆕",
+      "tags": [
+        "自我进化",
+        "Agent旗舰",
+        "编程SOTA",
+        "强制思考"
+      ],
+      "source": "whalecloud",
+      "source_name": "WhaleCloud 代理（公司结算）",
+      "description": "首个深度参与自身迭代的自我进化型Agent旗舰模型，软件工程达国际一线水准，原生多智能体协作，强制启用思考模式",
+      "limitations": [
+        "不可关闭思考模式（强制启用）",
+        "不支持图片输入"
+      ]
+    },
+    {
       "id": "doubao-lite",
       "name": "Doubao Seed 2.0 Lite",
       "input": 1.8,
@@ -228,12 +251,12 @@
       "高端": "kimi-k2.5"
     },
     "日常编程": {
-      "首选": "MiniMax-M2.5",
-      "备选": "glm-4.7"
+      "首选": "MiniMax-M2.7",
+      "备选": "MiniMax-M2.5"
     },
     "复杂系统工程": {
-      "首选": "glm-5",
-      "备选": "doubao-code",
+      "首选": "MiniMax-M2.7",
+      "备选": "glm-5",
       "高端": "claude-4.6-sonnet"
     },
     "前端/IDE": {
@@ -241,8 +264,8 @@
       "备选": "MiniMax-M2.5"
     },
     "Agent 任务": {
-      "首选": "MiniMax-M2.5",
-      "备选": "glm-5",
+      "首选": "MiniMax-M2.7",
+      "备选": "MiniMax-M2.5",
       "高端": "doubao-pro"
     },
     "长输出": {
@@ -277,6 +300,12 @@
       "特点": "编程 SOTA，强制思考"
     },
     {
+      "id": "MiniMax-M2.7",
+      "output": 8.4,
+      "定位": "Agent旗舰",
+      "特点": "自我进化，原生多智能体协作，强制思考"
+    },
+    {
       "id": "glm-4.7",
       "output": 16,
       "定位": "中文 Agentic",
@@ -301,5 +330,5 @@
       "特点": "全栈开发，自适应思考"
     }
   ],
-  "lastUpdated": "2026-03-07"
+  "lastUpdated": "2026-03-19"
 }
