@@ -21,6 +21,8 @@ skills/<技能名称>/
 
 ## 📝 SKILL.md 模板
 
+> **开发前必读**: 先查看 [BASE_SKILLS.md](../BASE_SKILLS.md) 确认技能分层，避免重复造轮子
+
 ```markdown
 ---
 name: <技能名称>
@@ -47,6 +49,7 @@ description: <一句话描述，用于触发识别>
 - <需要安装的软件>
 - <需要的 API Key 或配置>
 - <需要的文件或目录>
+- **依赖技能**: <复用的 L1/L2 技能，参考 BASE_SKILLS.md>
 
 ### 边界情况
 - <错误处理方式>
