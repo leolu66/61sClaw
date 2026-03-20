@@ -50,6 +50,9 @@ class InvoiceInfo:
     invoice_no: Optional[str] = None
     matched: bool = False
     matched_segment: Optional[TripSegment] = None
+    # 智能关联相关属性
+    file_mtime: float = 0.0  # 文件修改时间
+    related_invoices: List['InvoiceInfo'] = field(default_factory=list)  # 关联的相关票据
 
 
 @dataclass
@@ -85,12 +88,41 @@ class InvoiceRecognizer:
         """
         suffix = file_path.suffix.lower()
         
+        invoice_info = None
         if suffix == '.xml':
-            return self._parse_xml_invoice(file_path)
+            invoice_info = self._parse_xml_invoice(file_path)
         elif suffix == '.pdf':
-            return self._parse_pdf_invoice(file_path)
-        else:
-            return None
+            invoice_info = self._parse_pdf_invoice(file_path)
+        
+        # 优先从文件名提取金额（更准确）
+        filename_amount = self._extract_amount_from_filename(file_path.name)
+        if invoice_info and filename_amount > 0:
+            invoice_info.amount = filename_amount
+        
+        return invoice_info
+    
+    def _extract_amount_from_filename(self, filename: str) -> float:
+        """从文件名中提取金额"""
+        # 匹配模式: 优先匹配 日期_金额_ 格式 (如 260315_34.00_)
+        patterns = [
+            r'(\d+)_(\d+\.\d{2})_',   # 260315_34.00_北京滴滴
+            r'_(\d+\.\d{2})_',       # _34.00_
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, filename)
+            if match:
+                try:
+                    # 对于第一个模式，取第二个捕获组（金额）
+                    if pattern.startswith(r'(\d+)'):
+                        amount_str = match.group(2)
+                    else:
+                        amount_str = match.group(1)
+                    return float(amount_str)
+                except (ValueError, IndexError):
+                    continue
+        
+        return 0.0
     
     def _parse_xml_invoice(self, file_path: Path) -> Optional[InvoiceInfo]:
         """解析 XML 格式发票"""
@@ -161,6 +193,19 @@ class InvoiceRecognizer:
     def _parse_pdf_invoice(self, file_path: Path) -> Optional[InvoiceInfo]:
         """解析 PDF 格式发票（使用 OCR 或文本提取）"""
         try:
+            # 首先根据文件名进行初步识别
+            filename = file_path.name.lower()
+            filename_type = InvoiceType.UNKNOWN
+            
+            if any(kw in filename for kw in ['滴滴', '出行', '打车', '久柏易游', '旅客运输']):
+                filename_type = InvoiceType.TAXI
+            elif any(kw in filename for kw in ['火车', '铁路', '高铁']):
+                filename_type = InvoiceType.TRAIN
+            elif any(kw in filename for kw in ['机票', '航空', '航班']):
+                filename_type = InvoiceType.FLIGHT
+            elif any(kw in filename for kw in ['酒店', '住宿']):
+                filename_type = InvoiceType.HOTEL
+            
             # 尝试使用 PyPDF2 提取文本
             try:
                 import PyPDF2
@@ -183,8 +228,10 @@ class InvoiceRecognizer:
             destination = None
             invoice_no = None
             
-            # 识别发票类型
-            if '铁路电子客票' in text or '中国铁路' in text or ('G' in text and '次' in text):
+            # 识别发票类型（优先使用文件名识别的结果）
+            if filename_type != InvoiceType.UNKNOWN:
+                invoice_type = filename_type
+            elif '铁路电子客票' in text or '中国铁路' in text or ('G' in text and '次' in text):
                 invoice_type = InvoiceType.TRAIN
                 departure, destination = self._extract_train_route(text)
             elif '旅客运输服务' in text or '滴滴' in text or '出租车' in text or 'T3' in text or '曹操' in text:
@@ -364,7 +411,7 @@ class ExpenseReportGenerator:
     
     def scan_invoices(self, trip_dir: Path) -> List[InvoiceInfo]:
         """
-        扫描行程目录下的所有发票文件
+        扫描行程目录下的所有发票文件（只扫描PDF，跳过XML）
         
         Args:
             trip_dir: 行程目录路径
@@ -374,8 +421,8 @@ class ExpenseReportGenerator:
         """
         invoices = []
         
-        # 扫描所有文件（包括子目录）
-        for file_path in trip_dir.rglob('*'):
+        # 扫描所有PDF文件（跳过XML，因为内容相同）
+        for file_path in trip_dir.rglob('*.pdf'):
             if file_path.is_file():
                 invoice = self.recognizer.recognize_invoice(file_path)
                 if invoice:
@@ -384,27 +431,316 @@ class ExpenseReportGenerator:
         
         return invoices
     
-    def match_invoices_to_segments(self, invoices: List[InvoiceInfo], segments: List[TripSegment]) -> None:
+    def match_invoices_to_trip(self, invoices: List[InvoiceInfo], trip_info: Dict) -> None:
         """
-        将发票匹配到行程段
+        根据 trip_info.json 的路段信息按顺序匹配发票
+        
+        匹配策略：
+        1. 按 outward（去程）顺序匹配路段
+        2. 按 return（回程）顺序匹配路段
+        3. 每段根据 transport 类型和地点匹配对应发票
         
         Args:
             invoices: 发票列表
-            segments: 行程段列表
+            trip_info: 行程信息字典
         """
+        departure_city = trip_info.get('departure_city', '')
+        destination_city = trip_info.get('destination_city', '')
+        start_date = trip_info.get('start_date', '')
+        end_date = trip_info.get('end_date', '')
+        outward_stages = trip_info.get('outward', [])
+        return_stages = trip_info.get('return', [])
+        
+        print(f"   📍 行程: {departure_city} → {destination_city}")
+        
+        # 第一步：智能关联相关票据
+        self._associate_related_invoices(invoices)
+        
+        # 第二步：按路段顺序匹配发票
+        if outward_stages and return_stages:
+            # 有详细路段信息
+            print(f"   📝 去程 {len(outward_stages)} 段, 回程 {len(return_stages)} 段")
+            
+            # 去程匹配
+            print("   🚗 匹配去程路段...")
+            for i, stage in enumerate(outward_stages, 1):
+                self._match_stage_to_invoice(stage, invoices, departure_city, destination_city, f"去程-{i}", start_date)
+            
+            # 回程匹配
+            print("   🚗 匹配回程路段...")
+            for i, stage in enumerate(return_stages, 1):
+                self._match_stage_to_invoice(stage, invoices, departure_city, destination_city, f"回程-{i}", end_date)
+        else:
+            # 只有基本信息，简化匹配
+            print("   📝 简化模式：匹配高铁和打车票")
+            
+            # 匹配火车票（去程）
+            for invoice in invoices:
+                if invoice.matched:
+                    continue
+                if invoice.invoice_type == InvoiceType.TRAIN:
+                    invoice.matched = True
+                    invoice.trip_stage = "去程-高铁"
+                    print(f"      ✓ 去程高铁: {departure_city} → {destination_city} ← {invoice.file_path.name}")
+                    break
+            
+            # 匹配打车票（按日期和城市）
+            for invoice in invoices:
+                if invoice.matched:
+                    continue
+                if invoice.invoice_type == InvoiceType.TAXI:
+                    # 简化匹配：未匹配的打车票都标记为已匹配
+                    invoice.matched = True
+                    print(f"      ✓ 市内交通: {invoice.file_path.name}")
+        
+        # 统计匹配结果
+        matched_count = len([inv for inv in invoices if inv.matched])
+        print(f"   ✅ 成功匹配 {matched_count}/{len(invoices)} 张发票")
+    
+    def _match_stage_to_invoice(self, stage: Dict, invoices: List[InvoiceInfo], 
+                                 departure_city: str, destination_city: str, stage_name: str,
+                                 stage_date: Optional[str] = None) -> None:
+        """
+        将单个路段匹配到发票
+        
+        Args:
+            stage: 路段信息 {stage, from, to, transport}
+            invoices: 发票列表
+            departure_city: 出发城市
+            destination_city: 目的城市
+            stage_name: 路段名称（用于日志）
+            stage_date: 路段日期（可选，用于日期匹配）
+        """
+        from_loc = stage.get('from', '')
+        to_loc = stage.get('to', '')
+        transport = stage.get('transport', '')
+        
+        # 确定城市
+        stage_city = self._determine_stage_city(from_loc, to_loc, departure_city, destination_city)
+        
+        # 根据 transport 确定需要的发票类型
+        required_type = self._transport_to_invoice_type(transport)
+        
+        if required_type is None:
+            return  # 不需要发票的路段（如地铁）
+        
+        # 首先尝试根据日期匹配（如果提供了路段日期）
+        if stage_date:
+            for invoice in invoices:
+                if invoice.matched:
+                    continue
+                
+                # 从文件名提取日期
+                invoice_date_prefix = self._extract_date_prefix_from_filename(invoice.file_path.name)
+                if invoice_date_prefix:
+                    # 将路段日期转换为 YYMMDD 格式进行比较
+                    try:
+                        stage_dt = datetime.strptime(stage_date, '%Y-%m-%d')
+                        stage_prefix = stage_dt.strftime('%y%m%d')
+                        
+                        # 如果日期匹配，优先使用
+                        if invoice_date_prefix == stage_prefix:
+                            # 检查类型和城市
+                            if invoice.invoice_type == required_type:
+                                if self._is_invoice_for_city(invoice, stage_city, departure_city, destination_city):
+                                    invoice.matched = True
+                                    invoice.trip_stage = stage_name
+                                    invoice.stage_info = stage
+                                    print(f"      ✓ {stage_name}: {from_loc} → {to_loc} ({transport}) ← {invoice.file_path.name} [日期匹配]")
+                                    return
+                    except ValueError:
+                        pass
+        
+        # 日期不匹配或没有日期，按原来的逻辑匹配
         for invoice in invoices:
-            best_match = None
-            best_score = 0
+            if invoice.matched:
+                continue
             
-            for segment in segments:
-                score = self._calculate_match_score(invoice, segment)
-                if score > best_score and score >= 0.5:  # 阈值 0.5
-                    best_score = score
-                    best_match = segment
+            # 检查发票类型是否匹配
+            if invoice.invoice_type == required_type:
+                # 检查城市是否匹配（通过文件名）
+                if self._is_invoice_for_city(invoice, stage_city, departure_city, destination_city):
+                    invoice.matched = True
+                    invoice.trip_stage = stage_name
+                    invoice.stage_info = stage
+                    print(f"      ✓ {stage_name}: {from_loc} → {to_loc} ({transport}) ← {invoice.file_path.name}")
+                    return
+        
+        # 没有找到匹配的发票
+        print(f"      ⚠ {stage_name}: {from_loc} → {to_loc} ({transport}) - 未找到匹配发票")
+    
+    def _determine_stage_city(self, from_loc: str, to_loc: str, departure_city: str, destination_city: str) -> str:
+        """确定路段所属城市"""
+        # 根据地点关键词判断
+        departure_keywords = ['家', '地铁站', '南京南站', '南京站', '南京']
+        destination_keywords = ['宿舍', '草桥站', '北京南站', '北京站', '北京']
+        
+        if any(kw in from_loc for kw in departure_keywords) or any(kw in to_loc for kw in departure_keywords):
+            return departure_city
+        elif any(kw in from_loc for kw in destination_keywords) or any(kw in to_loc for kw in destination_keywords):
+            return destination_city
+        
+        return departure_city  # 默认返回出发城市
+    
+    def _transport_to_invoice_type(self, transport: str) -> Optional[InvoiceType]:
+        """将 transport 转换为发票类型"""
+        transport_map = {
+            '高铁': InvoiceType.TRAIN,
+            '火车': InvoiceType.TRAIN,
+            '打车': InvoiceType.TAXI,
+            '出租车': InvoiceType.TAXI,
+            '网约车': InvoiceType.TAXI,
+            '地铁': InvoiceType.TAXI,  # 地铁行程单也作为打车票处理
+            '机场大巴': InvoiceType.TAXI,
+        }
+        return transport_map.get(transport, InvoiceType.TAXI)  # 默认打车票
+    
+    def _is_invoice_for_city(self, invoice: InvoiceInfo, city: str, departure_city: str, destination_city: str) -> bool:
+        """判断发票是否属于指定城市"""
+        filename = invoice.file_path.name.lower()
+        
+        # 火车票特殊处理 - 不检查城市，直接匹配
+        if invoice.invoice_type == InvoiceType.TRAIN:
+            return True
+        
+        # 检查发票文件名
+        if city == departure_city:
+            # 南京相关关键词
+            if any(kw in filename for kw in ['南京', 'nanjing', 'nj']):
+                return True
+        elif city == destination_city:
+            # 北京相关关键词
+            if any(kw in filename for kw in ['北京', 'beijing', 'bj']):
+                return True
+        
+        # 如果发票文件名没有城市信息，检查关联的行程单
+        related_invoices = getattr(invoice, 'related_invoices', [])
+        for related in related_invoices:
+            related_filename = related.file_path.name.lower()
+            if city == departure_city:
+                if any(kw in related_filename for kw in ['南京', 'nanjing', 'nj']):
+                    return True
+            elif city == destination_city:
+                if any(kw in related_filename for kw in ['北京', 'beijing', 'bj']):
+                    return True
+        
+        # 如果城市无法判断，对于打车票默认允许匹配（后续可根据金额等进一步筛选）
+        if invoice.invoice_type == InvoiceType.TAXI:
+            # 检查是否已经被其他路段匹配（通过检查是否所有关联票据都没有城市信息）
+            has_city_info = False
+            if any(kw in filename for kw in ['南京', '北京', 'nanjing', 'beijing', 'nj', 'bj']):
+                has_city_info = True
+            for related in related_invoices:
+                if any(kw in related.file_path.name.lower() for kw in ['南京', '北京', 'nanjing', 'beijing', 'nj', 'bj']):
+                    has_city_info = True
             
-            if best_match:
-                invoice.matched = True
-                invoice.matched_segment = best_match
+            # 如果没有城市信息，默认可以匹配任何城市（让后续逻辑决定具体匹配哪一段）
+            if not has_city_info:
+                return True
+        
+        return False
+    
+    def _associate_related_invoices(self, invoices: List[InvoiceInfo]) -> None:
+        """
+        智能关联相关票据
+        
+        关联规则：
+        1. 文件名中包含相同日期前缀（如 260315）和相同金额，一个是主发票，另一个是行程单
+        2. 文件名为 invoice.pdf 和 trip.pdf（英文含义：发票和行程单）
+        3. 金额相同且文件时间相近
+        
+        Args:
+            invoices: 发票列表
+        """
+        if len(invoices) < 2:
+            return
+        
+        print("   🔗 智能关联相关票据...")
+        
+        # 获取文件修改时间
+        for invoice in invoices:
+            try:
+                stat = invoice.file_path.stat()
+                invoice.file_mtime = stat.st_mtime
+            except Exception:
+                invoice.file_mtime = 0
+        
+        associated_count = 0
+        
+        # 规则1：按日期前缀+金额分组关联
+        date_amount_groups: Dict[str, List[InvoiceInfo]] = {}
+        for invoice in invoices:
+            if invoice.amount <= 0:
+                continue
+            
+            filename = invoice.file_path.name
+            date_prefix = self._extract_date_prefix_from_filename(filename)
+            
+            if date_prefix:
+                key = f"{date_prefix}_{invoice.amount:.2f}"
+                if key not in date_amount_groups:
+                    date_amount_groups[key] = []
+                date_amount_groups[key].append(invoice)
+        
+        for key, group in date_amount_groups.items():
+            if len(group) < 2:
+                continue
+            
+            main_invoice = None
+            itinerary = None
+            
+            for inv in group:
+                filename = inv.file_path.name.lower()
+                if '行程单' in filename:
+                    itinerary = inv
+                else:
+                    main_invoice = inv
+            
+            if main_invoice and itinerary:
+                self._link_invoices(main_invoice, itinerary)
+                associated_count += 1
+                print(f"      ✓ 关联: {main_invoice.file_path.name} ↔ {itinerary.file_path.name} (金额: ¥{main_invoice.amount:.2f})")
+        
+        # 规则2：invoice.pdf 和 trip.pdf 关联
+        invoice_pdf = None
+        trip_pdf = None
+        
+        for inv in invoices:
+            filename_lower = inv.file_path.name.lower()
+            if filename_lower == 'invoice.pdf':
+                invoice_pdf = inv
+            elif filename_lower == 'trip.pdf':
+                trip_pdf = inv
+        
+        if invoice_pdf and trip_pdf:
+            # 检查金额是否相同或相近
+            if abs(invoice_pdf.amount - trip_pdf.amount) < 0.01:
+                self._link_invoices(invoice_pdf, trip_pdf)
+                associated_count += 1
+                print(f"      ✓ 关联: {invoice_pdf.file_path.name} ↔ {trip_pdf.file_path.name} (金额: ¥{invoice_pdf.amount:.2f})")
+        
+        if associated_count > 0:
+            print(f"   ✅ 发现 {associated_count} 组相关票据")
+    
+    def _link_invoices(self, inv1: InvoiceInfo, inv2: InvoiceInfo) -> None:
+        """建立两个发票之间的关联关系"""
+        if not hasattr(inv1, 'related_invoices'):
+            inv1.related_invoices = []
+        if not hasattr(inv2, 'related_invoices'):
+            inv2.related_invoices = []
+        
+        if inv2 not in inv1.related_invoices:
+            inv1.related_invoices.append(inv2)
+        if inv1 not in inv2.related_invoices:
+            inv2.related_invoices.append(inv1)
+    
+    def _extract_date_prefix_from_filename(self, filename: str) -> Optional[str]:
+        """从文件名中提取日期前缀（如 260315）"""
+        # 匹配模式: 260315_34.00_ 中的 260315
+        match = re.search(r'^(\d{6})_', filename)
+        if match:
+            return match.group(1)
+        return None
     
     def _calculate_match_score(self, invoice: InvoiceInfo, segment: TripSegment) -> float:
         """计算发票与行程的匹配分数"""
@@ -454,44 +790,122 @@ class ExpenseReportGenerator:
         
         return None
     
-    def generate_expense_items(self, segment: TripSegment, invoices: List[InvoiceInfo]) -> List[ExpenseItem]:
+    def generate_expense_items_from_trip(self, invoices: List[InvoiceInfo], trip_info: Dict) -> List[ExpenseItem]:
         """
-        根据行程生成报销单条目
+        根据 trip_info 生成报销单条目
         
-        一个行程 = 去程 + 回程
-        每段包含 2-4 段路径：
-        1. 出发地 → 中转站点
-        2. 中转站点 → 出发长途站点
-        3. 到达长途站点 → 到达地中转站点
-        4. 到达地中转站点 → 目的地
+        支持两种模式：
+        1. 有详细路段信息（outward/return）：按路段生成条目
+        2. 只有基本信息：生成简化的去程/回程条目
         
         Args:
-            segment: 行程段
             invoices: 发票列表
+            trip_info: 行程信息
             
         Returns:
             报销单条目列表
         """
         items = []
+        departure_city = trip_info.get('departure_city', '')
+        destination_city = trip_info.get('destination_city', '')
+        start_date = trip_info.get('start_date', '')
+        end_date = trip_info.get('end_date', '')
+        transport = trip_info.get('transport', '火车')
+        outward_stages = trip_info.get('outward', [])
+        return_stages = trip_info.get('return', [])
         
-        # 获取该行程匹配的发票
-        matched_invoices = [inv for inv in invoices if inv.matched and inv.matched_segment == segment]
+        def get_invoice_files_with_related(invoice: InvoiceInfo) -> List[str]:
+            """获取发票文件及其关联票据的文件名"""
+            if not invoice:
+                return []
+            files = [str(invoice.file_path.name)]
+            for related in getattr(invoice, 'related_invoices', []):
+                files.append(str(related.file_path.name))
+            return files
         
-        # 按发票类型分组
-        train_invoices = [inv for inv in matched_invoices if inv.invoice_type == InvoiceType.TRAIN]
-        taxi_invoices = [inv for inv in matched_invoices if inv.invoice_type == InvoiceType.TAXI]
-        flight_invoices = [inv for inv in matched_invoices if inv.invoice_type == InvoiceType.FLIGHT]
+        def find_matched_invoice(stage_name: str) -> Optional[InvoiceInfo]:
+            """查找匹配到指定路段的发票"""
+            for inv in invoices:
+                if inv.matched and getattr(inv, 'trip_stage', '') == stage_name:
+                    return inv
+            return None
         
-        # 根据交通方式生成条目
-        if segment.transport_mode == "高铁" or segment.transport_mode == "火车":
-            # 高铁：可能包含去程和回程
-            items.extend(self._create_train_items(segment, train_invoices))
-        elif segment.transport_mode == "飞机":
-            # 飞机：可能包含去程和回程
-            items.extend(self._create_flight_items(segment, flight_invoices, taxi_invoices))
+        # 判断是否有详细路段信息
+        if outward_stages and return_stages:
+            # 模式1：有详细路段信息，按路段生成
+            # ========== 去程 ==========
+            print("   📝 生成去程报销条目...")
+            for i, stage in enumerate(outward_stages, 1):
+                stage_name = f"去程-{i}"
+                invoice = find_matched_invoice(stage_name)
+                
+                item = ExpenseItem(
+                    sequence=len(items) + 1,
+                    route=f"{stage.get('from', '')} → {stage.get('to', '')}",
+                    departure_date=start_date,
+                    return_date="",
+                    transport=stage.get('transport', ''),
+                    amount=invoice.amount if invoice else 0.0,
+                    invoice_matched=invoice is not None,
+                    invoice_files=get_invoice_files_with_related(invoice) if invoice else []
+                )
+                items.append(item)
+                if invoice:
+                    print(f"      ✓ {stage_name}: {item.route} ← ¥{invoice.amount:.2f}")
+                else:
+                    print(f"      ⚠ {stage_name}: {item.route} - 无发票")
+            
+            # ========== 回程 ==========
+            print("   📝 生成回程报销条目...")
+            for i, stage in enumerate(return_stages, 1):
+                stage_name = f"回程-{i}"
+                invoice = find_matched_invoice(stage_name)
+                
+                item = ExpenseItem(
+                    sequence=len(items) + 1,
+                    route=f"{stage.get('from', '')} → {stage.get('to', '')}",
+                    departure_date=end_date,
+                    return_date="",
+                    transport=stage.get('transport', ''),
+                    amount=invoice.amount if invoice else 0.0,
+                    invoice_matched=invoice is not None,
+                    invoice_files=get_invoice_files_with_related(invoice) if invoice else []
+                )
+                items.append(item)
+                if invoice:
+                    print(f"      ✓ {stage_name}: {item.route} ← ¥{invoice.amount:.2f}")
+                else:
+                    print(f"      ⚠ {stage_name}: {item.route} - 无发票")
         else:
-            # 默认处理
-            items.extend(self._create_generic_items(segment, matched_invoices))
+            # 模式2：只有基本信息，生成简化条目
+            print("   📝 生成简化报销条目...")
+            
+            # 去程高铁
+            train_invoice = find_matched_invoice("去程-高铁")
+            items.append(ExpenseItem(
+                sequence=len(items) + 1,
+                route=f"{departure_city} → {destination_city}",
+                departure_date=start_date,
+                return_date="",
+                transport=transport,
+                amount=train_invoice.amount if train_invoice else 0.0,
+                invoice_matched=train_invoice is not None,
+                invoice_files=get_invoice_files_with_related(train_invoice) if train_invoice else []
+            ))
+            
+            # 其他发票按顺序添加
+            other_invoices = [inv for inv in invoices if inv.matched and inv.invoice_type == InvoiceType.TAXI]
+            for i, invoice in enumerate(other_invoices, 2):
+                items.append(ExpenseItem(
+                    sequence=len(items) + 1,
+                    route=f"{departure_city}市内交通" if i <= len(other_invoices)//2 + 1 else f"{destination_city}市内交通",
+                    departure_date=start_date if i <= len(other_invoices)//2 + 1 else end_date,
+                    return_date="",
+                    transport="打车/地铁",
+                    amount=invoice.amount,
+                    invoice_matched=True,
+                    invoice_files=get_invoice_files_with_related(invoice)
+                ))
         
         return items
     
@@ -502,6 +916,11 @@ class ExpenseReportGenerator:
         # 去程
         if train_invoices:
             invoice = train_invoices.pop(0)
+            # 收集关联票据的文件名
+            invoice_files = [str(invoice.file_path.name)]
+            for related in getattr(invoice, 'related_invoices', []):
+                invoice_files.append(str(related.file_path.name))
+            
             items.append(ExpenseItem(
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
@@ -510,7 +929,7 @@ class ExpenseReportGenerator:
                 transport="高铁/火车",
                 amount=invoice.amount,
                 invoice_matched=True,
-                invoice_files=[str(invoice.file_path.name)]
+                invoice_files=invoice_files
             ))
         else:
             items.append(ExpenseItem(
@@ -528,6 +947,11 @@ class ExpenseReportGenerator:
         if (segment.end_date - segment.start_date).days > 0:
             if train_invoices:
                 invoice = train_invoices.pop(0)
+                # 收集关联票据的文件名
+                invoice_files = [str(invoice.file_path.name)]
+                for related in getattr(invoice, 'related_invoices', []):
+                    invoice_files.append(str(related.file_path.name))
+                
                 items.append(ExpenseItem(
                     sequence=len(items) + 1,
                     route=f"{segment.destination_city} → {segment.departure_city}",
@@ -536,7 +960,7 @@ class ExpenseReportGenerator:
                     transport="高铁/火车",
                     amount=invoice.amount,
                     invoice_matched=True,
-                    invoice_files=[str(invoice.file_path.name)]
+                    invoice_files=invoice_files
                 ))
             else:
                 items.append(ExpenseItem(
@@ -555,7 +979,14 @@ class ExpenseReportGenerator:
     def _create_flight_items(self, segment: TripSegment, flight_invoices: List[InvoiceInfo], taxi_invoices: List[InvoiceInfo]) -> List[ExpenseItem]:
         """创建飞机报销条目"""
         items = []
-        
+
+        def get_invoice_files_with_related(invoice: InvoiceInfo) -> List[str]:
+            """获取发票文件及其关联票据的文件名"""
+            files = [str(invoice.file_path.name)]
+            for related in getattr(invoice, 'related_invoices', []):
+                files.append(str(related.file_path.name))
+            return files
+
         # 去程 - 市区到机场（打车）
         taxi_to_airport = [inv for inv in taxi_invoices if self._is_departure_taxi(inv, segment)]
         if taxi_to_airport:
@@ -568,9 +999,9 @@ class ExpenseReportGenerator:
                 transport="打车",
                 amount=invoice.amount,
                 invoice_matched=True,
-                invoice_files=[str(invoice.file_path.name)]
+                invoice_files=get_invoice_files_with_related(invoice)
             ))
-        
+
         # 去程 - 机票
         if flight_invoices:
             invoice = flight_invoices.pop(0)
@@ -582,7 +1013,7 @@ class ExpenseReportGenerator:
                 transport="飞机",
                 amount=invoice.amount,
                 invoice_matched=True,
-                invoice_files=[str(invoice.file_path.name)]
+                invoice_files=get_invoice_files_with_related(invoice)
             ))
         else:
             items.append(ExpenseItem(
@@ -595,7 +1026,7 @@ class ExpenseReportGenerator:
                 invoice_matched=False,
                 invoice_files=[]
             ))
-        
+
         # 去程 - 机场到市区（打车）
         taxi_from_airport = [inv for inv in taxi_invoices if self._is_arrival_taxi(inv, segment)]
         if taxi_from_airport:
@@ -608,9 +1039,9 @@ class ExpenseReportGenerator:
                 transport="打车",
                 amount=invoice.amount,
                 invoice_matched=True,
-                invoice_files=[str(invoice.file_path.name)]
+                invoice_files=get_invoice_files_with_related(invoice)
             ))
-        
+
         # 回程（如果行程超过1天）
         if (segment.end_date - segment.start_date).days > 0:
             # 回程 - 市区到机场（打车）
@@ -624,9 +1055,9 @@ class ExpenseReportGenerator:
                     transport="打车",
                     amount=invoice.amount,
                     invoice_matched=True,
-                    invoice_files=[str(invoice.file_path.name)]
+                    invoice_files=get_invoice_files_with_related(invoice)
                 ))
-            
+
             # 回程 - 机票
             if flight_invoices:
                 invoice = flight_invoices.pop(0)
@@ -638,7 +1069,7 @@ class ExpenseReportGenerator:
                     transport="飞机",
                     amount=invoice.amount,
                     invoice_matched=True,
-                    invoice_files=[str(invoice.file_path.name)]
+                    invoice_files=get_invoice_files_with_related(invoice)
                 ))
             else:
                 items.append(ExpenseItem(
@@ -651,7 +1082,7 @@ class ExpenseReportGenerator:
                     invoice_matched=False,
                     invoice_files=[]
                 ))
-            
+
             # 回程 - 机场到市区（打车）
             if taxi_to_airport:
                 invoice = taxi_to_airport.pop(0)
@@ -663,15 +1094,22 @@ class ExpenseReportGenerator:
                     transport="打车",
                     amount=invoice.amount,
                     invoice_matched=True,
-                    invoice_files=[str(invoice.file_path.name)]
+                    invoice_files=get_invoice_files_with_related(invoice)
                 ))
-        
+
         return items
     
     def _create_generic_items(self, segment: TripSegment, invoices: List[InvoiceInfo]) -> List[ExpenseItem]:
         """创建通用报销条目"""
         items = []
-        
+
+        def get_invoice_files_with_related(invoice: InvoiceInfo) -> List[str]:
+            """获取发票文件及其关联票据的文件名"""
+            files = [str(invoice.file_path.name)]
+            for related in getattr(invoice, 'related_invoices', []):
+                files.append(str(related.file_path.name))
+            return files
+
         # 去程
         matched = [inv for inv in invoices if inv.matched]
         if matched:
@@ -684,7 +1122,7 @@ class ExpenseReportGenerator:
                 transport=segment.transport_mode or "其他",
                 amount=invoice.amount,
                 invoice_matched=True,
-                invoice_files=[str(invoice.file_path.name)]
+                invoice_files=get_invoice_files_with_related(invoice)
             ))
         else:
             items.append(ExpenseItem(
@@ -697,7 +1135,7 @@ class ExpenseReportGenerator:
                 invoice_matched=False,
                 invoice_files=[]
             ))
-        
+
         return items
     
     def _is_departure_taxi(self, invoice: InvoiceInfo, segment: TripSegment) -> bool:
@@ -813,7 +1251,8 @@ class ExpenseReportGenerator:
                 ws.cell(row=row, column=col).border = thin_border
         
         # 保存文件
-        output_file = trip_dir / "报销单.xlsx"
+        timestamp = datetime.now().strftime('%H%M%S')
+        output_file = trip_dir / f"报销单_{timestamp}.xlsx"
         wb.save(str(output_file))
         
         return output_file
@@ -859,6 +1298,10 @@ class ExpenseReportGenerator:
                         f.write(f"  日期: {inv.date}\n")
                     if inv.invoice_no:
                         f.write(f"  发票号: {inv.invoice_no}\n")
+                    # 显示关联票据
+                    related = getattr(inv, 'related_invoices', [])
+                    if related:
+                        f.write(f"  关联票据: {', '.join([r.file_path.name for r in related])}\n")
             
             # 未匹配发票
             if unmatched:
@@ -873,6 +1316,10 @@ class ExpenseReportGenerator:
                         f.write(f"  路线: {inv.departure} → {inv.destination}\n")
                     if inv.date:
                         f.write(f"  日期: {inv.date}\n")
+                    # 显示关联票据
+                    related = getattr(inv, 'related_invoices', [])
+                    if related:
+                        f.write(f"  关联票据: {', '.join([r.file_path.name for r in related])}\n")
         
         return report_file
 
@@ -917,7 +1364,7 @@ def generate_expense_report(trip_dir: Path, segments: List[TripSegment]) -> Dict
     # 初始化生成器
     generator = ExpenseReportGenerator(config)
     
-    # 扫描发票
+    # 扫描发票（只扫描PDF）
     print("\n🔍 扫描发票文件...")
     invoices = generator.scan_invoices(trip_dir)
     print(f"✅ 共识别 {len(invoices)} 张发票")
@@ -931,9 +1378,25 @@ def generate_expense_report(trip_dir: Path, segments: List[TripSegment]) -> Dict
             "report_file": None
         }
     
+    # 尝试读取 trip_info.json
+    trip_info_path = trip_dir / "trip_info.json"
+    trip_info = None
+    if trip_info_path.exists():
+        try:
+            with open(trip_info_path, 'r', encoding='utf-8') as f:
+                trip_info = json.load(f)
+            print(f"\n📋 读取行程信息: {trip_info_path.name}")
+        except Exception as e:
+            print(f"⚠️ 读取 trip_info.json 失败: {e}")
+    
     # 匹配发票到行程
     print("\n🔗 匹配发票到行程...")
-    generator.match_invoices_to_segments(invoices, segments)
+    if trip_info:
+        # 使用新的基于 trip_info 的匹配逻辑
+        generator.match_invoices_to_trip(invoices, trip_info)
+    else:
+        # 回退到旧的匹配逻辑
+        generator.match_invoices_to_segments(invoices, segments)
     
     matched_count = len([inv for inv in invoices if inv.matched])
     print(f"✅ 成功匹配 {matched_count}/{len(invoices)} 张发票")
@@ -941,9 +1404,15 @@ def generate_expense_report(trip_dir: Path, segments: List[TripSegment]) -> Dict
     # 生成报销单条目
     print("\n📝 生成报销单条目...")
     all_items = []
-    for segment in segments:
-        items = generator.generate_expense_items(segment, invoices)
-        all_items.extend(items)
+    
+    if trip_info:
+        # 使用 trip_info 生成条目
+        all_items = generator.generate_expense_items_from_trip(invoices, trip_info)
+    else:
+        # 回退到旧的生成逻辑
+        for segment in segments:
+            items = generator.generate_expense_items(segment, invoices)
+            all_items.extend(items)
     
     # 重新编号
     for i, item in enumerate(all_items, 1):

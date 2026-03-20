@@ -1,123 +1,107 @@
 [
   {
-    "title": "生成视频总出物理bug？用VLM迁移+token级对齐，让燃烧在正确位置发生，碰撞遵循动量守恒，CVPR 2026近满分接收",
-    "url": "https://36kr.com/p/3729568406224512",
-    "summary": "AI终于学会遵守物理定律了吗？",
-    "publish_time": "11分钟前",
+    "title": "中国AI工程师派了五只龙虾去调查“龙虾之父”，它们带回1343条证据",
+    "url": "https://36kr.com/p/3730507854430215",
+    "summary": "派出五只龙虾，去调查它们的父亲。",
+    "publish_time": "26分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "3晚攻克世界数学难题，黑洞方程秒解，OpenAI：AI正让科学加速100年",
-    "url": "https://36kr.com/p/3729566369709448",
-    "summary": "AI加速科研：数学证明、黑洞研究、生物编程突破",
-    "publish_time": "13分钟前",
+    "title": "港中文95后博士、OPPO员工做了款AI可穿戴硬件，要成为用户全天候情感导师｜硬氪首发",
+    "url": "https://36kr.com/p/3729647028960903",
+    "summary": "基于事件型记忆架构提供个性化的情感反馈。",
+    "publish_time": "40分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "AWE 2026观察：AI重构家庭空间",
-    "url": "https://36kr.com/p/3729551142534532",
-    "summary": "科技正在更深入地进入家庭生活的细节，同时也在重新定义家庭科技的边界。",
-    "publish_time": "17分钟前",
+    "title": "万亿Token，喂出了千亿新贵",
+    "url": "https://36kr.com/p/3730583467688197",
+    "summary": "定价权，最终会落在谁手上？",
+    "publish_time": "43分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "智驾性能提升 20 倍！智己 LS8 开启预售：全球首搭千问大模型",
-    "url": "https://news.aibase.cn/news/26389",
-    "summary": "智己汽车发布行业首个超级智能体IM Ultra Agent，标志着汽车向“智能生命体”进化。其核心是IM Fusion Nova智能架构，通过“舱驾一体”设计，打破传统智驾与智舱系统分离的孤岛模式，实现硬件与算法融合，成为全球首个搭载该技术的汽车品牌。",
-    "publish_time": "2026-03-19T16:33:07",
+    "title": "谷歌秘密测试macOS版Gemini应用，或推“桌面智能”屏幕共享功能",
+    "url": "https://news.aibase.cn/news/26407",
+    "summary": "谷歌启动macOS版Gemini应用早期测试，旨在将AI模型深度整合至苹果桌面系统，以应对ChatGPT等竞品的竞争。目前仅限受邀用户参与，核心功能将包括“桌面智能”等特性。",
+    "publish_time": "2026-03-20T09:41:30",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "Anthropic 发布 Claude 3.6 Sonnet：深耕企业级市场，却深陷 OpenClaw 公关危机",
-    "url": "https://news.aibase.cn/news/26388",
-    "summary": "Anthropic发布Claude 3.6更新版Sonnet 4.6，强化编程与自动化能力，旨在从模型提供商转型为“智能体平台”。然而，该发布因与开源框架OpenClaw的版权争议而蒙上阴影。",
-    "publish_time": "2026-03-19T16:06:25",
+    "title": "OpenAI 再下一城：收购开发者神器 Astral，力保 Codex 编程霸主地位",
+    "url": "https://news.aibase.cn/news/26406",
+    "summary": "OpenAI收购Astral团队，强化AI编程实力。Astral以高性能开源工具Ruff和uv闻名，团队将整体并入OpenAI，助力Codex产品升级，展现OpenAI在AI编程赛道的战略布局。",
+    "publish_time": "2026-03-20T09:30:21",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "小云雀AI上线短剧Agent:首搭Seedance2.0，支持10万字剧本一键成片",
-    "url": "https://news.aibase.cn/news/26387",
-    "summary": "字节跳动旗下小云雀AI平台推出“短剧Agent”功能，搭载Seedance2.0算法，实现剧本到视频全流程自动化。该功能支持上传10万字剧本，具备故事理解与角色管理能力，大幅降低长篇内容创作门槛。",
-    "publish_time": "2026-03-19T15:59:20",
+    "title": "2.2亿月活背后的野心:豆包内测AI电商，“一句话下单”电商闭环",
+    "url": "https://news.aibase.cn/news/26405",
+    "summary": "字节跳动AI助手豆包于2026年3月启动AI电商功能灰度测试，将大模型深度融入电商交易。该功能主打“一句话购物”，利用自然语言理解能力，用户仅需模糊表达需求，系统即可精准匹配商品、提供建议并直达下单，大幅简化购物流程。截至2025年底，豆包月活用户已达2.26亿。",
+    "publish_time": "2026-03-20T09:29:32",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "AI推理初创公司Groq大幅增加三星4纳米晶圆订单",
-    "url": "https://x.com/WesRoth/status/2031988563865141287",
-    "summary": "近日，AI推理初创公司Groq已向三星电子代工部门提出大幅增加晶圆产量的要求。据悉，Groq将其晶圆订单从9000片增加到15000片，增幅达70%。此举标志着该公司正从“样品验证”阶段转向大规模商业量产。这些芯片正采用三星的4纳米工艺制造，并针对此次合作进行了性能提升优化。",
-    "publish_time": "2026-03-19T15:04:08.080000",
+    "title": "AlphaEvolve 改进五个经典拉姆齐数边界，部分为十余年来首次",
+    "url": "https://x.com/demishassabis/status/2032267485735460867",
+    "summary": "拉姆齐数的求解是组合数学中的经典难题。近日，AlphaEvolve 通过自主发现的搜索程序，改进了五个经典拉姆齐数的边界。文中指出，其中一些边界是十多年来首次被改进，这被认为是人工智能在数学领域的一个重要里程碑。",
+    "publish_time": "2026-03-20T09:44:11.647000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "PyTorch 邀请社区成员参加欧洲大会中的特定群体午餐会",
-    "url": "https://x.com/PyTorch/status/2031988834884350292",
-    "summary": "近日，PyTorch 官方发布活动通知，邀请社区成员参加将于2026年4月7日至8日在巴黎举行的 PyTorchCon Europe 大会中的“Women & Non-Binary in PyTorch”午餐会。通知提醒，参会门票价格将于2026年3月20日上涨100欧元，并提供了活动详情和购票链接。",
-    "publish_time": "2026-03-19T15:04:08.079000",
+    "title": "Google Cloud 推出 Agent Skills 功能，采用渐进式披露提供即时答案",
+    "url": "https://x.com/GoogleCloudTech/status/2032230154353738085",
+    "summary": "近日，Google Cloud 介绍了其 Agent Skills 功能。该功能采用渐进式披露（progressive disclosure）的方式，旨在让智能体（agent）能够立即给出正确答案，仅在确实需要时才引入专门的上下文。文中包含一个指向演示的链接。",
+    "publish_time": "2026-03-20T07:05:07.596000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "Rhoda AI 推出 DVA 模型，通过视频预训练降低机器人学习成本",
-    "url": "https://x.com/WesRoth/status/2031928164872540265",
-    "summary": "近日，Rhoda AI 的 DVA 模型提出了一种新方法，旨在解决传统机器人需要数千小时手动“手持”训练数据才能学习单一任务的瓶颈。该模型通过预训练网络规模视频（如 YouTube、电影）来学习物理和运动规律。它将机器人控制视为实时视频预测问题，通过想象任务成功的“下一帧”，并驱动电机匹配该视觉现实来操作。文中观点认为，相较于竞争对手需要数月数据，Rhoda 的机器人仅需约 10 小时的特定机器人数据即可学习复杂工业任务，例如“倾倒”50磅容器。此外，DVA 原生支持数百帧，据称能使机器人追踪隐藏物体并处理长达数小时的自主动作而不会迷失。",
-    "publish_time": "2026-03-19T11:04:11.332000",
+    "title": "Google 官方 Twitter 提及 Android XR",
+    "url": "https://x.com/Google/status/2032224425547088336",
+    "summary": "近日，Google 通过其官方 Twitter 账号发布了一条关于 Android XR 的推文。该推文仅包含标题“Android XR”和一个表情符号，未提供任何关于该项目的具体信息、功能、技术细节或应用场景。",
+    "publish_time": "2026-03-20T06:44:11.628000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "「日本最强AI」塌房！扒开代码全是DeepSeek，日本网友集体破防；腾讯年报披露：人均年薪成本超百万；网易否认「使用AI清退全部外包员工」",
-    "url": "https://www.leiphone.com/category/zaobao/kxvg430v4xWJt2Kw.html",
-    "summary": "要闻提示1.「日本最强AI」塌房了！扒开代码全是DeepSeek，日本网友集体破防2.腾讯年报披露：人均年薪成本超百万3.吉利副总裁回应“董明珠购车”：其个人订",
-    "publish_time": "8小时前",
-    "source": "AI科技评论",
-    "site_url": "https://www.leiphone.com"
-  },
-  {
-    "title": "大模型不是银弹，自动驾驶仍有硬骨头",
-    "url": "https://www.leiphone.com/category/industrynews/6EKBBIHoW4kdGCAe.html",
-    "summary": "行业竞争焦点，正变成谁能造出一个真正可靠的“大脑”。",
-    "publish_time": "昨天 18:47",
-    "source": "AI科技评论",
-    "site_url": "https://www.leiphone.com"
-  },
-  {
-    "title": "成本下探30%，中科曙光IB产品冲击RoCE性价比「护城河」",
-    "url": "https://www.leiphone.com/category/chips/kqZgYRAhUkvCSQJl.html",
-    "summary": "在RoCE和英伟达IB之外，高速网络的第三个选项出现了。",
-    "publish_time": "昨天 15:32",
-    "source": "AI科技评论",
-    "site_url": "https://www.leiphone.com"
-  },
-  {
-    "title": "蚂蚁数科发布“龙虾卫士”，护航OpenClaw智能体安全落地",
-    "url": "https://www.qbitai.com/2026/03/389305.html",
-    "summary": "拥有可解释、可控制、可追溯的安全基石",
-    "publish_time": "2分钟前",
+    "title": "Meta Agent失控泄密，小扎紧急拉响顶格警报",
+    "url": "https://www.qbitai.com/2026/03/389570.html",
+    "summary": "能让小扎栽跟头的，还得是“AI”。",
+    "publish_time": "1小时前",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
   {
-    "title": "钉钉发布多款AI硬件 推出AI创新工场计划",
-    "url": "https://www.qbitai.com/2026/03/389301.html",
-    "summary": "帮助开发者打造AI时代的创新产品",
-    "publish_time": "3分钟前",
+    "title": "黄仁勋：每一家工业企业都将成为机器人公司！连发物理AI全家桶",
+    "url": "https://www.qbitai.com/2026/03/389569.html",
+    "summary": "抛出了一整套物理AI基础设施",
+    "publish_time": "1小时前",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
   {
-    "title": "英伟达首台DGX GB300，老黄亲自登门送给他",
-    "url": "https://www.qbitai.com/2026/03/389255.html",
-    "summary": "卡帕西",
-    "publish_time": "48分钟前",
+    "title": "太初元碁推出企业级“养虾”方案，发布太初龙虾一体机（TecoClaw）",
+    "url": "https://www.qbitai.com/2026/03/389562.html",
+    "summary": "",
+    "publish_time": "13小时前",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "养虾不踩坑：断网也能跑的真·本地龙虾来了",
+    "url": "https://zhidx.com/p/541366.html",
+    "summary": "面壁智能为你单独造了个“养虾池”，把数据、模型、“龙虾”都留在本地。",
+    "publish_time": "2026-03-19T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
   },
   {
     "title": "龙虾登陆机器人！全程零彩排，傅盛是怎么搞定的？",
@@ -136,18 +120,18 @@
     "site_url": "https://zhidx.com"
   },
   {
-    "title": "315曝光AI大模型“投毒”黑产！39.9元篡改AI答案",
-    "url": "https://zhidx.com/p/540308.html",
-    "summary": "国产大模型集体“中毒”，虚假产品“毒害”消费者。",
-    "publish_time": "2026-03-15T00:00:00",
-    "source": "智东西",
-    "site_url": "https://zhidx.com"
+    "title": "改造 100 多年的影视行业，需要的不止是好模型",
+    "url": "https://www.geekpark.net/news/361438",
+    "summary": "Solo Filming 时代真的要来了。",
+    "publish_time": "15 小时前",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
   },
   {
     "title": "OpenClaw 爆火之后，我体验了全球第一个 AI 员工",
     "url": "https://www.geekpark.net/news/361396",
     "summary": "我们需要的是一个 AI 工具，还是一个 AI 同事？",
-    "publish_time": "4 小时前",
+    "publish_time": "1 天前",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
   },
@@ -155,14 +139,6 @@
     "title": "植入 OpenClaw 的具身智能机器人来了？AWE 科沃斯发布可养成的「八界」管家机器人",
     "url": "https://www.geekpark.net/news/361350",
     "summary": "这家过去常被贴上「清洁家电」标签的机器人公司，其实已经进化出了相当扎实的具身智能硬实力。",
-    "publish_time": "2026/03/18",
-    "source": "极客公园",
-    "site_url": "https://www.geekpark.net"
-  },
-  {
-    "title": "「推理之王」黄仁勋：你们都误会了，1 万亿美元其实很保守",
-    "url": "https://www.geekpark.net/news/361329",
-    "summary": "黄仁勋在 GTC 上说的那个数字，其实只是入门价。",
     "publish_time": "2026/03/18",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
