@@ -61,7 +61,6 @@ class ExpenseItem:
     sequence: int  # 序号
     route: str  # 路线描述
     departure_date: str  # 出发日期
-    return_date: str  # 返回日期
     transport: str  # 交通工具
     amount: float  # 金额
     invoice_matched: bool = False  # 是否匹配到发票
@@ -843,7 +842,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{stage.get('from', '')} → {stage.get('to', '')}",
                     departure_date=start_date,
-                    return_date="",
                     transport=stage.get('transport', ''),
                     amount=invoice.amount if invoice else 0.0,
                     invoice_matched=invoice is not None,
@@ -865,7 +863,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{stage.get('from', '')} → {stage.get('to', '')}",
                     departure_date=end_date,
-                    return_date="",
                     transport=stage.get('transport', ''),
                     amount=invoice.amount if invoice else 0.0,
                     invoice_matched=invoice is not None,
@@ -886,7 +883,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{departure_city} → {destination_city}",
                 departure_date=start_date,
-                return_date="",
                 transport=transport,
                 amount=train_invoice.amount if train_invoice else 0.0,
                 invoice_matched=train_invoice is not None,
@@ -900,7 +896,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{departure_city}市内交通" if i <= len(other_invoices)//2 + 1 else f"{destination_city}市内交通",
                     departure_date=start_date if i <= len(other_invoices)//2 + 1 else end_date,
-                    return_date="",
                     transport="打车/地铁",
                     amount=invoice.amount,
                     invoice_matched=True,
@@ -925,7 +920,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport="高铁/火车",
                 amount=invoice.amount,
                 invoice_matched=True,
@@ -936,7 +930,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport="高铁/火车",
                 amount=0.0,
                 invoice_matched=False,
@@ -956,7 +949,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{segment.destination_city} → {segment.departure_city}",
                     departure_date=segment.end_date.strftime('%Y-%m-%d'),
-                    return_date="",
                     transport="高铁/火车",
                     amount=invoice.amount,
                     invoice_matched=True,
@@ -967,7 +959,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{segment.destination_city} → {segment.departure_city}",
                     departure_date=segment.end_date.strftime('%Y-%m-%d'),
-                    return_date="",
                     transport="高铁/火车",
                     amount=0.0,
                     invoice_matched=False,
@@ -995,7 +986,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city}市区 → {segment.departure_city}机场",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport="打车",
                 amount=invoice.amount,
                 invoice_matched=True,
@@ -1009,7 +999,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport="飞机",
                 amount=invoice.amount,
                 invoice_matched=True,
@@ -1020,7 +1009,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport="飞机",
                 amount=0.0,
                 invoice_matched=False,
@@ -1035,7 +1023,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.destination_city}机场 → {segment.destination_city}市区",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport="打车",
                 amount=invoice.amount,
                 invoice_matched=True,
@@ -1051,7 +1038,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{segment.destination_city}市区 → {segment.destination_city}机场",
                     departure_date=segment.end_date.strftime('%Y-%m-%d'),
-                    return_date="",
                     transport="打车",
                     amount=invoice.amount,
                     invoice_matched=True,
@@ -1065,7 +1051,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{segment.destination_city} → {segment.departure_city}",
                     departure_date=segment.end_date.strftime('%Y-%m-%d'),
-                    return_date="",
                     transport="飞机",
                     amount=invoice.amount,
                     invoice_matched=True,
@@ -1076,7 +1061,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{segment.destination_city} → {segment.departure_city}",
                     departure_date=segment.end_date.strftime('%Y-%m-%d'),
-                    return_date="",
                     transport="飞机",
                     amount=0.0,
                     invoice_matched=False,
@@ -1090,7 +1074,6 @@ class ExpenseReportGenerator:
                     sequence=len(items) + 1,
                     route=f"{segment.departure_city}机场 → {segment.departure_city}市区",
                     departure_date=segment.end_date.strftime('%Y-%m-%d'),
-                    return_date="",
                     transport="打车",
                     amount=invoice.amount,
                     invoice_matched=True,
@@ -1118,7 +1101,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport=segment.transport_mode or "其他",
                 amount=invoice.amount,
                 invoice_matched=True,
@@ -1129,7 +1111,6 @@ class ExpenseReportGenerator:
                 sequence=len(items) + 1,
                 route=f"{segment.departure_city} → {segment.destination_city}",
                 departure_date=segment.start_date.strftime('%Y-%m-%d'),
-                return_date="",
                 transport=segment.transport_mode or "其他",
                 amount=0.0,
                 invoice_matched=False,
@@ -1207,7 +1188,7 @@ class ExpenseReportGenerator:
             ws.cell(row=row, column=1, value=item.sequence)
             ws.cell(row=row, column=2, value=item.route)
             ws.cell(row=row, column=3, value=item.departure_date)
-            ws.cell(row=row, column=4, value=item.return_date)
+            # 返回日期列已删除
             ws.cell(row=row, column=5, value=item.transport)
             ws.cell(row=row, column=6, value=item.amount)
             ws.cell(row=row, column=7, value="是" if item.invoice_matched else "否")
