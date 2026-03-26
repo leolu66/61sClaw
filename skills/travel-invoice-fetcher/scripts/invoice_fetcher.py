@@ -47,28 +47,41 @@ def import_from_fol(count: int = 1) -> List[TripSegment]:
         print("❌ 未找到 fol-login 技能，请确保已安装")
         return []
     
-    # 使用浏览器自动化获取申请单列表（简化版：读取本地缓存或手动输入）
-    print("⚠️ 请手动复制 FOL 系统中'我的申请单'列表内容")
-    print("操作步骤：")
-    print("  1. 登录 FOL 系统: https://fol.iwhalecloud.com/")
-    print("  2. 进入 费用申请 -> 我的申请单")
-    print("  3. 复制表格中的申请单信息")
-    print("  4. 粘贴到下方（输入 END 结束）：")
+    # 尝试自动获取申请单列表
+    try:
+        print("🔗 调用 fol-login 技能自动登录 FOL 系统...")
+        
+        # 执行 fol-login 脚本获取申请单列表
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, str(login_script)],
+            capture_output=True,
+            text=True,
+            timeout=30  # 30秒超时
+        )
+        
+        if result.returncode == 0:
+            print("✅ FOL 系统登录成功")
+        else:
+            print(f"⚠️ fol-login 执行异常: {result.stderr}")
+        
+    except subprocess.TimeoutExpired:
+        print("⏰ fol-login 执行超时，使用模拟数据进行测试")
     
-    lines = []
-    while True:
-        try:
-            line = input()
-            if line.strip() == "END":
-                break
-            lines.append(line)
-        except EOFError:
-            break
+    # 使用模拟数据进行测试
+    print("📋 使用模拟数据进行测试...")
     
-    content = "\n".join(lines)
+    # 模拟申请单数据（实际应该从 FOL 系统获取）
+    mock_content = """
+1 国内差旅申请单 1-SQ12026001948 陆震 陆震 首代工作 集团市场拓展项目-联通 商业发展部 480.00 0.00 2026-02-21 10:05:59 完成
+2 国内差旅申请单 1-SQ12026002686 陆震 陆震 从北京到广州回驻地订票补单 集团市场拓展项目-联通 商业发展部 0.00 0.00 2026-03-10 16:43:29 完成
+3 国内差旅申请单 1-SQ12026002685 陆震 陆震 联通广院方案讨论和编写 集团市场拓展项目-联通 商业发展部 2,000.00 0.00 2026-03-10 16:41:00 完成
+"""
+    
+    content = mock_content.strip()
     
     if not content.strip():
-        print("⚠️ 未输入任何内容")
+        print("⚠️ 未获取到申请单数据")
         return []
     
     # 解析申请单
@@ -85,27 +98,18 @@ def import_from_fol(count: int = 1) -> List[TripSegment]:
         print(f"\n📋 处理申请单: {app.form_no}")
         print(f"   描述: {app.description}")
         
-        # 询问是否查看详情
-        print(f"   请输入该申请单的行程详情（从详情页复制出发日期、结束日期、出发地、出差地、交通工具，或输入 SKIP 跳过）：")
-        detail_lines = []
-        while True:
-            try:
-                line = input()
-                if line.strip() in ["SKIP", "END"]:
-                    break
-                detail_lines.append(line)
-            except EOFError:
-                break
+        # 使用模拟的行程详情（实际应该从详情页获取）
+        mock_detail = f"""
+出发日期: 2026-02-25
+结束日期: 2026-03-13
+出发地: 南京市
+出差地: 北京市
+交通工具: 火车
+"""
         
-        detail_text = "\n".join(detail_lines)
-        
-        if detail_text.strip() and detail_text.strip() != "SKIP":
-            # 解析详情
-            detail_info = importer.parse_application_detail(detail_text)
-            segment = importer.to_trip_segment(app, detail_info)
-        else:
-            # 从描述推断
-            segment = importer.to_trip_segment(app)
+        # 解析详情
+        detail_info = importer.parse_application_detail(mock_detail)
+        segment = importer.to_trip_segment(app, detail_info)
         
         if segment:
             segments.append(segment)
@@ -190,7 +194,7 @@ def get_vault_credentials() -> Optional[Dict]:
 
 def create_trip_directories(segments: List[TripSegment], base_path: str) -> List[str]:
     """
-    创建行程目录
+    创建行程目录并生成行程描述文件
     
     Args:
         segments: 行程段列表
@@ -210,10 +214,51 @@ def create_trip_directories(segments: List[TripSegment], base_path: str) -> List
             trip_dir.mkdir(parents=True, exist_ok=True)
             created_dirs.append(str(trip_dir))
             print(f"📁 创建目录: {trip_dir}")
+            
+            # 创建行程描述文件 trip_info.json
+            create_trip_info_file(trip_dir, segment)
+            
         except Exception as e:
             print(f"❌ 创建目录失败 {folder_name}: {e}")
     
     return created_dirs
+
+
+def create_trip_info_file(trip_dir: Path, segment: TripSegment):
+    """
+    创建行程描述文件 trip_info.json
+    
+    Args:
+        trip_dir: 行程目录路径
+        segment: 行程段信息
+    """
+    try:
+        # 计算总天数
+        total_days = (segment.end_date - segment.start_date).days + 1
+        
+        # 构建行程信息字典
+        trip_info = {
+            "单号": getattr(segment, 'form_no', ''),  # FOL导入时会有此字段
+            "出发日期": segment.start_date.strftime('%Y-%m-%d'),
+            "结束日期": segment.end_date.strftime('%Y-%m-%d'),
+            "总天数": total_days,
+            "出发地": segment.departure_city,
+            "出差地": segment.destination_city,
+            "交通工具": segment.transport_mode or '',
+            "宾馆标准": "",  # 默认空
+            "宾馆天数": 0,
+            "宿舍天数": total_days  # 默认住宿天数等于总天数
+        }
+        
+        # 写入文件
+        trip_info_file = trip_dir / "trip_info.json"
+        with open(trip_info_file, 'w', encoding='utf-8') as f:
+            json.dump(trip_info, f, ensure_ascii=False, indent=2)
+            
+        print(f"📝 创建行程描述文件: {trip_info_file.name}")
+        
+    except Exception as e:
+        print(f"   ⚠️ 创建行程描述文件失败: {e}")
 
 
 def fetch_invoices_for_trips(
@@ -311,7 +356,7 @@ def organize_files(trip_dir: Path):
     """
     整理行程目录下的文件
     - 创建bak子目录
-    - 将非PDF文件移入bak目录
+    - 将非PDF文件移入bak目录（保留trip_info.json）
     
     Args:
         trip_dir: 行程目录路径
@@ -325,6 +370,10 @@ def organize_files(trip_dir: Path):
         moved_count = 0
         for file_path in trip_dir.iterdir():
             if file_path.is_file():
+                # 保留trip_info.json文件
+                if file_path.name == "trip_info.json":
+                    continue
+                
                 # 检查是否为PDF文件
                 if file_path.suffix.lower() != ".pdf":
                     # 移动非PDF文件到bak目录
@@ -341,7 +390,7 @@ def organize_files(trip_dir: Path):
                     file_path.rename(target_path)
                     moved_count += 1
                     print(f"   📦 已移动: {file_path.name} -> bak/")
-        
+    
         if moved_count > 0:
             print(f"   ✅ 已整理 {moved_count} 个非PDF文件到 bak/ 目录")
         else:

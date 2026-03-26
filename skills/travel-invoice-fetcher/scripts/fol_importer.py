@@ -244,7 +244,8 @@ class FOLImporter:
                 destination_city=destination,
                 start_date=start_date,
                 end_date=end_date,
-                transport_mode=transport
+                transport_mode=transport,
+                form_no=app.form_no
             )
         except Exception as e:
             print(f"⚠️ 转换行程失败: {e}")

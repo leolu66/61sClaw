@@ -1,0 +1,17 @@
+{
+  "source_dir": "E:\\feishudoc",
+  "categories": {
+    "documents": [
+      {
+        "path": "E:\\feishudoc\\test-upload-2.txt",
+        "name": "test-upload-2.txt",
+        "size": 65
+      },
+      {
+        "path": "E:\\feishudoc\\test-upload.txt",
+        "name": "test-upload.txt",
+        "size": 20
+      }
+    ]
+  }
+}

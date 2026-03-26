@@ -19,6 +19,7 @@ class TripSegment:
     start_date: datetime
     end_date: datetime
     transport_mode: Optional[str] = None
+    form_no: Optional[str] = None  # FOL申请单编号
     
     @property
     def folder_name(self) -> str:
