@@ -1,11 +1,23 @@
 ---
 name: feishu-uploader
-description: 上传本地文件到飞书云盘，支持自动分类（src/videos/recordings/temp/appdatas/images/documents）。当用户说"上传文件到飞书"、"备份到飞书云盘"、"同步文件到飞书"时触发。
+description: |
+  上传本地文件到飞书云盘，支持自动分类（src/videos/recordings/temp/appdatas/images/documents）。
+  基于 lark-drive skill 实现上传下载功能。
+  当用户说"上传文件到飞书"、"备份到飞书云盘"、"同步文件到飞书"、"从飞书下载文件"时触发。
+triggers:
+  - "上传文件到飞书"
+  - "备份到飞书云盘"
+  - "同步文件到飞书"
+  - "从飞书下载文件"
+  - "飞书上传"
+  - "飞书下载"
 ---
 
 # 飞书云盘文件上传工具
 
 自动将本地文件上传到飞书云盘，按文件类型智能分类存放。
+
+**基于 lark-drive skill 实现** - 使用 `lark-cli drive +upload` 和 `+download` 命令。
 
 ## 文件夹结构
 
@@ -21,33 +33,75 @@ description: 上传本地文件到飞书云盘，支持自动分类（src/videos
 
 ## 使用方法
 
-### 上传单个文件
-```
-上传文件 E:\feishudoc\report.pdf 到飞书
+### 1. 扫描并上传目录
+
+```bash
+# 扫描目录
+python feishu_uploader.py E:\feishudoc
+
+# 上传（基于扫描结果）
+python upload_to_feishu.py scan_result.json
 ```
 
-### 上传整个目录
-```
-上传目录 E:\feishudoc 到飞书云盘
+### 2. 上传到指定文件夹
+
+```bash
+# 上传到指定的飞书文件夹
+python upload_to_feishu.py scan_result.json fldbc_xxxxxxxx
 ```
 
-### 按类型上传
+### 3. 下载文件
+
+```bash
+# 通过 file_token 下载
+python download_from_feishu.py boxbc_xxx ./downloads/file.pdf
+
+# 通过 URL 下载
+python download_from_feishu.py --url "https://xxx.feishu.cn/drive/file/boxbc_xxx" ./downloads/file.pdf
 ```
-上传 E:\feishudoc 的所有图片到飞书
-上传 E:\feishudoc 的所有文档到飞书
-```
+
+## 前置条件
+
+1. **安装 lark-cli 和 lark-drive skill**:
+   ```bash
+   npm install -g @larksuite/cli
+   npx skills add larksuite/cli -y -g
+   ```
+
+2. **完成飞书认证**:
+   ```bash
+   lark-cli config init --new
+   lark-cli auth login --recommend
+   ```
+
+## 文件说明
+
+| 文件 | 功能 |
+|------|------|
+| `feishu_uploader.py` | 文件分类扫描器 |
+| `upload_to_feishu.py` | 上传实现（调用 lark-drive +upload） |
+| `download_from_feishu.py` | 下载实现（调用 lark-drive +download） |
+| `scan_result.json` | 扫描结果缓存 |
 
 ## 技术实现
 
-使用飞书 OpenAPI 的文件上传接口：
-1. 获取文件夹 token（如果不存在则创建）
-2. 分片上传大文件（>20MB）
-3. 支持断点续传
-4. 自动重试机制
+### 上传流程
+1. `feishu_uploader.py` 扫描本地目录，按文件类型分类
+2. `upload_to_feishu.py` 调用 `lark-cli drive +upload` 上传
+3. 自动创建分类文件夹（如果不存在）
 
-## 配置
+### 下载流程
+1. `download_from_feishu.py` 调用 `lark-cli drive +download`
+2. 支持 file_token 和 URL 两种方式
 
-需要以下飞书权限：
-- `drive:file` - 访问云盘
-- `drive:file:upload` - 上传文件
-- `drive:file:readonly` - 读取文件列表
+## 依赖
+
+- Python 3.6+
+- lark-cli (已安装 lark-drive skill)
+- 飞书应用认证完成
+
+## 权限要求
+
+- `drive:drive:read` - 读取云盘
+- `drive:file:read` - 读取文件
+- `drive:file:write` - 上传文件
