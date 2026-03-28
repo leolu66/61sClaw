@@ -1,5 +1,15 @@
 # ElevenLabs TTS 技能
 
+> ⚠️ **已弃用 (Deprecated)**
+> 
+> 此技能已不再维护。原因：
+> - ElevenLabs 免费账户无法使用 API 调用预设声音
+> - 需要付费订阅才能使用
+> 
+> **推荐使用**: `windows-tts` - Windows 系统自带 TTS（完全免费，离线可用）
+
+---
+
 使用 ElevenLabs API 将文字转换为语音。
 
 ## 使用方法
