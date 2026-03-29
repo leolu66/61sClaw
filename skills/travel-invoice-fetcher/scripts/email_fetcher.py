@@ -77,15 +77,19 @@ class EmailFetcher:
         self, 
         days: int = 7,
         subject_keywords: List[str] = None,
-        exclude_telecom: bool = True
+        exclude_telecom: bool = True,
+        start_date: datetime = None,
+        sender_whitelist: List[str] = None
     ) -> List[str]:
         """
         搜索发票邮件
         
         Args:
-            days: 搜索最近几天的邮件
+            days: 搜索最近几天的邮件（当 start_date 为 None 时使用）
             subject_keywords: 邮件主题关键词列表
             exclude_telecom: 是否排除通信运营商发票（移动、联通、电信）
+            start_date: 行程开始日期，如果提供则搜索从该日期到今天的所有邮件
+            sender_whitelist: 发件人白名单，如果提供则只接受这些发件人的邮件
             
         Returns:
             邮件数据列表
@@ -96,6 +100,16 @@ class EmailFetcher:
         
         if subject_keywords is None:
             subject_keywords = ["发票"]
+        
+        # 默认发件人白名单（可配置的差旅相关发票发件人）
+        if sender_whitelist is None:
+            sender_whitelist = [
+                "12306@rails.com.cn",  # 铁路12306
+                "didifapiao@mailgate.xiaojukeji.com",  # 滴滴出行
+                "dzfp04@guangzhoumetroz.com",  # 广州地铁
+                "invoice@ops.ruubypay.com",  # 如贝支付
+                "invoice@info.nuonuo.com",  # 诺诺发票
+            ]
         
         # 通信运营商关键词（排除这些发票）
         telecom_keywords = ["移动", "联通", "电信", "中国移动", "中国联通", "中国电信"]
@@ -108,9 +122,15 @@ class EmailFetcher:
                 return []
             
             # 计算日期范围
-            since_date = (datetime.now() - timedelta(days=days)).strftime("%d-%b-%Y")
-            
-            print(f"🔍 搜索最近{days}天的邮件（自{since_date}起）...")
+            if start_date:
+                # 使用行程开始日期作为搜索起点
+                since_date = start_date.strftime("%d-%b-%Y")
+                days = (datetime.now() - start_date).days
+                print(f"🔍 搜索从行程开始日期 {since_date} 到今天的邮件（共{days}天）...")
+            else:
+                # 使用默认的最近N天
+                since_date = (datetime.now() - timedelta(days=days)).strftime("%d-%b-%Y")
+                print(f"🔍 搜索最近{days}天的邮件（自{since_date}起）...")
             
             # 搜索邮件
             # 使用SINCE搜索最近日期的邮件
@@ -134,6 +154,7 @@ class EmailFetcher:
             # 筛选包含关键词的邮件
             invoice_emails = []
             skipped_telecom = 0
+            skipped_sender = 0
             
             for email_id in email_ids:
                 try:
@@ -147,6 +168,11 @@ class EmailFetcher:
                     # 解码邮件主题
                     subject = self._decode_subject(msg.get("Subject", ""))
                     
+                    # 获取发件人
+                    from_address = msg.get("From", "")
+                    # 提取邮箱地址（从 "Name <email@example.com>" 格式中提取）
+                    from_email = self._extract_email(from_address)
+                    
                     # 检查是否为通信运营商发票（需要排除）
                     if exclude_telecom:
                         is_telecom = any(telecom in subject for telecom in telecom_keywords)
@@ -155,17 +181,28 @@ class EmailFetcher:
                             print(f"  ⏭️  跳过通信发票: {subject}")
                             continue
                     
+                    # 检查发件人是否在白名单中（如果配置了白名单）
+                    if sender_whitelist:
+                        is_whitelisted = any(whitelist in from_email.lower() for whitelist in sender_whitelist)
+                        if not is_whitelisted:
+                            # 发件人不在白名单中，检查主题是否包含关键词
+                            has_keyword = any(keyword in subject for keyword in subject_keywords)
+                            if not has_keyword:
+                                skipped_sender += 1
+                                continue  # 跳过此邮件
+                    
                     # 检查主题是否包含关键词
                     for keyword in subject_keywords:
                         if keyword in subject:
                             invoice_emails.append({
                                 "id": email_id.decode(),
                                 "subject": subject,
-                                "from": msg.get("From", ""),
+                                "from": from_address,
+                                "from_email": from_email,
                                 "date": msg.get("Date", ""),
                                 "message": msg
                             })
-                            print(f"  ✉️ 找到发票邮件: {subject}")
+                            print(f"  ✉️ 找到发票邮件: {subject} (来自: {from_email})")
                             break
                             
                 except Exception as e:
@@ -175,6 +212,8 @@ class EmailFetcher:
             print(f"📋 共找到 {len(invoice_emails)} 封发票邮件")
             if skipped_telecom > 0:
                 print(f"   (已排除 {skipped_telecom} 封通信运营商发票)")
+            if skipped_sender > 0:
+                print(f"   (已排除 {skipped_sender} 封非白名单发件人邮件)")
             return invoice_emails
             
         except Exception as e:
@@ -267,6 +306,31 @@ class EmailFetcher:
             return result
         except:
             return subject
+    
+    def _extract_email(self, from_header: str) -> str:
+        """
+        从邮件头中提取邮箱地址
+        支持格式: "Name <email@example.com>" 或 "email@example.com"
+        
+        Args:
+            from_header: From 邮件头
+            
+        Returns:
+            邮箱地址
+        """
+        if not from_header:
+            return ""
+        
+        try:
+            # 尝试匹配 <email@example.com> 格式
+            match = re.search(r'<([^>]+)>', from_header)
+            if match:
+                return match.group(1).lower().strip()
+            
+            # 如果没有尖括号，直接返回整个字符串（假设就是邮箱地址）
+            return from_header.lower().strip()
+        except:
+            return from_header.lower().strip()
     
     def _decode_filename(self, filename: str) -> str:
         """解码文件名"""

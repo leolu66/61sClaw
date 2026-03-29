@@ -28,15 +28,18 @@ def get_credentials():
         cred = vault.get('email', show_sensitive=True)
         if cred and 'fields' in cred:
             fields = cred['fields']
-            # 从邮箱地址提取工号
-            email = fields.get('email', '')
+            # 从邮箱地址提取工号（支持中英文字段名）
+            email = fields.get('邮箱地址') or fields.get('email', '')
             username = email.split('@')[0] if '@' in email else '0027025600'
-            password = fields.get('password', '')
-            return username, password
+            # 支持中英文密码字段名
+            password = fields.get('邮箱密码') or fields.get('password', '')
+            if password:
+                return username, password
     except Exception as e:
         print(f"[WARNING] 从 vault 获取凭据失败: {e}")
     
     # 默认凭据（fallback）
+    print("[INFO] 使用默认凭据")
     return "0027025600", "Luzh1103!"
 
 def is_login_page(page):

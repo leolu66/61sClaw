@@ -27,95 +27,173 @@ from email_fetcher import EmailFetcher
 from fol_importer import FOLImporter, FOLApplication
 
 
-def import_from_fol(count: int = 1) -> List[TripSegment]:
+def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
     """
     从 FOL 系统导入行程
     
     Args:
         count: 导入最近几条申请单，默认1条
+        content: FOL申请单列表文本（从FOL复制粘贴），为None时自动获取
         
     Returns:
         TripSegment 列表
     """
     print(f"\n📥 从 FOL 系统导入最近 {count} 条申请单...")
     
-    # 调用 fol-login 技能获取申请单列表
-    fol_skill_path = Path.home() / ".openclaw" / "workspace-main" / "skills" / "fol-login"
-    login_script = fol_skill_path / "login.py"
+    applications_data = []
     
-    if not login_script.exists():
-        print("❌ 未找到 fol-login 技能，请确保已安装")
-        return []
-    
-    # 尝试自动获取申请单列表
-    try:
-        print("🔗 调用 fol-login 技能自动登录 FOL 系统...")
+    # 如果未提供内容，尝试自动获取
+    if not content:
+        # 尝试调用 fol_auto_login.py 自动获取
+        fol_skill_path = Path.home() / ".openclaw" / "workspace-main" / "skills" / "fol-login"
+        auto_login_script = fol_skill_path / "fol_auto_login.py"
         
-        # 执行 fol-login 脚本获取申请单列表
-        import subprocess
-        result = subprocess.run(
-            [sys.executable, str(login_script)],
-            capture_output=True,
-            text=True,
-            timeout=30  # 30秒超时
-        )
-        
-        if result.returncode == 0:
-            print("✅ FOL 系统登录成功")
+        if auto_login_script.exists():
+            print("🔗 调用 fol_auto_login.py 自动获取申请单...")
+            try:
+                import subprocess
+                result = subprocess.run(
+                    [sys.executable, str(auto_login_script)],
+                    capture_output=True,
+                    text=True,
+                    timeout=120  # 120秒超时
+                )
+                
+                if result.returncode == 0:
+                    # 解析返回的 JSON
+                    try:
+                        data = json.loads(result.stdout)
+                        applications_data = data.get('applications', [])
+                        print(f"✅ 成功获取 {len(applications_data)} 条申请单")
+                    except json.JSONDecodeError as e:
+                        print(f"⚠️ 解析返回数据失败: {e}")
+                else:
+                    print(f"⚠️ fol_auto_login.py 执行失败: {result.stderr}")
+            except subprocess.TimeoutExpired:
+                print("⏰ fol_auto_login.py 执行超时（120秒）")
+            except Exception as e:
+                print(f"⚠️ 调用 fol_auto_login.py 失败: {e}")
         else:
-            print(f"⚠️ fol-login 执行异常: {result.stderr}")
-        
-    except subprocess.TimeoutExpired:
-        print("⏰ fol-login 执行超时，使用模拟数据进行测试")
+            print("⚠️ 未找到 fol_auto_login.py，尝试读取缓存文件...")
     
-    # 使用模拟数据进行测试
-    print("📋 使用模拟数据进行测试...")
+    # 如果自动获取失败，尝试读取缓存文件
+    if not applications_data and not content:
+        cache_file = script_dir / "fol_applications.json"
+        if cache_file.exists():
+            print(f"📁 从缓存文件读取: {cache_file}")
+            try:
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    applications_data = data.get('applications', [])
+                    print(f"✅ 从缓存读取 {len(applications_data)} 条申请单")
+            except Exception as e:
+                print(f"⚠️ 读取缓存文件失败: {e}")
     
-    # 模拟申请单数据（实际应该从 FOL 系统获取）
-    mock_content = """
-1 国内差旅申请单 1-SQ12026001948 陆震 陆震 首代工作 集团市场拓展项目-联通 商业发展部 480.00 0.00 2026-02-21 10:05:59 完成
-2 国内差旅申请单 1-SQ12026002686 陆震 陆震 从北京到广州回驻地订票补单 集团市场拓展项目-联通 商业发展部 0.00 0.00 2026-03-10 16:43:29 完成
-3 国内差旅申请单 1-SQ12026002685 陆震 陆震 联通广院方案讨论和编写 集团市场拓展项目-联通 商业发展部 2,000.00 0.00 2026-03-10 16:41:00 完成
-"""
+    # 如果提供了文本内容，解析它
+    if content:
+        importer = FOLImporter()
+        applications = importer.parse_application_list(content)
+        # 转换为新的数据格式
+        applications_data = []
+        for app in applications:
+            applications_data.append({
+                'form_no': app.form_no,
+                'form_name': app.form_name,
+                'description': app.description,
+                'submit_time': app.submit_time,
+                'status': app.status,
+                'departure_city': None,
+                'destination_city': None,
+                'start_date': None,
+                'end_date': None,
+                'transport': None
+            })
     
-    content = mock_content.strip()
+    # 如果仍然没有数据，使用模拟数据
+    if not applications_data:
+        print("⚠️ 未能获取 FOL 申请单数据，使用模拟数据...")
+        applications_data = [
+            {
+                'form_no': '1-SQ12026001948',
+                'form_name': '国内差旅申请单',
+                'description': '首代工作',
+                'submit_time': '2026-02-21 10:05:59',
+                'status': '完成',
+                'departure_city': '南京',
+                'destination_city': '北京',
+                'start_date': '2026-02-25',
+                'end_date': '2026-03-13',
+                'transport': '火车'
+            },
+            {
+                'form_no': '1-SQ12026002686',
+                'form_name': '国内差旅申请单',
+                'description': '从北京到广州回驻地订票补单',
+                'submit_time': '2026-03-10 16:43:29',
+                'status': '完成',
+                'departure_city': '北京',
+                'destination_city': '广州',
+                'start_date': '2026-03-13',
+                'end_date': '2026-03-18',
+                'transport': '飞机'
+            }
+        ]
     
-    if not content.strip():
-        print("⚠️ 未获取到申请单数据")
-        return []
-    
-    # 解析申请单
-    importer = FOLImporter()
-    applications = importer.parse_application_list(content)
-    
-    print(f"✅ 解析到 {len(applications)} 条申请单")
+    print(f"✅ 共 {len(applications_data)} 条申请单")
     
     # 取最近 N 条
-    applications = applications[:count]
+    applications_data = applications_data[:count]
     
     segments = []
-    for app in applications:
-        print(f"\n📋 处理申请单: {app.form_no}")
-        print(f"   描述: {app.description}")
+    for app_data in applications_data:
+        print(f"\n📋 处理申请单: {app_data.get('form_no', '未知')}")
+        print(f"   描述: {app_data.get('description', '无描述')}")
         
-        # 使用模拟的行程详情（实际应该从详情页获取）
-        mock_detail = f"""
-出发日期: 2026-02-25
-结束日期: 2026-03-13
-出发地: 南京市
-出差地: 北京市
-交通工具: 火车
-"""
-        
-        # 解析详情
-        detail_info = importer.parse_application_detail(mock_detail)
-        segment = importer.to_trip_segment(app, detail_info)
-        
-        if segment:
+        # 从数据创建 TripSegment
+        try:
+            from datetime import datetime
+            
+            start_date_str = app_data.get('start_date')
+            end_date_str = app_data.get('end_date')
+            
+            # 如果日期缺失，从提交时间推断
+            if not start_date_str or not end_date_str:
+                submit_time = app_data.get('submit_time', '')
+                if submit_time:
+                    try:
+                        submit_date = datetime.strptime(submit_time.split()[0], '%Y-%m-%d')
+                        from datetime import timedelta
+                        start_date = (submit_date + timedelta(days=3))
+                        end_date = (submit_date + timedelta(days=8))
+                    except:
+                        start_date = datetime.now()
+                        end_date = datetime.now()
+                else:
+                    start_date = datetime.now()
+                    end_date = datetime.now()
+            else:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            
+            departure = app_data.get('departure_city') or '南京'
+            destination = app_data.get('destination_city') or '北京'
+            transport = app_data.get('transport') or '火车'
+            
+            segment = TripSegment(
+                departure_city=departure,
+                destination_city=destination,
+                start_date=start_date,
+                end_date=end_date,
+                transport_mode=transport,
+                form_no=app_data.get('form_no')
+            )
+            
             segments.append(segment)
             print(f"   ✅ 行程: {segment.departure_city} -> {segment.destination_city}")
-        else:
-            print(f"   ⚠️ 无法转换为行程")
+            print(f"      日期: {segment.start_date.strftime('%Y-%m-%d')} 至 {segment.end_date.strftime('%Y-%m-%d')}")
+            
+        except Exception as e:
+            print(f"   ⚠️ 创建行程失败: {e}")
     
     return segments
 
@@ -135,6 +213,13 @@ def load_config() -> Dict:
             "imap_port": 993,
             "search_days": 7,
             "email_subject_keywords": ["发票"],
+            "sender_whitelist": [
+                "12306@rails.com.cn",  # 铁路12306
+                "didifapiao@mailgate.xiaojukeji.com",  # 滴滴出行
+                "dzfp04@guangzhoumetroz.com",  # 广州地铁
+                "invoice@ops.ruubypay.com",  # 如贝支付
+                "invoice@info.nuonuo.com",  # 诺诺发票
+            ],
             "auto_extract": True
         }
 
@@ -292,6 +377,7 @@ def fetch_invoices_for_trips(
         search_days = max(search_days, config.get("search_days", 7))  # 至少使用配置的默认天数
         print(f"🔍 搜索范围: 自 {earliest_start.strftime('%Y-%m-%d')} 起，共 {search_days} 天")
     else:
+        earliest_start = None
         search_days = config.get("search_days", 7)
     
     # 初始化邮件抓取器
@@ -308,26 +394,30 @@ def fetch_invoices_for_trips(
         return results
     
     try:
-        # 搜索发票邮件
-        emails = fetcher.search_invoice_emails(
-            days=search_days,
-            subject_keywords=config.get("email_subject_keywords", ["发票"])
-        )
-        
-        results["emails_found"] = len(emails)
-        
-        if not emails:
-            print("⚠️ 未找到发票邮件")
-            return results
-        
-        # 为每个行程目录下载附件
+        # 为每个行程单独搜索和下载发票
         base_path = Path(config.get("base_path", "D:\\Users\\luzhe\\报销凭证"))
         
         for segment in segments:
             trip_dir = base_path / segment.folder_name
             
             print(f"\n📍 处理行程: {segment.departure_city} -> {segment.destination_city}")
+            print(f"   日期: {segment.start_date.strftime('%Y-%m-%d')} 至 {segment.end_date.strftime('%Y-%m-%d')}")
             print(f"   目录: {trip_dir}")
+            
+            # 搜索该行程的发票邮件（从出发日期开始）
+            print(f"🔍 搜索从出发日期 {segment.start_date.strftime('%Y-%m-%d')} 开始的发票邮件...")
+            emails = fetcher.search_invoice_emails(
+                days=None,  # 不使用天数限制，使用 start_date
+                subject_keywords=config.get("email_subject_keywords", ["发票"]),
+                start_date=segment.start_date,
+                sender_whitelist=config.get("sender_whitelist", None)
+            )
+            
+            results["emails_found"] += len(emails)
+            
+            if not emails:
+                print(f"   ⚠️ 未找到该行程的发票邮件")
+                continue
             
             # 下载所有发票邮件的附件到此目录
             for email_data in emails:
