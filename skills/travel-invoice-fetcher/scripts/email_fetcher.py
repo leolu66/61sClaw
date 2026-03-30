@@ -11,6 +11,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from email.header import decode_header
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 import zipfile
@@ -79,6 +80,7 @@ class EmailFetcher:
         subject_keywords: List[str] = None,
         exclude_telecom: bool = True,
         start_date: datetime = None,
+        end_date: datetime = None,
         sender_whitelist: List[str] = None
     ) -> List[str]:
         """
@@ -88,7 +90,8 @@ class EmailFetcher:
             days: 搜索最近几天的邮件（当 start_date 为 None 时使用）
             subject_keywords: 邮件主题关键词列表
             exclude_telecom: 是否排除通信运营商发票（移动、联通、电信）
-            start_date: 行程开始日期，如果提供则搜索从该日期到今天的所有邮件
+            start_date: 行程开始日期，如果提供则搜索从该日期开始的邮件
+            end_date: 行程结束日期，如果提供则只搜索到该日期为止的邮件（包含当天）
             sender_whitelist: 发件人白名单，如果提供则只接受这些发件人的邮件
             
         Returns:
@@ -125,16 +128,27 @@ class EmailFetcher:
             if start_date:
                 # 使用行程开始日期作为搜索起点
                 since_date = start_date.strftime("%d-%b-%Y")
-                days = (datetime.now() - start_date).days
-                print(f"🔍 搜索从行程开始日期 {since_date} 到今天的邮件（共{days}天）...")
+                
+                # 如果有结束日期，使用BEFORE来限制范围（BEFORE是排他的，所以要加一天）
+                if end_date:
+                    before_date = (end_date + timedelta(days=1)).strftime("%d-%b-%Y")
+                    # 只按日期范围搜索，不在 IMAP 层面过滤主题
+                    # 这样可以确保所有日期范围内的邮件都被搜索到
+                    search_criteria = f'(SINCE "{since_date}" BEFORE "{before_date}")'
+                    date_range_str = f"{since_date} 至 {end_date.strftime('%d-%b-%Y')}"
+                    print(f"🔍 搜索行程日期范围内的邮件: {date_range_str}")
+                else:
+                    days = (datetime.now() - start_date).days
+                    search_criteria = f'(SINCE "{since_date}")'
+                    print(f"🔍 搜索从行程开始日期 {since_date} 到今天的邮件（共{days}天）...")
             else:
                 # 使用默认的最近N天
                 since_date = (datetime.now() - timedelta(days=days)).strftime("%d-%b-%Y")
+                search_criteria = f'(SINCE "{since_date}")'
                 print(f"🔍 搜索最近{days}天的邮件（自{since_date}起）...")
             
             # 搜索邮件
-            # 使用SINCE搜索最近日期的邮件
-            search_criteria = f'(SINCE "{since_date}")'
+            print(f"   IMAP 搜索条件: {search_criteria}")
             status, message_ids = self.mail.search(None, search_criteria)
             
             if status != "OK":
@@ -145,18 +159,26 @@ class EmailFetcher:
             total_emails = len(email_ids)
             print(f"📧 找到 {total_emails} 封邮件")
             
-            # 限制处理的邮件数量，避免太慢
-            max_process = 50
-            if total_emails > max_process:
-                email_ids = email_ids[-max_process:]  # 只处理最新的50封
-                print(f"⏱️  为加快速度，只处理最新的 {max_process} 封邮件")
+            # IMAP 返回的邮件 ID 是升序的（ID 1 是最早的，ID N 是最新的）
+            # 倒序处理，从最新的邮件开始处理
+            email_ids = email_ids[::-1]  # 倒序：从最新到最旧
+            print(f"   将按从新到旧的顺序处理邮件")
             
             # 筛选包含关键词的邮件
             invoice_emails = []
             skipped_telecom = 0
             skipped_sender = 0
+            skipped_date_range = 0
             
-            for email_id in email_ids:
+            # 设置最大发票邮件数量，避免处理过多
+            max_invoice_emails = 20  # 找到 20 封发票邮件后停止
+            
+            for idx, email_id in enumerate(email_ids):
+                # 如果已经找到足够的发票邮件，停止处理
+                if len(invoice_emails) >= max_invoice_emails:
+                    print(f"   ⏹️  已找到 {len(invoice_emails)} 封发票邮件，停止处理")
+                    break
+                
                 try:
                     status, msg_data = self.mail.fetch(email_id, "(RFC822)")
                     if status != "OK":
@@ -172,6 +194,10 @@ class EmailFetcher:
                     from_address = msg.get("From", "")
                     # 提取邮箱地址（从 "Name <email@example.com>" 格式中提取）
                     from_email = self._extract_email(from_address)
+                    
+                    # 确保 from_email 是字符串
+                    if not isinstance(from_email, str):
+                        from_email = str(from_email)
                     
                     # 检查是否为通信运营商发票（需要排除）
                     if exclude_telecom:
@@ -194,15 +220,40 @@ class EmailFetcher:
                     # 检查主题是否包含关键词
                     for keyword in subject_keywords:
                         if keyword in subject:
+                            # 获取邮件日期
+                            email_date = msg.get("Date", "")
+                            
+                            # 调试输出
+                            parsed_dt = self._parse_email_date(email_date)
+                            date_str = parsed_dt.strftime('%Y-%m-%d') if parsed_dt else 'Unknown'
+                            print(f"    📧 检查邮件: {subject[:40]}... | 发件人: {from_email[:30]} | 日期: {date_str}")
+                            
+                            # 如果指定了日期范围，进行精确过滤
+                            if start_date and end_date:
+                                if not self._is_date_in_range(email_date, start_date, end_date):
+                                    # 邮件日期不在范围内，跳过
+                                    skipped_date_range += 1
+                                    print(f"       ⏭️  跳过: 日期 {date_str} 不在范围 {start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}")
+                                    continue
+                            elif start_date:
+                                # 只有开始日期，检查是否从开始日期之后
+                                email_dt = self._parse_email_date(email_date)
+                                if email_dt:
+                                    start = start_date.date() if isinstance(start_date, datetime) else start_date
+                                    if email_dt.date() < start:
+                                        skipped_date_range += 1
+                                        print(f"       ⏭️  跳过: 日期 {date_str} 早于开始日期 {start}")
+                                        continue
+                            
                             invoice_emails.append({
                                 "id": email_id.decode(),
                                 "subject": subject,
                                 "from": from_address,
                                 "from_email": from_email,
-                                "date": msg.get("Date", ""),
+                                "date": email_date,
                                 "message": msg
                             })
-                            print(f"  ✉️ 找到发票邮件: {subject} (来自: {from_email})")
+                            print(f"       ✅ 匹配成功")
                             break
                             
                 except Exception as e:
@@ -214,6 +265,8 @@ class EmailFetcher:
                 print(f"   (已排除 {skipped_telecom} 封通信运营商发票)")
             if skipped_sender > 0:
                 print(f"   (已排除 {skipped_sender} 封非白名单发件人邮件)")
+            if skipped_date_range > 0:
+                print(f"   (已排除 {skipped_date_range} 封日期范围外的邮件)")
             return invoice_emails
             
         except Exception as e:
@@ -331,6 +384,73 @@ class EmailFetcher:
             return from_header.lower().strip()
         except:
             return from_header.lower().strip()
+    
+    def _parse_email_date(self, date_str: str) -> Optional[datetime]:
+        """
+        解析邮件日期字符串为 datetime 对象
+        
+        Args:
+            date_str: 邮件日期字符串（如 "Mon, 23 Mar 2026 10:30:00 +0800"）
+            
+        Returns:
+            datetime 对象，解析失败返回 None
+        """
+        if not date_str:
+            return None
+        
+        # 清理日期字符串，移除 (CST) 等时区缩写
+        cleaned_date = date_str.strip()
+        # 移除括号内的时区缩写，如 (CST), (GMT) 等
+        import re
+        cleaned_date = re.sub(r'\s*\([A-Z]{3,4}\)\s*$', '', cleaned_date)
+        
+        try:
+            # 使用 email.utils.parsedate_to_datetime 解析
+            dt = parsedate_to_datetime(cleaned_date)
+            # 转换为本地时间（去掉时区信息便于比较）
+            return dt.replace(tzinfo=None)
+        except Exception as e:
+            # 尝试其他格式
+            formats = [
+                "%a, %d %b %Y %H:%M:%S %z",
+                "%d %b %Y %H:%M:%S %z",
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d",
+                "%a, %d %b %Y %H:%M:%S %z (%Z)",  # 带括号时区的格式
+            ]
+            for fmt in formats:
+                try:
+                    return datetime.strptime(cleaned_date.strip(), fmt)
+                except:
+                    continue
+            
+            # 如果都失败，打印调试信息
+            print(f"   ⚠️  日期解析失败: '{date_str}'")
+            return None
+    
+    def _is_date_in_range(self, email_date_str: str, start_date: datetime, end_date: datetime) -> bool:
+        """
+        检查邮件日期是否在指定范围内
+        
+        Args:
+            email_date_str: 邮件日期字符串
+            start_date: 开始日期（包含）
+            end_date: 结束日期（包含）
+            
+        Returns:
+            是否在范围内
+        """
+        email_dt = self._parse_email_date(email_date_str)
+        if not email_dt:
+            # 如果无法解析日期，默认排除该邮件（避免包含过期发票）
+            return False
+        
+        # 只比较日期部分
+        email_date = email_dt.date()
+        start = start_date.date() if isinstance(start_date, datetime) else start_date
+        end = end_date.date() if isinstance(end_date, datetime) else end_date
+        
+        return start <= email_date <= end
     
     def _decode_filename(self, filename: str) -> str:
         """解码文件名"""

@@ -56,7 +56,7 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
                     [sys.executable, str(auto_login_script)],
                     capture_output=True,
                     text=True,
-                    timeout=120  # 120秒超时
+                    timeout=150  # 150秒超时
                 )
                 
                 if result.returncode == 0:
@@ -70,7 +70,7 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
                 else:
                     print(f"⚠️ fol_auto_login.py 执行失败: {result.stderr}")
             except subprocess.TimeoutExpired:
-                print("⏰ fol_auto_login.py 执行超时（120秒）")
+                print("⏰ fol_auto_login.py 执行超时（150秒）")
             except Exception as e:
                 print(f"⚠️ 调用 fol_auto_login.py 失败: {e}")
         else:
@@ -404,12 +404,13 @@ def fetch_invoices_for_trips(
             print(f"   日期: {segment.start_date.strftime('%Y-%m-%d')} 至 {segment.end_date.strftime('%Y-%m-%d')}")
             print(f"   目录: {trip_dir}")
             
-            # 搜索该行程的发票邮件（从出发日期开始）
-            print(f"🔍 搜索从出发日期 {segment.start_date.strftime('%Y-%m-%d')} 开始的发票邮件...")
+            # 搜索该行程的发票邮件（从出发日期开始到结束日期）
+            print(f"🔍 搜索行程日期范围内的发票邮件: {segment.start_date.strftime('%Y-%m-%d')} 至 {segment.end_date.strftime('%Y-%m-%d')}...")
             emails = fetcher.search_invoice_emails(
-                days=None,  # 不使用天数限制，使用 start_date
+                days=None,  # 不使用天数限制，使用 start_date 和 end_date
                 subject_keywords=config.get("email_subject_keywords", ["发票"]),
                 start_date=segment.start_date,
+                end_date=segment.end_date,
                 sender_whitelist=config.get("sender_whitelist", None)
             )
             

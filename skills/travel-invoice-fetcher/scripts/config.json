@@ -4,6 +4,13 @@
   "imap_port": 993,
   "search_days": 7,
   "email_subject_keywords": ["发票"],
+  "sender_whitelist": [
+    "12306@rails.com.cn",
+    "didifapiao@mailgate.xiaojukeji.com",
+    "dzfp04@guangzhoumetroz.com",
+    "invoice@ops.ruubypay.com",
+    "invoice@info.nuonuo.com"
+  ],
   "auto_extract": true,
   "supported_archives": [".zip", ".rar", ".7z"],
   "date_formats": [
