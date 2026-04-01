@@ -55,7 +55,7 @@
       "title": "研究OpenClaw通信问题",
       "description": "研究两个OpenClaw之间互相通信的问题",
       "type": "study",
-      "deadline": "2026-03-31T23:59:59.999+08:00",
+      "deadline": "2026-04-01T15:59:59.999Z",
       "priority": "medium",
       "status": "pending",
       "createdAt": "2026-02-28T19:52:28.542Z",
@@ -65,13 +65,7 @@
       "comments": [],
       "timeframe": "monthly",
       "specificDate": "2026-12-31",
-      "reminders": [
-        {
-          "scheduledTime": "2026-03-31T01:00:00.000Z",
-          "sent": false,
-          "sentAt": null
-        }
-      ],
+      "reminders": [],
       "reminderStrategy": {
         "type": "daily",
         "frequency": "once",
@@ -361,6 +355,670 @@
           "sentAt": null
         }
       ]
+    },
+    {
+      "id": "ef2da090-9251-4adf-9890-4d522228d826",
+      "uniqueId": "20260401-001",
+      "todoNumber": 2,
+      "title": "江苏移动大模型应用安全解决方案",
+      "description": "",
+      "type": "work",
+      "deadline": "2026-04-04T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-04-01T01:39:36.585Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "weekly",
+        "frequency": "everyday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-04-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-03T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-04T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "66cb7fe6-be15-4ca5-a17d-323886efc9bf",
+      "uniqueId": "20260401-002",
+      "todoNumber": 3,
+      "title": "火山引擎安全合作框架合同审核和流程推动",
+      "description": "",
+      "type": "work",
+      "deadline": "2026-04-04T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-04-01T01:40:23.177Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "weekly",
+        "frequency": "everyday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-04-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-03T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-04T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "90292831-dcfd-4b81-9cd8-1b2fb3cebb5c",
+      "uniqueId": "20260401-003",
+      "todoNumber": 4,
+      "title": "找王玉木交流大模型网关的功能，列一个方案介绍",
+      "description": "",
+      "type": "work",
+      "deadline": "2026-04-04T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-04-01T01:41:59.646Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "weekly",
+        "frequency": "everyday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-04-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-03T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-04T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "233ab5d3-a385-429b-80d8-406ff3cdade0",
+      "uniqueId": "20260401-004",
+      "todoNumber": 6,
+      "title": "养龙虾创新实践比武成果提交",
+      "description": "1、表格中填写养虾场景的基本内容\n2、提交养虾成果的视频演示至周璐璐处，最长不超过3分钟，文件命名规则是工号+姓名。",
+      "type": "work",
+      "deadline": "2026-04-05T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-04-01T01:46:23.981Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "monthly",
+        "frequency": "everyMonday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": []
+    },
+    {
+      "id": "f57b9b3e-5f2f-4e42-be61-e851d9be0368",
+      "uniqueId": "20260401-005",
+      "todoNumber": 8,
+      "title": "提交首代月度洞察报告",
+      "description": "",
+      "type": "work",
+      "deadline": "2028-02-03T15:59:59.999Z",
+      "priority": "high",
+      "status": "pending",
+      "createdAt": "2026-04-01T01:47:32.194Z",
+      "completedAt": null,
+      "reminderStrategy": {
+        "type": "monthly",
+        "frequency": "everyMonday",
+        "exceptions": {},
+        "customTime": "10:00"
+      },
+      "reminders": [
+        {
+          "scheduledTime": "2026-04-06T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-13T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-20T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-04-27T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-05-04T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-05-11T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-05-18T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-05-25T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-06-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-06-08T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-06-15T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-06-22T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-06-29T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-07-06T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-07-13T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-07-20T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-07-27T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-08-03T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-08-10T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-08-17T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-08-24T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-08-31T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-09-07T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-09-14T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-09-21T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-09-28T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-10-05T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-10-12T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-10-19T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-10-26T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-11-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-11-09T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-11-16T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-11-23T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-11-30T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-12-07T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-12-14T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-12-21T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2026-12-28T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-01-04T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-01-11T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-01-18T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-01-25T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-02-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-02-08T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-02-15T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-02-22T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-03-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-03-08T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-03-15T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-03-22T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-03-29T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-04-05T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-04-12T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-04-19T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-04-26T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-05-03T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-05-10T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-05-17T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-05-24T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-05-31T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-06-07T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-06-14T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-06-21T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-06-28T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-07-05T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-07-12T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-07-19T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-07-26T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-08-02T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-08-09T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-08-16T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-08-23T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-08-30T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-09-06T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-09-13T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-09-20T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-09-27T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-10-04T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-10-11T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-10-18T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-10-25T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-11-01T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-11-08T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-11-15T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-11-22T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-11-29T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-12-06T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-12-13T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-12-20T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2027-12-27T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2028-01-03T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2028-01-10T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2028-01-17T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2028-01-24T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        },
+        {
+          "scheduledTime": "2028-01-31T02:00:00.000Z",
+          "sent": false,
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "13f2c2fd-6293-4723-8931-ae64a1e16137",
+      "uniqueId": "20260401-006",
+      "todoNumber": null,
+      "title": "测试任务",
+      "description": "",
+      "type": "work",
+      "deadline": "2026-04-01T15:59:59.999Z",
+      "priority": "medium",
+      "status": "completed",
+      "createdAt": "2026-04-01T04:57:55.235Z",
+      "completedAt": "2026-04-01T04:58:27.945Z",
+      "reminderStrategy": {
+        "type": "daily",
+        "frequency": "once",
+        "exceptions": {},
+        "customTime": "09:00"
+      },
+      "reminders": []
     }
   ],
   "config": {

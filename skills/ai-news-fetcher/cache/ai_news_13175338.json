@@ -1,123 +1,131 @@
 [
   {
-    "title": "谷歌的龙虾，名叫“史密斯特工”，《黑客帝国》真降临了？",
-    "url": "https://36kr.com/p/3742472729244421",
-    "summary": "Smith在谷歌内部爆火，已经开始限量使用。",
-    "publish_time": "25分钟前",
+    "title": "YC掌门人惊呼：这就是 AGI，4天、零读码，AI移植37年古董软件",
+    "url": "https://36kr.com/p/3747613204627968",
+    "summary": "一位开发者用四天时间，让AI「盲移植」了拥有37年历史的SimCity代码库。整个过程无人阅读一行原始C代码，仅靠AI生成与自动化测试验证。当AI开始重写软件工程的规则，我们究竟该欢呼还是警惕。",
+    "publish_time": "3分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "机器人开源革命：“免费大脑”背后的四派力量与博弈",
-    "url": "https://36kr.com/p/3741913909474056",
-    "summary": "“模型+数据+工具”的生态力量",
-    "publish_time": "27分钟前",
+    "title": "Claude Code源码「换壳」反杀，全网疯狂克隆，Anthropic封杀失败",
+    "url": "https://36kr.com/p/3747613304193796",
+    "summary": "凌晨4点，Rust重构",
+    "publish_time": "3分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "Token 要成新货币了，但你真的知道它是什么吗？",
-    "url": "https://36kr.com/p/3744751375315716",
-    "summary": "黄仁勋说，Token 会是一个万亿美元产业的基础，但很少人真的理解，到底什么是 Token。",
-    "publish_time": "28分钟前",
+    "title": "AI与你的未来：平权、繁荣还是分化？",
+    "url": "https://36kr.com/p/3747570385257225",
+    "summary": "不是技术快，而是适应慢。",
+    "publish_time": "9分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "大模型背后是算力的较量！谷歌将为 Anthropic 提供数十亿美元数据中心融资",
-    "url": "https://news.aibase.cn/news/26641",
-    "summary": "谷歌拟向AI独角兽Anthropic提供数十亿美元融资，用于支持其租用谷歌数据中心，深化双方从股权投资到算力基建的全面合作，凸显算力在AI竞争中的核心地位。",
-    "publish_time": "2026-03-30T09:57:18",
+    "title": "Meta发布新款Ray-Ban智能眼镜：支持多度数定制，起售价升至499美元",
+    "url": "https://news.aibase.cn/news/26741",
+    "summary": "Meta与依视路陆逊梯卡合作推出新款Ray-Ban Meta智能眼镜，定位为“随身AI终端”，新增两款镜框并强化处方镜片兼容性，支持渐进多焦及变色镜片，起售价涨至499美元。",
+    "publish_time": "2026-04-01T09:50:06",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "“我国人工智能最高奖”揭晓：116 个项目荣获吴文俊奖",
-    "url": "https://news.aibase.cn/news/26640",
-    "summary": "第十五届吴文俊人工智能科学技术奖于2026年3月29日揭晓，共产生116个获奖项目及个人。该奖项被誉为“中国人工智能最高奖”，由中国人工智能学会发起，旨在表彰在智能科技领域取得重大突破的集体和个人。本届评选重点关注生成式AI、大模型、具身智能及通用人工智能等前沿技术领域，代表了国内AI界的最高荣誉。",
-    "publish_time": "2026-03-30T09:55:11",
+    "title": "​协同办公 AI 化：Salesforce 宣布对 Slack 进行 30 项深度功能改造",
+    "url": "https://news.aibase.cn/news/26740",
+    "summary": "Salesforce对Slack进行大规模AI升级，推出30项生成式AI功能，将AI从聊天助手转变为深度嵌入工作流的“数字成员”，重塑企业协作模式。通过集成Data Cloud，新版Slack可实时调取CRM数据，员工无需离开聊天窗口即可获取信息。",
+    "publish_time": "2026-04-01T09:46:31",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "大模型进入“收割期”！月之暗面冲刺 IPO，20 天收入竟反超去年全年",
-    "url": "https://news.aibase.cn/news/26639",
-    "summary": "中国大模型行业竞争焦点正从技术转向资本。月之暗面（Moonshot AI）态度突变，从“不急于上市”转为接触投行评估赴港IPO，并启动新一轮10亿美元融资，投前估值达170亿-180亿美元。其K2.5模型商业化进程成为关键驱动力，推动行业进入资本定价新阶段。",
-    "publish_time": "2026-03-30T09:43:45",
+    "title": "谷歌发布最亲民视频模型：Veo 3.1 Lite 开启“分分钱”生成时代",
+    "url": "https://news.aibase.cn/news/26739",
+    "summary": "谷歌推出轻量化视频生成模型Veo3.1Lite，通过架构优化大幅降低算力成本，旨在推动高质量视频生成普及。该模型对标市场轻量化产品，以高性价比和低至每秒0.05美元的720P视频生成成本，满足不同开发者需求。",
+    "publish_time": "2026-04-01T09:38:14",
     "source": "AiBase新闻",
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "Chroma发布200亿参数开源模型Context-1，专攻复杂多跳智能体搜索",
-    "url": "https://x.com/WesRoth/status/2038391568076620223",
-    "summary": "Chroma近日宣布推出Context-1，这是一个拥有200亿参数的开源模型，专门为处理复杂的多跳智能体搜索任务而设计。该模型基于Apache 2.0许可证开源，旨在显著降低AI研究任务的成本和延迟。",
-    "publish_time": "2026-03-30T07:25:12.929000",
+    "title": "Anthropic与澳大利亚政府签署AI安全研究合作备忘录",
+    "url": "https://x.com/AnthropicAI/status/2039137425214353555",
+    "summary": "Anthropic与澳大利亚政府近日签署了一份谅解备忘录，旨在合作进行人工智能安全研究，并支持澳大利亚国家人工智能计划的目标。协议由Anthropic首席执行官Dario Amodei与总理Anthony Albanese会面后达成。根据协议，Anthropic将与澳大利亚人工智能安全研究所合作，分享新兴模型能力与风险的研究发现，参与联合安全评估，并与学术机构开展研究合作。此外，Anthropic将向澳大利亚政府分享其经济指数数据，以追踪AI在经济各领域的应用、经济影响及对劳动力的影响，初期重点关注自然资源、农业、医疗和金融服务等关键行业。作为合作的一部分，Anthropic宣布向澳大利亚领先研究机构提供300万澳元的合作资金，将Claude应用于疾病诊断与治疗、计算机科学教育与研究。具体合作涉及澳大利亚国立大学、加文医学研究所、默多克儿童研究所和科廷数据科学研究所。同时，Anthropic将其“AI for Science”项目扩展至澳大利亚，并启动了针对深度科技初创企业的API信用计划。这些举措标志着Anthropic在亚太地区长期合作与投资的开始，公司即将在悉尼设立办事处。",
+    "publish_time": "2026-04-01T08:45:06.218000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "Google Cloud 推出 ADK 集成生态系统以增强 AI 智能体开发",
-    "url": "https://x.com/GoogleCloudTech/status/2038375648306057440",
-    "summary": "Google Cloud 近日宣布推出 ADK（Agent Development Kit）集成生态系统，旨在帮助开发者更轻松地构建、部署和管理 AI 智能体。该生态系统提供了一套工具和框架，支持模块化开发，允许快速集成预构建组件，从而加速 AI 应用的开发周期。开发者可通过该生态系统扩展智能体功能，例如连接企业系统、处理实时数据或执行复杂任务。文中观点认为，ADK 强调可扩展性和灵活性，旨在帮助开发者创建更智能、响应更快的 AI 代理，适用于客服、自动化流程等多种场景，以降低 AI 智能体的开发门槛。",
-    "publish_time": "2026-03-30T06:04:06.987000",
+    "title": "ICLR 2026 论文遴选结束，录用率27.4%并应对LLM与安全挑战",
+    "url": "https://x.com/iclr_conf/status/2039129800921710783",
+    "summary": "ICLR 2026 会议论文遴选工作已于近日结束。本届会议共收到 19,525 份有效投稿，最终录用 5,355 篇，拒稿 8,408 篇，录用率为 27.4%。会议在评审过程中主要面临两大挑战：大型语言模型（LLM）的广泛使用以及一起安全事件。针对LLM，会议制定了披露政策，并对评审意见运行了LLM内容检测器。在投稿环节，会议重点处理了“幻觉参考文献”问题，采用自动系统核对后人工复核的方式，确认存在此问题的论文被直接拒稿。此外，会议期间发生了一起安全事件，恶意用户利用OpenReview API漏洞泄露了身份信息，导致合谋、威胁和骚扰报告，部分评审员因此被迫更改评分。会议已采取相应措施以维护评审过程的完整性。",
+    "publish_time": "2026-04-01T08:06:06.766000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "斯坦福大学《Speech and Language Processing》2025年更新，提供免费LLM学习资源",
-    "url": "https://x.com/stanfordnlp/status/2038351084004237744",
-    "summary": "斯坦福大学作者Jurafsky与Martin的著作《Speech and Language Processing》已于2025年8月更新。该资源被推荐为一份有趣的免费学习材料，旨在帮助读者真正理解大语言模型的工作原理。书中涵盖了Transformer架构、模型微调、对齐技术以及检索增强生成（RAG）等核心主题，并提供了适当的学术深度。",
-    "publish_time": "2026-03-30T05:00:08.441000",
+    "title": "Yann LeCun转推的世界模型规划器GRASP代码开源",
+    "url": "https://x.com/ylecun/status/2039117945658282342",
+    "summary": "由Michael Psenka发布、Yann LeCun转推的新世界模型规划器GRASP代码已开源。GRASP是一种用于学习世界模型的并行随机梯度规划器，其核心思想是在提升的轨迹空间中同时优化动作和中间“虚拟”状态。它通过动力学一致性惩罚确保与学习到的动态模型保持一致，并实现高效的并行化规划。关键设计包括引入可并行计算的虚拟状态、通过噪声进行状态空间探索、使用停止梯度技术防止梯度流向高维视觉模型状态输入，以及结合目标塑造和周期性的串行展开同步步骤以确保稳定性。该规划器构建于DINO-WM项目之上，但也可通过适配器与其他世界模型（如LeWorldModel、JEPA-WMs）集成，适用于PushT、TwoRoom等多种环境。代码库提供了核心算法实现及适配器安装脚本。",
+    "publish_time": "2026-04-01T07:25:11.850000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "趋境科技发布ATaaS：全球领先的高效能AI Token生产服务平台",
-    "url": "https://www.leiphone.com/category/ai/BuQbHR6JV8aDJaJ6.html",
-    "summary": "从“数据中心”到“Token工厂”。",
-    "publish_time": "03月27日 20:51",
+    "title": "华东大厂采购3家国产芯片公司数万张卡；大厂扩建6000P计划受阻；上市AI芯片公司绑定专属服务器代工伙伴；相变浸没液冷推广不畅",
+    "url": "https://www.leiphone.com/category/chips/wlh8YAGXIxiSOXac.html",
+    "summary": "北京大厂H200集群预算压至5.1万；上市互联芯片公司「绑定」头部互联网公司",
+    "publish_time": "昨天 19:27",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
   {
-    "title": "开启加速减亏，美团最差的时候过去了？",
-    "url": "https://www.leiphone.com/category/industrynews/JulyEDdDobCgMAl0.html",
-    "summary": "全年巨亏234亿后，美团2026年一季度将大幅减亏。",
-    "publish_time": "03月27日 19:50",
+    "title": "全球首届具身智能开发者大会深圳落幕，重新定义具身智能新坐标",
+    "url": "https://www.leiphone.com/category/robot/ZEAdyGmKOaZudN7N.html",
+    "summary": "全球首届具身智能开发者大会（EAIDC 2026）暨「具亮计划」黑客松・大湾区巅峰赛在深圳落幕",
+    "publish_time": "昨天 18:51",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
   {
-    "title": "vivo胡柏山：在焦虑的AI时代，交一份最“冷静”的答案",
-    "url": "https://www.leiphone.com/category/transportation/bwopMLHjQzO59aB5.html",
-    "summary": "“算力终将同质化，感知才是护城河​​”",
-    "publish_time": "03月27日 19:15",
+    "title": "国产芯片错过「组团反杀」英伟达机会，或因死磕自研互联协议",
+    "url": "https://www.leiphone.com/category/chips/zWXsXt5CiDBI44yI.html",
+    "summary": "500人的技术团队投入，换不来与谷歌、英伟达同台竞技的话语权。",
+    "publish_time": "昨天 17:50",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
   {
-    "title": "单张显卡跑出15倍推理速度，aiX-apply-4B小模型加速企业AI研发落地",
-    "url": "https://www.qbitai.com/2026/03/392787.html",
-    "summary": "准确率93.8%超越DeepSeek-V3.2",
-    "publish_time": "1小时前",
+    "title": "公司注册10天，估值逾10亿美元！理想智驾大牛刷出具身创投新热度",
+    "url": "https://www.qbitai.com/2026/03/394149.html",
+    "summary": "理想前智驾一号位和阿里前副总裁携手创业",
+    "publish_time": "10小时前",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
   {
-    "title": "Claude 90分钟挖穿20年漏洞！5w星“安全”系统跌下神坛",
-    "url": "https://www.qbitai.com/2026/03/393186.html",
-    "summary": "相关能力已远超人们预期，且正在指数级增长",
-    "publish_time": "9小时前",
+    "title": "ClawTip来了！ 京东科技首发推出AI智能体的“专属自主零钱包”",
+    "url": "https://www.qbitai.com/2026/03/394011.html",
+    "summary": "AI智能体之间真正自主支付的钱包，来了！",
+    "publish_time": "16小时前",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
   {
-    "title": "打破代码大模型训练瓶颈：MicroCoder将算法数据框架训练经验升级",
-    "url": "https://www.qbitai.com/2026/03/393164.html",
-    "summary": "用34条经验破解现代代码模型训练瓶颈",
-    "publish_time": "9小时前",
+    "title": "实测拿215项SOTA的Qwen3.5-Omni：摄像头一开，AI给我现场讲论文、撸代码",
+    "url": "https://www.qbitai.com/2026/03/393941.html",
+    "summary": "能看能听能唠嗑，还能现场vibe coding",
+    "publish_time": "17小时前",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "阿里最强全模态模型登场！实测看懂50分钟《老友记》，全球评测215项SOTA",
+    "url": "https://zhidx.com/p/544492.html",
+    "summary": "部分性能超过Gemini-3.1 Pro。",
+    "publish_time": "2026-03-31T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
   },
   {
     "title": "不仅是工具，更是“第二大脑”：医渡智循如何成为临床决策的“第一入口”？",
@@ -136,34 +144,26 @@
     "site_url": "https://zhidx.com"
   },
   {
-    "title": "刚刚，阿里达摩院祭出开源架构CPU王炸，直指 AI Agent",
-    "url": "https://zhidx.com/p/542389.html",
-    "summary": "RISC-V摘掉紧箍咒！坐上高端算力牌桌，首次原生跑通千亿大模型。",
-    "publish_time": "2026-03-24T00:00:00",
-    "source": "智东西",
-    "site_url": "https://zhidx.com"
+    "title": "深扒50+被投科技企业背后，美团的AI版图",
+    "url": "https://www.geekpark.net/news/361952",
+    "summary": "当所有人盯着大模型时，美团看到了什么？",
+    "publish_time": "19 小时前",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
+  },
+  {
+    "title": "礼来 27.5 亿美元押注英矽智能，AI 制药 「GPT 时刻」来了？",
+    "url": "https://www.geekpark.net/news/361913",
+    "summary": "制药业最保守的钱，开始流向最激进的技术。",
+    "publish_time": "2026/03/30",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
   },
   {
     "title": "英伟达的智驾野心，藏不住了",
     "url": "https://www.geekpark.net/news/361837",
     "summary": "三台电脑+Hyperion，拢住整个智驾行业。",
     "publish_time": "2026/03/29",
-    "source": "极客公园",
-    "site_url": "https://www.geekpark.net"
-  },
-  {
-    "title": "「推理之王」黄仁勋：你们都误会了，1 万亿美元其实很保守",
-    "url": "https://www.geekpark.net/news/361838",
-    "summary": "黄仁勋在 GTC 上说的那个数字，其实只是入门价。",
-    "publish_time": "2026/03/29",
-    "source": "极客公园",
-    "site_url": "https://www.geekpark.net"
-  },
-  {
-    "title": "从全民养虾到产业落地，腾讯云在 Agent 时代押注了什么？",
-    "url": "https://www.geekpark.net/news/361830",
-    "summary": "升级全栈AI能力。",
-    "publish_time": "2026/03/28",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
   }

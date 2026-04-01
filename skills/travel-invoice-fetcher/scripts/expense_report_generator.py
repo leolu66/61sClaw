@@ -77,7 +77,12 @@ class InvoiceRecognizer:
     
     def recognize_invoice(self, file_path: Path) -> Optional[InvoiceInfo]:
         """
-        识别发票文件
+        智能识别发票文件
+        
+        策略：
+        1. 如果是PDF，先检查是否存在对应的OFD文件（12306等电子发票）
+        2. 有OFD时优先解析OFD中的XML数据（准确率高）
+        3. 无OFD时使用PDF解析（滴滴等普通电子发票）
         
         Args:
             file_path: 发票文件路径
@@ -88,17 +93,159 @@ class InvoiceRecognizer:
         suffix = file_path.suffix.lower()
         
         invoice_info = None
-        if suffix == '.xml':
+        
+        if suffix == '.pdf':
+            # 智能解析：检查是否有对应的OFD文件
+            ofd_invoice = self._try_parse_ofd_for_pdf(file_path)
+            if ofd_invoice:
+                invoice_info = ofd_invoice
+                print(f"   📄 OFD解析: {file_path.name}")
+            else:
+                # 无OFD，使用PDF解析
+                invoice_info = self._parse_pdf_invoice(file_path)
+        elif suffix == '.xml':
             invoice_info = self._parse_xml_invoice(file_path)
-        elif suffix == '.pdf':
-            invoice_info = self._parse_pdf_invoice(file_path)
         
         # 优先从文件名提取金额（更准确）
-        filename_amount = self._extract_amount_from_filename(file_path.name)
-        if invoice_info and filename_amount > 0:
-            invoice_info.amount = filename_amount
+        if invoice_info:
+            filename_amount = self._extract_amount_from_filename(file_path.name)
+            if filename_amount > 0:
+                invoice_info.amount = filename_amount
         
         return invoice_info
+    
+    def _try_parse_ofd_for_pdf(self, pdf_path: Path) -> Optional[InvoiceInfo]:
+        """
+        尝试查找并解析PDF对应的OFD文件
+        
+        Args:
+            pdf_path: PDF文件路径
+            
+        Returns:
+            从OFD解析的InvoiceInfo，或None
+        """
+        try:
+            # 提取票号（文件名中的数字部分）
+            filename = pdf_path.stem  # 不含扩展名的文件名
+            
+            # 检查bak目录下是否存在对应的OFD文件
+            ofd_path = pdf_path.parent / 'bak' / f"{filename}.ofd"
+            
+            if not ofd_path.exists():
+                return None
+            
+            # 解析OFD文件中的XML
+            return self._parse_ofd_xml(ofd_path, pdf_path)
+            
+        except Exception as e:
+            print(f"   ⚠️ OFD解析失败 {pdf_path.name}: {e}")
+            return None
+    
+    def _parse_ofd_xml(self, ofd_path: Path, pdf_path: Path) -> Optional[InvoiceInfo]:
+        """
+        解析OFD文件中的电子发票XML数据
+        
+        Args:
+            ofd_path: OFD文件路径
+            pdf_path: 对应的PDF文件路径（用于返回）
+            
+        Returns:
+            InvoiceInfo 或 None
+        """
+        try:
+            import zipfile
+            
+            with zipfile.ZipFile(ofd_path, 'r') as z:
+                # 查找附件中的rai XML文件（铁路电子客票）
+                attach_files = [name for name in z.namelist() 
+                               if 'Attachs' in name and name.endswith('.xml') 
+                               and 'Attachments' not in name]
+                
+                if not attach_files:
+                    return None
+                
+                # 读取第一个附件XML
+                with z.open(attach_files[0]) as f:
+                    content = f.read().decode('utf-8', errors='ignore')
+                
+                # 解析XML
+                root = ET.fromstring(content)
+                
+                # 提取命名空间
+                ns = {
+                    'rai': 'http://xbrl.mof.gov.cn/taxonomy/2021-11-30/rai',
+                    'xbrli': 'http://www.xbrl.org/2003/instance'
+                }
+                
+                # 提取发票信息
+                invoice_type = InvoiceType.UNKNOWN
+                amount = 0.0
+                date = None
+                departure = None
+                destination = None
+                invoice_no = None
+                
+                # 判断发票类型并提取信息
+                type_elem = root.find('.//rai:TypeOfVoucher', ns)
+                if type_elem is not None:
+                    type_text = type_elem.text or ''
+                    if '铁路' in type_text or '火车' in type_text:
+                        invoice_type = InvoiceType.TRAIN
+                    elif '航空' in type_text or '机票' in type_text:
+                        invoice_type = InvoiceType.FLIGHT
+                    elif '旅客运输' in type_text or '出租车' in type_text:
+                        invoice_type = InvoiceType.TAXI
+                
+                # 提取金额（Fare字段）
+                fare_elem = root.find('.//rai:Fare', ns)
+                if fare_elem is not None and fare_elem.text:
+                    try:
+                        amount = float(fare_elem.text)
+                    except ValueError:
+                        pass
+                
+                # 提取日期（优先使用TravelDate乘车日期，而不是DateOfIssue开票日期）
+                travel_date_elem = root.find('.//rai:TravelDate', ns)
+                issue_date_elem = root.find('.//rai:DateOfIssue', ns)
+                if travel_date_elem is not None and travel_date_elem.text:
+                    date = travel_date_elem.text  # 乘车日期
+                elif issue_date_elem is not None and issue_date_elem.text:
+                    date = issue_date_elem.text  #  fallback: 开票日期
+                
+                # 提取出发站和到达站
+                dep_elem = root.find('.//rai:DepartureStation', ns)
+                dest_elem = root.find('.//rai:DestinationStation', ns)
+                if dep_elem is not None and dep_elem.text:
+                    departure = dep_elem.text.replace('站', '')
+                if dest_elem is not None and dest_elem.text:
+                    destination = dest_elem.text.replace('站', '')
+                
+                # 提取票号
+                no_elem = root.find('.//rai:ElectronicInvoiceRailwayETicketNumber', ns)
+                if no_elem is not None and no_elem.text:
+                    invoice_no = no_elem.text
+                
+                # 提取车次/航班号
+                train_elem = root.find('.//rai:TrainNumber', ns)
+                if train_elem is not None and train_elem.text:
+                    if invoice_no:
+                        invoice_no = f"{train_elem.text} ({invoice_no})"
+                    else:
+                        invoice_no = train_elem.text
+                
+                return InvoiceInfo(
+                    file_path=pdf_path,  # 返回PDF路径（用于后续处理）
+                    invoice_type=invoice_type,
+                    amount=amount,
+                    date=date,
+                    departure=departure,
+                    destination=destination,
+                    invoice_no=invoice_no
+                )
+                
+        except Exception as e:
+            print(f"   ⚠️ OFD XML解析失败 {ofd_path.name}: {e}")
+            return None
     
     def _extract_amount_from_filename(self, filename: str) -> float:
         """从文件名中提取金额"""
@@ -299,10 +446,30 @@ class InvoiceRecognizer:
         return 0.0
     
     def _extract_amount_from_text(self, text: str) -> float:
-        """从文本中提取金额"""
-        # 常见的金额模式
-        patterns = [
-            r'价税合计[：:]\s*\D*\s*(\d+\.\d{2})',
+        """
+        从文本中提取金额
+        
+        策略：
+        1. 优先匹配"价税合计"字段（最准确的报销金额）
+        2. 其次匹配其他金额字段
+        """
+        # 首先尝试匹配"价税合计"（最准确的报销金额）
+        total_patterns = [
+            r'价税合计[（(]大写[)）]?[：:\s]*.*?[¥￥]?\s*(\d+\.\d{2})',
+            r'价税合计.*?[¥￥]\s*(\d+\.\d{2})',
+            r'价税合计[：:\s]*(\d+\.\d{2})',
+        ]
+        
+        for pattern in total_patterns:
+            match = re.search(pattern, text, re.DOTALL)
+            if match:
+                try:
+                    return float(match.group(1))
+                except ValueError:
+                    continue
+        
+        # 如果没有找到"价税合计"，尝试其他金额模式
+        other_patterns = [
             r'合计金额[：:]\s*\D*\s*(\d+\.\d{2})',
             r'总金额[：:]\s*\D*\s*(\d+\.\d{2})',
             r'金额[：:]\s*\D*\s*(\d+\.\d{2})',
@@ -310,7 +477,7 @@ class InvoiceRecognizer:
             r'(\d+\.\d{2})\s*元',
         ]
         
-        for pattern in patterns:
+        for pattern in other_patterns:
             matches = re.findall(pattern, text)
             if matches:
                 # 返回最大的金额（通常是总计）
@@ -428,7 +595,83 @@ class ExpenseReportGenerator:
                     invoices.append(invoice)
                     print(f"   ✅ 识别发票: {file_path.name} - {invoice.invoice_type.value} - ¥{invoice.amount:.2f}")
         
+        # 去重：同一笔行程的发票和行程单，只保留电子发票
+        invoices = self._deduplicate_invoices(invoices)
+        
         return invoices
+    
+    def _deduplicate_invoices(self, invoices: List[InvoiceInfo]) -> List[InvoiceInfo]:
+        """
+        去重：同一笔行程的发票和行程单，只保留电子发票
+        
+        策略：
+        1. 对于打车票：按金额分组，同一金额的发票和行程单去重
+        2. 对于火车票：按票号+金额分组，避免误删不同车次
+        3. 优先保留文件名含"电子发票"的（正式税务发票）
+        
+        Args:
+            invoices: 发票列表
+            
+        Returns:
+            去重后的发票列表
+        """
+        if not invoices:
+            return invoices
+        
+        # 按类型和标识分组
+        groups: Dict[str, List[InvoiceInfo]] = {}
+        
+        for invoice in invoices:
+            # 火车票：使用票号+金额作为分组键（避免误删不同车次）
+            if invoice.invoice_type == InvoiceType.TRAIN:
+                # 提取票号（从文件名或发票号）
+                ticket_no = invoice.invoice_no or invoice.file_path.stem
+                key = f"TRAIN_{ticket_no}_{invoice.amount:.2f}"
+            else:
+                # 其他发票（打车票等）：使用金额作为分组键
+                key = f"{invoice.invoice_type.value}_{invoice.amount:.2f}"
+            
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(invoice)
+        
+        # 每组中选择最合适的发票
+        result = []
+        for key, group in groups.items():
+            if len(group) == 1:
+                # 只有一张，直接保留
+                result.append(group[0])
+            else:
+                # 有多张，优先选择"电子发票"
+                selected = None
+                
+                # 第一优先级：文件名含"电子发票"且不含"行程报销单"
+                for inv in group:
+                    filename = inv.file_path.name
+                    if '电子发票' in filename and '行程报销单' not in filename:
+                        selected = inv
+                        break
+                
+                # 第二优先级：文件名含"发票"
+                if not selected:
+                    for inv in group:
+                        if '发票' in inv.file_path.name:
+                            selected = inv
+                            break
+                
+                # 默认选择第一张
+                if not selected:
+                    selected = group[0]
+                
+                # 标记被跳过的发票
+                for inv in group:
+                    if inv != selected:
+                        print(f"   ⏭️  跳过重复: {inv.file_path.name} (与 {selected.file_path.name} 重复)")
+                
+                result.append(selected)
+        
+        print(f"   📊 去重后: {len(result)}/{len(invoices)} 张发票")
+        return result
     
     def match_invoices_to_trip(self, invoices: List[InvoiceInfo], trip_info: Dict) -> None:
         """
@@ -473,15 +716,20 @@ class ExpenseReportGenerator:
             # 只有基本信息，简化匹配
             print("   📝 简化模式：匹配高铁和打车票")
             
-            # 匹配火车票（去程）
+            # 匹配火车票（去程和回程）
+            train_count = 0
             for invoice in invoices:
                 if invoice.matched:
                     continue
                 if invoice.invoice_type == InvoiceType.TRAIN:
+                    train_count += 1
                     invoice.matched = True
-                    invoice.trip_stage = "去程-高铁"
-                    print(f"      ✓ 去程高铁: {departure_city} → {destination_city} ← {invoice.file_path.name}")
-                    break
+                    if train_count == 1:
+                        invoice.trip_stage = "去程-高铁"
+                        print(f"      ✓ 去程高铁: {departure_city} → {destination_city} ← {invoice.file_path.name}")
+                    else:
+                        invoice.trip_stage = "回程-高铁"
+                        print(f"      ✓ 回程高铁: {destination_city} → {departure_city} ← {invoice.file_path.name}")
             
             # 匹配打车票（按日期和城市）
             for invoice in invoices:
@@ -879,23 +1127,47 @@ class ExpenseReportGenerator:
             
             # 去程高铁
             train_invoice = find_matched_invoice("去程-高铁")
-            items.append(ExpenseItem(
-                sequence=len(items) + 1,
-                route=f"{departure_city} → {destination_city}",
-                departure_date=start_date,
-                transport=transport,
-                amount=train_invoice.amount if train_invoice else 0.0,
-                invoice_matched=train_invoice is not None,
-                invoice_files=get_invoice_files_with_related(train_invoice) if train_invoice else []
-            ))
+            if train_invoice:
+                # 使用发票中识别的具体站点（如北京南→南京南）
+                if train_invoice.departure and train_invoice.destination:
+                    route = f"{train_invoice.departure} → {train_invoice.destination}"
+                else:
+                    route = f"{departure_city} → {destination_city}"
+                items.append(ExpenseItem(
+                    sequence=len(items) + 1,
+                    route=route,
+                    departure_date=start_date,
+                    transport=transport,
+                    amount=train_invoice.amount,
+                    invoice_matched=True,
+                    invoice_files=get_invoice_files_with_related(train_invoice)
+                ))
+            
+            # 回程高铁
+            return_train_invoice = find_matched_invoice("回程-高铁")
+            if return_train_invoice:
+                # 使用发票中识别的具体站点（如南京南→北京南）
+                if return_train_invoice.departure and return_train_invoice.destination:
+                    route = f"{return_train_invoice.departure} → {return_train_invoice.destination}"
+                else:
+                    route = f"{destination_city} → {departure_city}"
+                items.append(ExpenseItem(
+                    sequence=len(items) + 1,
+                    route=route,
+                    departure_date=end_date,
+                    transport=transport,
+                    amount=return_train_invoice.amount,
+                    invoice_matched=True,
+                    invoice_files=get_invoice_files_with_related(return_train_invoice)
+                ))
             
             # 其他发票按顺序添加
             other_invoices = [inv for inv in invoices if inv.matched and inv.invoice_type == InvoiceType.TAXI]
-            for i, invoice in enumerate(other_invoices, 2):
+            for i, invoice in enumerate(other_invoices, len(items) + 1):
                 items.append(ExpenseItem(
-                    sequence=len(items) + 1,
-                    route=f"{departure_city}市内交通" if i <= len(other_invoices)//2 + 1 else f"{destination_city}市内交通",
-                    departure_date=start_date if i <= len(other_invoices)//2 + 1 else end_date,
+                    sequence=i,
+                    route=f"{departure_city}市内交通" if i <= len(other_invoices)//2 + len(items) else f"{destination_city}市内交通",
+                    departure_date=start_date if i <= len(other_invoices)//2 + len(items) else end_date,
                     transport="打车/地铁",
                     amount=invoice.amount,
                     invoice_matched=True,
