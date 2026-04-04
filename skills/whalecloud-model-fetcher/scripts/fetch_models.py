@@ -164,12 +164,22 @@ async def extract_all_models_from_page(page: Page) -> List[Dict]:
                 
                 cards.forEach((card, index) => {
                     try {
-                        // 提取模型名称
-                        const nameEl = card.querySelector('h3, h4, .font-semibold');
-                        const name = nameEl ? nameEl.innerText.trim() : '';
+                        // 提取提供商（品牌）
+                        const brandEl = card.querySelector('span.text-xl, span.font-semibold');
+                        const brand = brandEl ? brandEl.innerText.trim() : '';
+                        
+                        // 提取模型名称（h3 元素）
+                        const nameEl = card.querySelector('h3');
+                        const modelName = nameEl ? nameEl.innerText.trim() : '';
+                        
+                        // 组合成完整名称：品牌 + 模型名
+                        let fullName = modelName;
+                        if (brand && modelName && !modelName.startsWith(brand)) {
+                            fullName = brand + ' / ' + modelName;
+                        }
                         
                         // 提取描述
-                        const descEl = card.querySelector('p');
+                        const descEl = card.querySelector('p.line-clamp-2-custom');
                         const description = descEl ? descEl.innerText.trim() : '';
                         
                         // 提取标签
@@ -182,10 +192,12 @@ async def extract_all_models_from_page(page: Page) -> List[Dict]:
                             }
                         });
                         
-                        if (name && name.length > 0 && name.length < 100) {
+                        if (fullName && fullName.length > 0 && fullName.length < 200) {
                             models.push({
                                 index: index,
-                                name: name,
+                                name: fullName,
+                                brand: brand,
+                                modelName: modelName,
                                 description: description,
                                 tags: tags
                             });
@@ -292,8 +304,13 @@ async def fetch_all_models() -> Dict:
             # 转换为模型数据格式
             all_models = []
             for card in model_cards:
+                # 使用模型名称（不是品牌）进行分组
+                model_name_for_group = card.get('modelName', card['name'])
+                
                 model_data = {
-                    "name": card['name'],
+                    "name": card['name'],  # 完整名称：品牌 / 模型名
+                    "modelName": card.get('modelName', ''),
+                    "brand": card.get('brand', ''),
                     "model_code": "",
                     "description": card.get('description', ''),
                     "capability_tags": card.get('tags', []),
@@ -342,8 +359,8 @@ def organize_models_by_group(models: List[Dict]) -> List[Dict]:
     """根据模型名称关键词分组"""
     
     group_definitions = [
-        ("国产商用模型", ["deepseek", "doubao", "qwen", "glm", "kimi", "step", "minimax"]),
-        ("国外商用模型", ["gpt", "claude", "gemini", "openai", "anthropic"]),
+        ("国产商用模型", ["deepseek", "doubao", "qwen", "glm", "kimi", "step", "minimax", "通义千问", "豆包", "阿里"]),
+        ("国外商用模型", ["gpt", "claude", "gemini", "openai", "anthropic", "google"]),
         ("多模态大模型", ["vl", "vision", "multimodal", "glm-4.5v", "glm-4.6v", "glm-5v"]),
         ("文生图大模型", ["dall", "midjourney", "stable-diffusion", "sd", "flux", "seedream", "qwen-image"]),
         ("语音识别模型", ["whisper", "asr", "tts", "sensevoice"]),
@@ -360,7 +377,10 @@ def organize_models_by_group(models: List[Dict]) -> List[Dict]:
     groups["其他模型"] = []
     
     for model in models:
-        model_name_lower = model['name'].lower()
+        # 优先使用 modelName 进行分组判断
+        model_name_for_group = model.get('modelName', model['name'])
+        model_name_lower = model_name_for_group.lower()
+        
         assigned = False
         
         for group_name, keywords in group_definitions:
