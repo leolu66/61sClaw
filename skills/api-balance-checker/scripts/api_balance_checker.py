@@ -17,6 +17,13 @@ from playwright.async_api import async_playwright
 API_KEY = "ailab_0MSAtJQa9d/tXaT2eW7wCK1FAfqh8ZVJlhptKupF2F/2ZaU01zwO0SyJtkLIXfo1f5iBemAbJBGR/wA8vkfuw8uUQIgcNB6gvKl2NGsjd0YdVnK0GP31spo="
 
 
+# 设置 stdout 编码
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+
 def is_port_open(port, host='127.0.0.1', timeout=1):
     """检测端口是否开放"""
     try:
@@ -85,18 +92,23 @@ def launch_chrome_if_needed():
 async def check_if_logged_in(page) -> bool:
     """检查是否已登录"""
     try:
-        content = await page.content()
         text = await page.evaluate('() => document.body.innerText')
         
-        # 已登录标志：页面包含"余额"或"已用"
-        if '余额' in text or '已用' in text or '请求' in text:
-            # 但不包含"请输入 API Key"
-            if '请输入 API Key' not in text:
-                return True
-        
+        # 已登录标志：页面包含特定关键词
+        logged_in_keywords = ['余额', '已用', '请求', '模型', 'Model', '定价', '价格', '上下文', 'tokens']
         # 未登录标志：包含登录相关文字
-        if 'API Key' in text and ('请输入' in text or '登录' in text):
+        login_keywords = ['请输入 API Key', 'API Key 登录', '请登录', '登录']
+        
+        has_logged_in_marker = any(kw in text for kw in logged_in_keywords)
+        has_login_form = any(kw in text for kw in login_keywords)
+        
+        # 如果有登录表单关键词，且没有已登录标志，则视为未登录
+        if has_login_form and not has_logged_in_marker:
             return False
+        
+        # 如果有已登录标志，视为已登录
+        if has_logged_in_marker:
+            return True
         
         return False
         
@@ -110,26 +122,51 @@ async def auto_login(page) -> bool:
     try:
         print("[登录] 检测到未登录，开始自动登录...")
         
-        # 等待密码输入框出现
-        await page.wait_for_selector('input[type="password"]', state='visible', timeout=5000)
-        await asyncio.sleep(0.5)
+        # 等待页面加载完成
+        await asyncio.sleep(2)
+        
+        # 尝试多种方式找到输入框
+        input_selectors = [
+            'input[type="password"]',
+            'input[placeholder*="API"]',
+            'input[name="password"]',
+            'input[name="apiKey"]',
+            'input'
+        ]
+        
+        password_input = None
+        for selector in input_selectors:
+            try:
+                password_input = await page.wait_for_selector(selector, state='visible', timeout=5000)
+                if password_input:
+                    input_type = await password_input.get_attribute('type')
+                    placeholder = await password_input.get_attribute('placeholder') or ''
+                    if input_type == 'password' or 'API' in placeholder or 'key' in placeholder.lower():
+                        break
+            except:
+                continue
+        
+        if not password_input:
+            print("[错误] 未找到密码输入框")
+            return False
         
         # 填写 API Key
-        await page.fill('input[type="password"]', '')
-        await page.fill('input[type="password"]', API_KEY)
+        await password_input.fill('')
+        await password_input.fill(API_KEY)
         print("[登录] API Key 已填写")
         
-        # 点击登录按钮
-        login_button = await page.query_selector('button:has-text("登录")')
+        # 点击登录按钮（尝试多种方式）
+        login_button = await page.query_selector('button:has-text("登录"), button[type="submit"], .login-btn, [class*="login"]')
         if login_button:
             await login_button.click()
             print("[登录] 已点击登录按钮")
         else:
-            print("[警告] 未找到登录按钮")
-            return False
+            # 尝试按回车键
+            await password_input.press('Enter')
+            print("[登录] 已按回车键登录")
         
-        # 等待登录完成（等待页面跳转或内容变化）
-        await asyncio.sleep(3)
+        # 等待登录完成
+        await asyncio.sleep(5)
         
         # 验证登录是否成功
         is_logged_in = await check_if_logged_in(page)
@@ -142,7 +179,148 @@ async def auto_login(page) -> bool:
             
     except Exception as e:
         print(f"[错误] 自动登录失败：{e}")
+        import traceback
+        traceback.print_exc()
         return False
+
+
+async def get_whalecloud_models() -> list:
+    """获取 WhaleCloud 模型列表（含价格和上架时间）"""
+    models = []
+    
+    browser = None
+    context = None
+    user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\ChromeDebugProfile")
+    os.makedirs(user_data_dir, exist_ok=True)
+    
+    try:
+        async with async_playwright() as p:
+            # 启动独立的 Chrome 实例（非调试模式连接）
+            print("[启动] 正在启动 Chrome 浏览器...")
+            context = await p.chromium.launch_persistent_context(
+                user_data_dir=user_data_dir,
+                headless=False,  # 显示浏览器窗口，方便用户手动登录
+                args=[
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    "--disable-extensions",
+                    "--disable-dev-shm-usage"
+                ]
+            )
+            
+            page = context.pages[0] if context.pages else await context.new_page()
+            
+            # 访问模型列表页面
+            url = "https://lab.iwhalecloud.com/gpt-proxy/console/models"
+            print(f"[访问] 正在访问 {url}...")
+            await page.goto(url, wait_until="networkidle", timeout=60000)
+            await asyncio.sleep(3)
+            
+            # 检查登录状态
+            is_logged_in = await check_if_logged_in(page)
+            if not is_logged_in:
+                print("[提示] 请在打开的浏览器窗口中手动登录，登录完成后按回车继续...")
+                input()  # 等待用户手动登录后按回车
+                await page.reload(wait_until="networkidle")
+                await asyncio.sleep(3)
+            
+            print("[提取] 正在提取模型数据...")
+            
+            # 提取模型数据 - 使用更智能的提取逻辑
+            models = await page.evaluate(r"""
+                () => {
+                    const models = [];
+                    const pageText = document.body.innerText;
+                    
+                    // 方法1: 尝试从表格中提取
+                    const tables = document.querySelectorAll('table');
+                    tables.forEach(table => {
+                        const rows = table.querySelectorAll('tr');
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td, th');
+                            if (cells.length >= 3) {
+                                const model = {};
+                                cells.forEach((cell, idx) => {
+                                    const text = cell.innerText.trim();
+                                    if (idx === 0) model.name = text;
+                                    else if (text.match(/[\w-]+-\d+/)) model.code = text;
+                                    else if (text.includes('¥') || text.includes('元')) model.price = text;
+                                    else if (text.match(/\d{4}[-/]/)) model.release_time = text;
+                                });
+                                if (model.name || model.code) {
+                                    models.push(model);
+                                }
+                            }
+                        });
+                    });
+                    
+                    // 方法2: 从卡片/列表项中提取
+                    if (models.length === 0) {
+                        const items = document.querySelectorAll('.model-item, .model-card, [class*="model"], .ant-list-item, .MuiListItem-root');
+                        items.forEach(item => {
+                            const model = {};
+                            const text = item.innerText;
+                            
+                            // 提取名称（通常是第一个标题）
+                            const title = item.querySelector('h1, h2, h3, h4, .title, [class*="title"], [class*="name"]');
+                            if (title) model.name = title.innerText.trim();
+                            
+                            // 提取编码（通常包含数字和连字符）
+                            const codeMatch = text.match(/([a-zA-Z0-9]+-[a-zA-Z0-9.-]+)/);
+                            if (codeMatch) model.code = codeMatch[1];
+                            
+                            // 提取价格
+                            const priceMatch = text.match(/([¥￥]\s*[\d.]+\s*\/?\s*(?:千|1K|k|K)?\s*(?:tokens?|token)?)/i);
+                            if (priceMatch) model.price = priceMatch[1].trim();
+                            
+                            // 提取上下文长度
+                            const contextMatch = text.match(/(\d+)\s*[Kk]\s*(?:上下文|context)/i);
+                            if (contextMatch) model.context = contextMatch[1] + 'K';
+                            
+                            // 提取上架时间
+                            const timeMatch = text.match(/(\d{4}[-/]\d{2}[-/]\d{2})/);
+                            if (timeMatch) model.release_time = timeMatch[1];
+                            
+                            // 提取能力标签
+                            const tags = [];
+                            const tagMatches = text.match(/(Function Calling|深度思考|长上下文|结构化输出|视觉理解|多模态|推理模型|极速推理)/g);
+                            if (tagMatches) tags.push(...tagMatches);
+                            model.tags = tags;
+                            
+                            if (model.name || model.code) {
+                                models.push(model);
+                            }
+                        });
+                    }
+                    
+                    // 方法3: 如果以上都失败，返回页面结构供调试
+                    if (models.length === 0) {
+                        return [{
+                            debug: "No models found",
+                            page_sample: pageText.substring(0, 3000),
+                            html_sample: document.body.innerHTML.substring(0, 2000)
+                        }];
+                    }
+                    
+                    return models;
+                }
+            """)
+            
+            await page.close()
+            print(f"[完成] 成功提取 {len(models)} 个模型信息")
+            
+    except Exception as e:
+        print(f"[错误] 获取模型列表失败：{e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        if context:
+            try:
+                await context.close()
+            except:
+                pass
+    
+    return models
 
 
 async def get_whalecloud_balance() -> Dict:
@@ -373,10 +551,25 @@ def format_result(r: Dict) -> str:
 
 async def main():
     """主函数"""
-    print("[开始] 正在查询 WhaleCloud 余额...\n")
-    result = await get_whalecloud_balance()
-    print("\n" + format_result(result))
-    return result
+    import sys
+    
+    # 检查是否有命令行参数
+    if len(sys.argv) > 1 and sys.argv[1] == "models":
+        # 获取模型列表
+        print("[开始] 正在获取 WhaleCloud 模型列表...\n")
+        models = await get_whalecloud_models()
+        print(f"[完成] 获取到 {len(models)} 个模型\n")
+        
+        # 输出 JSON 格式
+        import json
+        print(json.dumps(models, ensure_ascii=False, indent=2))
+        return {"models": models, "status": "success"}
+    else:
+        # 查询余额
+        print("[开始] 正在查询 WhaleCloud 余额...\n")
+        result = await get_whalecloud_balance()
+        print("\n" + format_result(result))
+        return result
 
 
 if __name__ == "__main__":
