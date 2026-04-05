@@ -1,0 +1,75 @@
+[
+  {
+    "name": "国产商用模型",
+    "expected_count": 46,
+    "models": [
+      {
+        "index": 0,
+        "name": "DeepSeek-R1",
+        "modelName": "DeepSeek-R1",
+        "modelCode": "",
+        "modelId": "",
+        "description": "对应模型【deepseek-r1-250528】，后端对接火山云、算能的DeepSeek R1模型",
+        "inputPrice": "¥4 元/M tokens",
+        "outputPrice": "¥16 元/M tokens",
+        "cachePrice": "¥0.8 元/M tokens",
+        "contextLength": "128K",
+        "maxOutput": "32K",
+        "releaseTime": "2025-05-28",
+        "billingType": "按量计费",
+        "supportFunctionCall": true,
+        "tags": [
+          "工具调用",
+          "结构化输出",
+          "文本生成",
+          "深度思考",
+          "长上下文"
+        ]
+      },
+      {
+        "index": 1,
+        "name": "DeepSeek-V3",
+        "modelName": "DeepSeek-V3",
+        "modelCode": "",
+        "modelId": "",
+        "description": "对应模型【deepseek-v3-250324】，后端对接火山云、算能的DeepSeek V3模型",
+        "inputPrice": "¥2 元/M tokens",
+        "outputPrice": "¥8 元/M tokens",
+        "cachePrice": "¥0.4 元/M tokens",
+        "contextLength": "128K",
+        "maxOutput": "16K",
+        "releaseTime": "2025-03-24",
+        "billingType": "按量计费",
+        "supportFunctionCall": true,
+        "tags": [
+          "长上下文",
+          "文本生成",
+          "深度思考",
+          "工具调用"
+        ]
+      },
+      {
+        "index": 2,
+        "name": "DeepSeek-V3-FAST",
+        "modelName": "DeepSeek-V3-FAST",
+        "modelCode": "",
+        "modelId": "",
+        "description": "对应模型【deepseek-v3-250324】，deepseek-v3的满血非量化极速推理，5倍响应速度，推理速度高达150 tokens/s",
+        "inputPrice": "¥4 元/M tokens",
+        "outputPrice": "¥16 元/M tokens",
+        "cachePrice": "¥0 元/M tokens",
+        "contextLength": "32K",
+        "maxOutput": "32K",
+        "releaseTime": "2025-07-08",
+        "billingType": "按量计费",
+        "supportFunctionCall": true,
+        "tags": [
+          "长上下文",
+          "文本生成",
+          "深度思考",
+          "工具调用"
+        ]
+      }
+    ]
+  }
+]
