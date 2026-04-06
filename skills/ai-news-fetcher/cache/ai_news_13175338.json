@@ -1,25 +1,25 @@
 [
   {
-    "title": "中国机器人公司日薪50万招人！什么水平？",
-    "url": "https://36kr.com/p/3751846393987586",
-    "summary": "“年薪1500万起步，最高可达1.24亿！”",
-    "publish_time": "19分钟前",
+    "title": "黄仁勋最新访谈：要想成事，这4点远比智力更重要",
+    "url": "https://36kr.com/p/3753985100432131",
+    "summary": "把握人性，比掌握技术更重要。",
+    "publish_time": "53分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "一人干翻2000人大厂，41岁程序员靠AI年入4亿美元，奥特曼：我想见他",
-    "url": "https://36kr.com/p/3751033979093760",
-    "summary": "奥特曼「一人公司」神预言，真被干成了！41岁大佬仅靠2万本金，带着AI大军疯狂输出，全年营收4亿刀，直接把上市公司按在地上摩擦！",
-    "publish_time": "12小时前",
+    "title": "下一个十年，决定你贫富的，不再是努力，而是它",
+    "url": "https://36kr.com/p/3753912965399045",
+    "summary": "只有Token狂才能生存。",
+    "publish_time": "55分钟前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
   {
-    "title": "斯坦福揭秘：ChatGPT骗了你，你却用五星好评杀死了诚实的AI",
-    "url": "https://36kr.com/p/3751033882296834",
-    "summary": "如果全网公认「你是混蛋」，但AI还是有51%的概率告诉你「你没错」。更魔幻的是，用户明知被拍马屁，反而给这些AI打出更高的信任分。斯坦福用2405人的实验，揭开了一个关于人性的残酷真相。",
-    "publish_time": "12小时前",
+    "title": "算力基建提速，电子玻纤布又要起飞了？",
+    "url": "https://36kr.com/p/3753630523294472",
+    "summary": "高端需求全面爆发",
+    "publish_time": "17小时前",
     "source": "36氪AI",
     "site_url": "https://36kr.com"
   },
@@ -48,26 +48,26 @@
     "site_url": "https://news.aibase.cn"
   },
   {
-    "title": "Anthropic限制Claude访问后，Hugging Face提供开源模型迁移方案",
-    "url": "https://x.com/huggingface/status/2040221263386353830",
-    "summary": "在Anthropic限制其Claude模型在开放代理平台上的访问后，Hugging Face近日发文介绍了将相关代理（如OpenClaw）迁移至开源或本地模型的路径。文中观点认为，迁移主要有两种方式：一是使用Hugging Face推理提供商（一个汇集众多开源模型提供商的开放平台）的托管服务，用户需创建令牌并通过命令配置，可从数千个模型中选择，例如推荐在Terminal Bench上表现优异的GLM-5模型，Hugging Face PRO订阅者每月可获得2美元免费额度；二是通过本地硬件运行开源模型，建议使用完全开源的Llama.cpp库进行低资源推理，文中提供了不同操作系统的安装命令和配置方法。选择哪种路径取决于用户需求：追求快速恢复代理能力可选托管服务，注重隐私、完全本地控制和零API成本则选本地部署。无论哪种方式，用户都无需依赖封闭的托管模型。",
-    "publish_time": "2026-04-04T08:27:06.608000",
+    "title": "DeepMind 发布 Gemma 4 模型，sriramk 称其为开源前沿重要补充",
+    "url": "https://x.com/demishassabis/status/2040961145800945957",
+    "summary": "近日，DeepMind 团队发布了 Gemma 4 模型。原推作者 sriramk 对此表示兴奋，并分享了其观点。文中观点认为，开源模型是西方保持领先地位的关键前沿，而 Gemma 4 是这一努力中非常重要的补充。作者期待看到硅谷及全球的开发者利用此模型构建的应用。",
+    "publish_time": "2026-04-06T09:24:10.140000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "llama-server 支持加载 Gemma 4-26B 模型 GGUF 格式文件",
-    "url": "https://x.com/huggingface/status/2040223333921259699",
-    "summary": "近日，Hugging Face 用户 ggml-org 发布了一条命令行指令，展示了如何使用 llama-server 服务加载其提供的 `gemma-4-26b-a4b-it-GGUF:Q4_K_M` 模型文件。同时，另一条指令配置了名为 openclaw 的工具，使其以非交互模式接入本地运行的 API 服务。配置参数包括：认证方式为自定义 API 密钥，基础 URL 为 `http://127.0.0.1:8080/v1`，自定义模型 ID 为 `ggml-org-gemma-4-26b-a4b-gguf`，以及 API 密钥为 `llama.cpp`。文中未提及此操作的具体目的或背景。",
-    "publish_time": "2026-04-04T08:27:06.607000",
+    "title": "Yann LeCun 回应马斯克：语言思维应用有限，思考在连续表征空间中进行",
+    "url": "https://x.com/ylecun/status/2040949421844607333",
+    "summary": "Meta AI 首席科学家 Yann LeCun 近日在推特上回应埃隆·马斯克，重申其长期持有的观点。他认为，语言思维的应用范围有限，主要局限于编码和数学等特定领域，因为语言本身有助于这些领域的推理。他进一步指出，真正的思考是在抽象（连续）表征空间中操作心智模型。在推文最后，他以提问形式提及 xAI 是否会采用 JEPA 模型。",
+    "publish_time": "2026-04-06T08:44:10.314000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
   {
-    "title": "Hugging Face 分享使用 llama-server 部署 Gemma 量化模型配置",
-    "url": "https://x.com/huggingface/status/2040222734966206740",
-    "summary": "近日，Hugging Face 在社交媒体上分享了一条关于配置和部署特定AI模型的技术信息。该内容展示了如何使用 llama-server 加载来自 Hugging Face 的量化模型文件 `ggml-org/gemma-4-26b-a4b-it-GGUF:Q4_K_M`，并随后通过 openclaw 工具以非交互模式进行部署。具体的部署配置包括：选择自定义API密钥认证方式，设置本地基础URL为 `http://127.0.0.1:8080/v1`，指定自定义模型ID为 `ggml-org-gemma-4-26b-a4b-gguf`，以及使用 `llama.cpp` 作为API密钥。",
-    "publish_time": "2026-04-04T08:27:06.606000",
+    "title": "Nous Research发布开源智能体框架Hermes Agent 0.7.0版本更新",
+    "url": "https://x.com/WesRoth/status/2040946496959623210",
+    "summary": "Nous Research近日发布了其开源智能体框架Hermes Agent的重大更新。此次推出的0.7.0版本主要聚焦于提升框架的韧性、隐蔽性以及长期上下文管理能力，旨在将该框架进一步推向生产级可靠性。",
+    "publish_time": "2026-04-06T08:25:12.641000",
     "source": "InfoQ AI简报",
     "site_url": "https://www.infoq.cn"
   },
@@ -75,7 +75,7 @@
     "title": "引入LPU的英伟达，是在补强，还是在拆自己的护城河？｜GTC观察",
     "url": "https://www.leiphone.com/category/chips/DGxSz2CBWCltqA0g.html",
     "summary": "被DRAM成本碾压的SRAM回归，暗含推理时代哪些新趋势？",
-    "publish_time": "昨天 16:48",
+    "publish_time": "04月03日 16:48",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
@@ -83,7 +83,7 @@
     "title": "35岁大厂人自救：AI裁员潮下，Claude和小龙虾谁能帮我「续命」？",
     "url": "https://www.leiphone.com/category/CorporateServices/BAMllf46Ucu0qxoc.html",
     "summary": "林翰、苏菲、老张、周强……为何会做出不同选择？",
-    "publish_time": "昨天 14:27",
+    "publish_time": "04月03日 14:27",
     "source": "AI科技评论",
     "site_url": "https://www.leiphone.com"
   },
@@ -96,26 +96,26 @@
     "site_url": "https://www.leiphone.com"
   },
   {
-    "title": "浪潮信息直播发布业界企业级OpenClaw方案“企千虾”",
-    "url": "https://www.qbitai.com/2026/04/395916.html",
-    "summary": "实现企业级Agent规模化管控",
-    "publish_time": "13小时前",
-    "source": "量子位",
-    "site_url": "https://www.qbitai.com"
-  },
-  {
-    "title": "从30000+跨境出海人的奔赴到170+企业的选择——GTC2026 Shenzhen即将启幕",
-    "url": "https://www.qbitai.com/2026/04/395447.html",
-    "summary": "2026 年 4 月 23 日至 24 日，深圳福田会展中心 2 号馆，GTC2026 全球流量大会（深圳）即将拉开帷幕。",
-    "publish_time": "15小时前",
-    "source": "量子位",
-    "site_url": "https://www.qbitai.com"
-  },
-  {
-    "title": "OpenAI收购了一家脱口秀公司",
-    "url": "https://www.qbitai.com/2026/04/395316.html",
-    "summary": "主持人与奥特曼私交超10年",
+    "title": "OpenAI新模型不是GPTX！全新预训练“土豆”曝光，Sora成弃子的原因找到了",
+    "url": "https://www.qbitai.com/2026/04/396535.html",
+    "summary": "正面回应了和Anthropic的竞争",
     "publish_time": "16小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "太初元碁向员工发放百亿算力token并将共建高校AI科教融合学院",
+    "url": "https://www.qbitai.com/2026/04/396533.html",
+    "summary": "",
+    "publish_time": "17小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "日调用量超万亿破纪录！阿里千问3.6Plus登顶全球模型调用量榜首",
+    "url": "https://www.qbitai.com/2026/04/396346.html",
+    "summary": "日调用量突破1.4万亿Token",
+    "publish_time": "前天 21:38",
     "source": "量子位",
     "site_url": "https://www.qbitai.com"
   },
@@ -128,6 +128,14 @@
     "site_url": "https://zhidx.com"
   },
   {
+    "title": "做人形机器人，不是拼人头：马斯克与王兴兴正在改写规则",
+    "url": "https://zhidx.com/p/545922.html",
+    "summary": "马斯克与王兴兴，正在戳破人形机器人的“堆人泡沫”。",
+    "publish_time": "2026-04-02T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
     "title": "抢先体验联想天禧AI Claw：养虾终于不用折腾了！",
     "url": "https://zhidx.com/p/545614.html",
     "summary": "第一次真正体验到一只“不折腾、能干活”的“龙虾”。",
@@ -136,18 +144,18 @@
     "site_url": "https://zhidx.com"
   },
   {
-    "title": "App时代终结？Rokid新视频爆火背后：AIUI正重塑下一代人机交互",
-    "url": "https://zhidx.com/p/545113.html",
-    "summary": "AIUI，会成为AI眼镜的“iPhone时刻”吗？",
-    "publish_time": "2026-04-01T00:00:00",
-    "source": "智东西",
-    "site_url": "https://zhidx.com"
+    "title": "如果有一天周杰伦用 AI 写歌，你还会听吗？",
+    "url": "https://www.geekpark.net/news/362192",
+    "summary": "AI 让音乐从表达媒介，变成一种随时调用的「情绪基础设施」。",
+    "publish_time": "13 小时前",
+    "source": "极客公园",
+    "site_url": "https://www.geekpark.net"
   },
   {
     "title": "1.75 万亿美元，SpaceX 要做人类史上最贵的 IPO",
     "url": "https://www.geekpark.net/news/362112",
     "summary": "马斯克要把太空公司卖给全世界，但这个价签让人看了头晕。",
-    "publish_time": "1 天前",
+    "publish_time": "2026/04/03",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
   },
@@ -155,14 +163,6 @@
     "title": "星海图完成 20 亿元 B+ 轮融资，具身智能拐点将至",
     "url": "https://www.geekpark.net/news/362099",
     "summary": "星海图本轮融资后的交易估值已进入国内具身智能公司第一梯队，估值突破 200 亿元。",
-    "publish_time": "2026/04/02",
-    "source": "极客公园",
-    "site_url": "https://www.geekpark.net"
-  },
-  {
-    "title": "日均 120 万亿 Token，火山引擎两年前的赌注开始兑现",
-    "url": "https://www.geekpark.net/news/362084",
-    "summary": "带着 Seedance 2.0 和 ArkClaw 两件新武器，火山引擎开始席卷 MaaS 市场。",
     "publish_time": "2026/04/02",
     "source": "极客公园",
     "site_url": "https://www.geekpark.net"
