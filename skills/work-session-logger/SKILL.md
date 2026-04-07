@@ -89,6 +89,23 @@ version: 2.0
 - 用户明确标记为敏感的其它内容也要过滤
 - 如果不确定是否敏感，宁可过滤也不要泄露
 
+## 配置说明
+
+### 工作区路径配置
+
+路径计算优先级：
+1. **配置文件**：`skills/work-session-logger/config.json` 中的 `workspace_base_path` 字段
+2. **相对路径兜底**：向上回退4层目录到工作区根目录
+
+默认配置：
+```json
+{
+  "workspace_base_path": "C:\\Users\\luzhe\\.openclaw\\workspace-main"
+}
+```
+
+如果工作区路径发生变化，直接修改 `config.json` 中的路径即可，无需修改脚本代码。
+
 ## 目录结构
 
 ### 工作日志目录

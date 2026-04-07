@@ -107,12 +107,15 @@ class BillingAnalyzer:
             
         self.df = pd.read_csv(file_path, encoding='utf-8-sig')
         
-        # 重命名列（按位置映射）
-        expected_cols = ['日期', '模型', '请求次数', '输入 Token', '输出 Token', '总 Token', '计费方式', '价格详情', '费用 (元)']
-        if len(self.df.columns) == len(expected_cols):
+        # 重命名列（按位置映射，兼容带缓存Token的新格式）
+        if len(self.df.columns) >= 10:
+            # 新格式：多了缓存Token字段
+            expected_cols = ['日期', '模型', '请求次数', '输入 Token', '输出 Token', '缓存 Token', '总 Token', '计费方式', '价格详情', '费用 (元)']
+            self.df = self.df.iloc[:, :10]
             self.df.columns = expected_cols
         elif len(self.df.columns) >= 9:
-            # 至少有 9 列，映射前 9 列
+            # 旧格式：无缓存Token
+            expected_cols = ['日期', '模型', '请求次数', '输入 Token', '输出 Token', '总 Token', '计费方式', '价格详情', '费用 (元)']
             self.df = self.df.iloc[:, :9]
             self.df.columns = expected_cols
         
@@ -653,6 +656,11 @@ class BillingAnalyzer:
         overview = self.analysis_results['overview']
         model_stats = self.analysis_results['model_stats']
         efficiency = self.analysis_results['efficiency']
+        
+        # 计算统计天数
+        start_dt = self.df['日期'].min()
+        end_dt = self.df['日期'].max()
+        stats_days = (end_dt - start_dt).days + 1
 
         if not report_name:
             # 默认报告名：ZD-日期范围.md
@@ -677,16 +685,16 @@ class BillingAnalyzer:
 
 ## 报告概览
 
-**统计周期**: {overview['date_range']}
+**统计周期**: {overview['date_range']} （共 {stats_days} 天）
 
-| 项目 | 值 | 单位 |
-|------|-----|------|
-| **总费用** | CNY {overview['total_cost']:.2f} | 元 |
-| **总调用次数** | {overview['total_requests']:,} | 次 |
-| **总输入 Tokens** | {overview['total_input_tokens']/1_000_000:.2f} | 百万 Tokens |
-| **总输出 Tokens** | {overview['total_output_tokens']/1_000_000:.2f} | 百万 Tokens |
-| **总 Tokens 用量** | {overview['total_tokens']/1_000_000:.2f} | 百万 Tokens |
-| **输入输出比** | {overview['io_ratio']} | |
+| 项目 | 总数值 | 日均数值 | 单位 |
+|------|-----|-----|------|
+| **总费用** | CNY {overview['total_cost']:.2f} | CNY {overview['total_cost']/stats_days:.2f} | 元 |
+| **总调用次数** | {overview['total_requests']:,} | {round(overview['total_requests']/stats_days):,} | 次 |
+| **总输入 Tokens** | {overview['total_input_tokens']/1_000_000:.2f} | {overview['total_input_tokens']/1_000_000/stats_days:.2f} | 百万 Tokens |
+| **总输出 Tokens** | {overview['total_output_tokens']/1_000_000:.2f} | {overview['total_output_tokens']/1_000_000/stats_days:.2f} | 百万 Tokens |
+| **总 Tokens 用量** | {overview['total_tokens']/1_000_000:.2f} | {overview['total_tokens']/1_000_000/stats_days:.2f} | 百万 Tokens |
+| **输入输出比** | {overview['io_ratio']} | - | |
 
 > 注：单位成本行业平均约 7 元/百万 Tokens，成本优化空间{efficiency['cost_saving_potential']}%。
 

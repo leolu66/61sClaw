@@ -25,8 +25,19 @@ CORE_TASKS = [
 
 def get_workspace_dir():
     """获取当前工作区根目录"""
-    # __file__ = skills/work-session-logger/scripts/auto_logger.py
-    # 需要向上4层才能到达 workspace-main
+    import json
+    # 1. 优先从技能配置文件读取
+    config_path = Path(__file__).parent.parent / "config.json"
+    if config_path.exists():
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                if base_path := config.get('workspace_base_path'):
+                    return Path(base_path)
+        except:
+            pass
+    
+    # 2. 兜底：相对路径（保持兼容）
     return Path(__file__).parent.parent.parent.parent
 
 
