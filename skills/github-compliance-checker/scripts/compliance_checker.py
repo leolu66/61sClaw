@@ -58,27 +58,16 @@ class ComplianceChecker:
     # 确认记录文件路径（放在技能自己的 data 目录下）
     APPROVALS_FILE = Path(__file__).parent.parent / 'data' / '.compliance_approvals.json'
     
-    # 允许在 skills 目录外存在的目录（白名单）
+    # 允许在根目录存在的目录（白名单）
     ALLOWED_TOP_LEVEL_DIRS = {
-        'skills',           # 技能目录（核心）
-        'docs',             # 文档
-        '.git',             # Git 目录
-        '.github',          # GitHub 配置
-        'scripts',          # 脚本目录
-        # 'shared',         # 共享目录（已从 GitHub 移除）
-        # 'config',         # 已移除：审批文件移到技能自己的 data 目录
-        'logs',             # 日志目录（已被 .gitignore 忽略）
+        'skills',           # 技能目录（核心，唯一允许同步的代码目录）
+        'scripts',          # 公共脚本目录
+        '.git',             # Git 系统目录（必须保留，不会同步到远程）
     }
     
-    # 允许在 skills 目录外存在的文件（白名单）
+    # 允许在根目录存在的文件（白名单）
     ALLOWED_TOP_LEVEL_FILES = {
-        '.gitignore',       # Git 忽略文件
-        'README.md',        # 项目说明
-        'LICENSE',          # 许可证
-        'AGENTS.md',        # 启动规则（已脱敏模板）
-        'BOOTSTRAP.md',     # 引导文件（已脱敏模板）
-        'package.json',     # Node 配置
-        'requirements.txt', # Python 依赖
+        '.gitignore',       # Git 忽略规则文件（唯一允许同步的根目录文件）
     }
     
     # 合规规则定义
@@ -230,25 +219,84 @@ class ComplianceChecker:
         except Exception as e:
             print(f"[警告] 保存确认记录失败: {e}")
     
-    def approve_item(self, item_path: str, reason: str = ""):
+    def allow_item(self, item_path: str, reason: str = ""):
         """
-        确认某个项目（下次检查将忽略）
+        允许某个项目同步到GitHub（加入白名单，下次检查将忽略）
         
         Args:
             item_path: 项目路径（文件或目录）
-            reason: 确认原因
+            reason: 允许原因
         """
         import time
         self.approved_items[item_path] = {
             'approved_at': time.time(),
             'reason': reason,
-            'approved_by': 'user'
+            'approved_by': 'user',
+            'action': 'allow'
         }
         self._save_approvals()
-        print(f"[OK] 已确认: {item_path}")
+        print(f"[OK] 已允许同步: {item_path}")
+    
+    def deny_item(self, item_path: str) -> bool:
+        """
+        禁止某个项目同步到GitHub：添加到.gitignore，并从Git仓库删除
+        
+        Args:
+            item_path: 项目路径（文件或目录）
+            
+        Returns:
+            是否成功
+        """
+        try:
+            # 1. 添加到 .gitignore
+            gitignore_path = self.repo_path / '.gitignore'
+            
+            # 检查是否已经存在
+            if gitignore_path.exists():
+                with open(gitignore_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                if item_path in content or f"{item_path}/" in content:
+                    print(f"[INFO] {item_path} 已在 .gitignore 中")
+                else:
+                    with open(gitignore_path, 'a', encoding='utf-8') as f:
+                        f.write(f"\n{item_path}\n")
+                    print(f"[OK] 已添加 {item_path} 到 .gitignore")
+            else:
+                with open(gitignore_path, 'w', encoding='utf-8') as f:
+                    f.write(f"{item_path}\n")
+                print(f"[OK] 已创建 .gitignore 并添加 {item_path}")
+            
+            # 2. 从Git仓库移除（如果已经跟踪）
+            try:
+                subprocess.run(
+                    ["git", "rm", "-r", "--cached", item_path],
+                    cwd=self.repo_path,
+                    capture_output=True,
+                    check=True
+                )
+                print(f"[OK] 已将 {item_path} 从Git仓库移除")
+            except subprocess.CalledProcessError:
+                # 文件可能未被跟踪，忽略错误
+                pass
+            
+            # 3. 记录到已确认列表
+            import time
+            self.approved_items[item_path] = {
+                'approved_at': time.time(),
+                'reason': '用户禁止同步',
+                'approved_by': 'user',
+                'action': 'deny'
+            }
+            self._save_approvals()
+            
+            return True
+            
+        except Exception as e:
+            print(f"[错误] 禁止同步失败 {item_path}: {e}")
+            return False
     
     def is_approved(self, item_path: str) -> bool:
-        """检查项目是否已确认"""
+        """检查项目是否已确认（允许或禁止都算已处理）"""
         # 直接匹配
         if item_path in self.approved_items:
             return True
@@ -331,24 +379,24 @@ class ComplianceChecker:
             if self._is_in_gitignore(file_path):
                 continue
             
-            # 在 skills 目录外的新增内容，发出告警
+            # 不在白名单内的内容，发出告警
             if '/' in file_path:
                 # 这是一个目录下的文件
                 issues.append(ComplianceIssue(
                     file_path=file_path,
-                    issue_type="非 skills 目录新增",
+                    issue_type="非白名单目录内容",
                     risk_level=RiskLevel.HIGH,
-                    description=f"在 skills 目录外新增目录 '{top_level}'，请确认是否应该提交",
-                    rule="skills_external_content"
+                    description=f"目录 '{top_level}' 不在允许同步的白名单内，请确认是否允许同步",
+                    rule="external_content"
                 ))
             else:
                 # 这是一个顶级文件
                 issues.append(ComplianceIssue(
                     file_path=file_path,
-                    issue_type="非 skills 目录新增文件",
+                    issue_type="非白名单根目录文件",
                     risk_level=RiskLevel.HIGH,
-                    description=f"在 skills 目录外新增文件 '{file_path}'，请确认是否应该提交",
-                    rule="skills_external_content"
+                    description=f"文件 '{file_path}' 不在允许同步的白名单内，请确认是否允许同步",
+                    rule="external_content"
                 ))
         
         return issues
@@ -688,12 +736,18 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         
-        # 确认某个项目
-        if cmd == 'approve' and len(sys.argv) > 2:
+        # 允许某个项目同步（兼容旧approve命令）
+        if (cmd == 'allow' or cmd == 'approve') and len(sys.argv) > 2:
             path = sys.argv[2]
-            reason = sys.argv[3] if len(sys.argv) > 3 else "用户确认"
-            checker.approve_item(path, reason)
+            reason = sys.argv[3] if len(sys.argv) > 3 else "用户允许同步"
+            checker.allow_item(path, reason)
             sys.exit(0)
+        
+        # 禁止某个项目同步
+        if cmd == 'deny' and len(sys.argv) > 2:
+            path = sys.argv[2]
+            success = checker.deny_item(path)
+            sys.exit(0 if success else 1)
         
         # 列出已确认的项目
         if cmd == 'list-approvals':
