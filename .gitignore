@@ -61,6 +61,13 @@ agfiles/
 .DS_Store
 Thumbs.db
 
+# 用户指定不同步的目录
+backups/
+.clawhub/
+.learnings/
+config/
+docs/
+
 # Temporary files
 tmp/
 temp/
