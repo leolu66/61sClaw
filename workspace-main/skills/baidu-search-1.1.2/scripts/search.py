@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 # Fix Windows console encoding for Chinese characters
 if sys.platform == 'win32':
     import io
+    # 强制使用 UTF-8 编码（无论是否是终端）
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
@@ -37,17 +38,37 @@ def baidu_search(api_key, requestBody: dict):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python baidu_search.py <Json>")
+    # 支持从命令行参数、文件路径或 stdin 读取 JSON
+    query = None
+    
+    if len(sys.argv) >= 2:
+        arg = sys.argv[1]
+        # 检查是否是文件路径（以 .json 结尾或文件存在）
+        if arg.endswith('.json') or os.path.isfile(arg):
+            try:
+                with open(arg, 'r', encoding='utf-8') as f:
+                    query = f.read()
+            except Exception as e:
+                print(f"Error reading file: {e}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            # 兼容旧方式：从命令行参数直接读取 JSON
+            query = arg
+    else:
+        # 从 stdin 读取
+        query = sys.stdin.read()
+    
+    if not query:
+        print("Error: No input provided. Usage: python search.py <json_string|json_file>")
         sys.exit(1)
-
-    query = sys.argv[1]
+    
     parse_data = {}
     try:
         parse_data = json.loads(query)
-        print(f"success parse request body: {parse_data}")
+        print(f"success parse request body: {parse_data}", file=sys.stderr)
     except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
+        print(f"JSON parse error: {e}", file=sys.stderr)
+        sys.exit(1)
 
     if "query" not in parse_data:
         print("Error: query must be present in request body.")
@@ -101,8 +122,14 @@ if __name__ == "__main__":
         "search_filter": search_filter
     }
     try:
+        print(f"Calling baidu_search with request body...", file=sys.stderr)
         results = baidu_search(api_key, request_body)
-        print(json.dumps(results, indent=2, ensure_ascii=False))
+        print(f"Got {len(results)} results", file=sys.stderr)
+        output = json.dumps(results, indent=2, ensure_ascii=False)
+        print(output)
+        sys.stdout.flush()
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"Error in baidu_search: {str(e)}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
         sys.exit(1)
