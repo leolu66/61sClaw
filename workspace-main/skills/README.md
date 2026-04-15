@@ -1,6 +1,8 @@
 # Skills 目录
 
-本目录包含 **70+** 个 Agent 技能，用于扩展 AI 助手的能力。
+本目录包含 **46+** 个核心 Agent 技能，用于扩展 AI 助手的能力。
+
+> 娱乐技能请查看 `workspace-entertainment/skills/`
 
 ## 📊 技能分类统计
 
@@ -11,7 +13,7 @@
 | 系统控制 | 10 | 音频、桌面、VPN、TTS等 |
 | 通信协作 | 7 | 邮件、飞书、腾讯会议、微信等 |
 | 开发工具 | 12 | 代码统计、GitHub、测试、技能管理等 |
-| 游戏娱乐 | 4 | 五子棋、纸牌、游戏自动化等 |
+| 游戏娱乐 | 0 | 已移至 workspace-entertainment |
 | 自动化 | 12 | 定时器、自动点击、同步、备份等 |
 | 其他 | 9 | 笔记、发票、多代理协调等 |
 
@@ -53,7 +55,7 @@
 | audio-control | "静音"/"音量调节" | 音频设备控制 |
 | desktop-control | "桌面控制" | 桌面操作控制 |
 | vpn-controller | "开启VPN"/"关闭VPN" | VPN控制（Clash for Windows） |
-| potplayer-music | "播放音乐" | PotPlayer音乐播放 |
+| audio-control | "静音"/"音量调节" | 音频设备控制 |
 | mouseinfo-launcher | "启动mouseinfo" | 获取鼠标坐标和颜色 |
 | playwright-1.0.3 | "浏览器自动化" | Playwright浏览器控制 |
 | ngrok-manager | "管理ngrok" | Ngrok隧道管理 |
@@ -90,12 +92,14 @@
 
 ### 游戏娱乐类
 
-| 技能 | 触发方式 | 功能 |
-|------|---------|------|
-| gobang-game | "玩五子棋" | 五子棋游戏 |
-| solitaire-game | "玩纸牌" | 纸牌接龙游戏 |
-| game-auto-clicker | "自动点击" | 游戏自动点击 |
-| jhwg-auto | "代玩几何王国" | 几何王国自动任务、领取奖励 |
+> 娱乐技能已移至 `workspace-entertainment/skills/`
+
+| 技能 | 位置 | 功能 |
+|------|------|------|
+| gobang-game | workspace-entertainment | 五子棋游戏 |
+| solitaire-game | workspace-entertainment | 纸牌接龙游戏 |
+| jhwg-auto | workspace-entertainment | 几何王国自动任务 |
+| potplayer-music | workspace-entertainment | 音乐播放控制 |
 
 ### 自动化类
 
@@ -158,4 +162,4 @@ python skills/skill-pusher/scripts/push_skill.py
 
 ---
 
-*最后更新：2026-04-13 | 共 70+ 个技能*
+*最后更新：2026-04-15 | 共 46+ 个核心技能 | 娱乐技能见 workspace-entertainment*
