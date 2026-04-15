@@ -1,0 +1,729 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.4.11",
+    "lastTouchedAt": "2026-04-13T13:46:19.284Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-28T12:11:36.879Z",
+    "lastRunVersion": "2026.3.24",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "moonshot:default": {
+        "provider": "moonshot",
+        "mode": "api_key"
+      },
+      "whalecloud:default": {
+        "provider": "whalecloud",
+        "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "moonshot": {
+        "baseUrl": "https://api.moonshot.cn/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 256000,
+            "maxTokens": 204800
+          }
+        ]
+      },
+      "whalecloud": {
+        "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/anthropic",
+        "apiKey": "ailab_0MSAtJQa9d/tXaT2eW7wCK1FAfqh8ZVJlhptKupF2F/2ZaU01zwO0SyJtkLIXfo1f5iBemAbJBGR/wA8vkfuw8uUQIgcNB6gvKl2NGsjd0YdVnK0GP31spo=",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "claude-4.5-sonnet",
+            "name": "Claude 4.5 Sonnet",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "claude-4.5-haiku",
+            "name": "Claude 4.5 Haiku",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "claude-4.6-sonnet",
+            "name": "Claude 4.6 Sonnet",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 65536
+          },
+          {
+            "id": "MiniMax-M2.5",
+            "name": "MiniMax M2.5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 192000
+          },
+          {
+            "id": "MiniMax-M2.7",
+            "name": "MiniMax M2.7",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 128000
+          },
+          {
+            "id": "doubao-seed-2.0-pro",
+            "name": "Doubao Seed 2.0 Pro",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 9.6,
+              "output": 48,
+              "cacheRead": 1.92,
+              "cacheWrite": 0
+            },
+            "contextWindow": 256000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "doubao-seed-2.0-lite",
+            "name": "Doubao Seed 2.0 Lite",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 256000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "doubao-seed-2.0-mini",
+            "name": "Doubao Seed 2.0 Mini",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 256000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "doubao-seed-2.0-code",
+            "name": "Doubao Seed 2.0 Code",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 256000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "glm-4.7",
+            "name": "Zhipu GLM-4.7",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "glm-5",
+            "name": "Zhipu GLM-5",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "glm-5.1",
+            "name": "Zhipu GLM-5.1",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 6,
+              "output": 22,
+              "cacheRead": 1.5,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 128000
+          }
+        ]
+      },
+      "zhipu": {
+        "baseUrl": "https://open.bigmodel.cn/api/anthropic",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "glm-4.7",
+            "name": "Zhipu GLM-4.7",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "glm-5",
+            "name": "Zhipu GLM-5",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 131072
+          }
+        ]
+      },
+      "qwen": {
+        "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/anthropic",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "qwen3.6-plus",
+            "name": "QWen 3.6 Plus",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 2,
+              "output": 12,
+              "cacheRead": 0.2,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
+          },
+          {
+            "id": "qwen3.5-plus",
+            "name": "QWen 3.5 Plus",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
+          },
+          {
+            "id": "qwen3.5-flash",
+            "name": "QWen 3.5 Flash",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
+          }
+        ]
+      },
+      "cherry-90e84c85-ad91-4917-8fb8-4695475b7ebd": {
+        "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/v1",
+        "apiKey": "ailab_0MSAtJQa9d/tXaT2eW7wCK1FAfqh8ZVJlhptKupF2F/2ZaU01zwO0SyJtkLIXfo1f5iBemAbJBGR/wA8vkfuw8uUQIgcNB6gvKl2NGsjd0YdVnK0GP31spo=",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "kimi-k2.5",
+            "name": "kimi-k2.5",
+            "contextWindow": 128000
+          },
+          {
+            "id": "kimi-k2-turbo",
+            "name": "kimi-k2-turbo",
+            "contextWindow": 128000
+          },
+          {
+            "id": "kimi-k2-thinking-turbo",
+            "name": "kimi-k2-thinking-turbo",
+            "contextWindow": 128000
+          },
+          {
+            "id": "kimi-k2-thinking",
+            "name": "kimi-k2-thinking",
+            "contextWindow": 128000
+          },
+          {
+            "id": "kimi-k2",
+            "name": "kimi-k2",
+            "contextWindow": 128000
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "cherry-90e84c85-ad91-4917-8fb8-4695475b7ebd/kimi-k2.5"
+      },
+      "models": {
+        "whalecloud/MiniMax-M2.5": {
+          "alias": "iWC-MiniMax-M2.5"
+        },
+        "whalecloud/MiniMax-M2.7": {
+          "alias": "iWC-MiniMax-M2.7"
+        },
+        "whalecloud/glm-4.7": {
+          "alias": "iWC-GLM-4.7"
+        },
+        "whalecloud/kimi-k2.5": {
+          "alias": "iWC-Kimi"
+        },
+        "whalecloud/doubao-seed-2.0-pro": {
+          "alias": "iWC-Doubao-Pro"
+        },
+        "whalecloud/doubao-seed-2.0-mini": {
+          "alias": "iWC-Doubao-Mini"
+        },
+        "whalecloud/doubao-seed-2.0-lite": {
+          "alias": "iWC-Doubao-Lite"
+        },
+        "whalecloud/qwen3.5-plus": {
+          "alias": "iWC-QWen-Plus"
+        },
+        "whalecloud/qwen3.5-flash": {
+          "alias": "iWC-QWen-Flash"
+        },
+        "whalecloud/glm-5.1": {
+          "alias": "iWC-GLM-5.1"
+        },
+        "whalecloud/claude-4.5-sonnet": {
+          "alias": "iWC-Claude-4.5-Sonnet"
+        },
+        "whalecloud/claude-4.5-haiku": {
+          "alias": "iWC-Claude-4.5-Haiku"
+        },
+        "moonshot/kimi-k2.5": {
+          "alias": "Kimi"
+        },
+        "zhipu/glm-4.7": {
+          "alias": "Zhipu-GLM"
+        },
+        "zhipu/glm-5": {
+          "alias": "GLM-5"
+        }
+      },
+      "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-main",
+      "memorySearch": {
+        "provider": "local",
+        "local": {
+          "modelPath": "C:\\Users\\luzhe\\.openclaw\\models\\embeddinggemma-300m-qat-Q8_0.gguf"
+        }
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "heartbeat": {
+        "every": "1h"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    },
+    "list": [
+      {
+        "id": "general-agent",
+        "name": "通用Agent",
+        "model": {
+          "primary": "whalecloud/kimi-k2.5"
+        },
+        "skills": [
+          "clawhub",
+          "summarize",
+          "ai-news-fetcher",
+          "api-balance-checker",
+          "audio-control",
+          "billing-analyzer",
+          "brave-search",
+          "claude-code-sender",
+          "code-stats",
+          "disk-cleaner",
+          "exchange-email-reader",
+          "github-compliance-checker",
+          "log-migrator",
+          "model-selector",
+          "model-switcher",
+          "mouseinfo-launcher",
+          "one-click-commit",
+          "skill-creator-local",
+          "skill-syncer",
+          "telecom-news-fetcher",
+          "vpn-controller",
+          "wechat-article-fetcher",
+          "work-session-logger",
+          "github",
+          "skill-creator"
+        ]
+      },
+      {
+        "id": "workspace-validator",
+        "name": "验证Agent",
+        "model": {
+          "primary": "whalecloud/kimi-k2.5"
+        },
+        "skills": [
+          "validator-audit"
+        ],
+        "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-validator"
+      },
+      {
+        "id": "feishu-agent",
+        "name": "飞书Agent",
+        "model": {
+          "primary": "whalecloud/qwen3.5-plus"
+        },
+        "skills": [
+          "feishu-doc",
+          "feishu-drive",
+          "feishu-perm",
+          "feishu-wiki",
+          "feishu-notifier"
+        ]
+      },
+      {
+        "id": "test-agent",
+        "name": "test-agent",
+        "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-test-agent",
+        "agentDir": "C:\\Users\\luzhe\\.openclaw\\agents\\test-agent\\agent",
+        "model": "whalecloud/qwen3.5-plus"
+      },
+      {
+        "id": "entertainment-agent",
+        "name": "娱乐Agent",
+        "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-entertainment",
+        "model": {
+          "primary": "whalecloud/doubao-seed-2.0-lite"
+        },
+        "skills": [
+          "gobang-game",
+          "solitaire-game",
+          "potplayer-music",
+          "jhwg-auto",
+          "ai-news-fetcher",
+          "brave-search",
+          "weather-skill",
+          "timer-alarm"
+        ]
+      }
+    ]
+  },
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": true
+      }
+    },
+    "sessions": {
+      "visibility": "all"
+    },
+    "agentToAgent": {
+      "enabled": true
+    },
+    "exec": {
+      "notifyOnExit": false
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "general-agent",
+      "match": {
+        "channel": "webchat",
+        "accountId": "default"
+      }
+    },
+    {
+      "agentId": "feishu-agent",
+      "match": {
+        "channel": "feishu",
+        "accountId": "openclawd"
+      }
+    }
+  ],
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "channels": {
+    "feishu": {
+      "accounts": {
+        "default": {
+          "appId": "cli_a915882c43b8dccb",
+          "appSecret": "yG1lvioIPswoEdrL39ltHdt4nav6Suyv",
+          "enabled": true
+        },
+        "openclawd": {
+          "appId": "cli_a900853b21385cb5",
+          "appSecret": "etHxHUrZLbUjkKPBq9Ie6gySKQ8uOwN7",
+          "enabled": true
+        }
+      },
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "ou_6296b58fee28100a7b01c0b8d0fb631f",
+        "ou_1ff98dde85af548188b059cfcb464208"
+      ],
+      "replyInThread": "disabled",
+      "domain": "feishu",
+      "connectionMode": "websocket",
+      "webhookPath": "/feishu/events",
+      "groupPolicy": "allowlist",
+      "reactionNotifications": "own",
+      "typingIndicator": true,
+      "resolveSenderNames": true,
+      "enabled": true
+    },
+    "openclaw-weixin": {
+      "accounts": {}
+    }
+  },
+  "discovery": {
+    "mdns": {
+      "mode": "off"
+    }
+  },
+  "gateway": {
+    "port": 18790,
+    "mode": "local",
+    "bind": "loopback",
+    "controlUi": {
+      "allowedOrigins": [
+        "*"
+      ]
+    },
+    "auth": {
+      "token": "49VO2gAPhaDSb4lrT48de3jsSuiGK81Z"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "skills": {
+    "entries": {
+      "coding-agent": {
+        "enabled": false
+      },
+      "github": {
+        "enabled": false
+      },
+      "healthcheck": {
+        "enabled": false
+      },
+      "skill-creator": {
+        "enabled": true
+      },
+      "summarize": {
+        "enabled": false
+      },
+      "agent-browser": {
+        "enabled": true
+      },
+      "bestpartners-youtube": {
+        "enabled": true
+      },
+      "mail-checker": {
+        "enabled": true
+      },
+      "model-router": {
+        "enabled": false
+      },
+      "model-recommender": {
+        "enabled": true
+      },
+      "sonoscli": {
+        "enabled": false
+      },
+      "audio-control": {
+        "enabled": false
+      },
+      "discord": {
+        "enabled": false
+      }
+    }
+  },
+  "plugins": {
+    "allow": [
+      "openclaw-weixin",
+      "feishu",
+      "moonshot",
+      "brave",
+      "memory-core"
+    ],
+    "entries": {
+      "feishu": {
+        "enabled": false,
+        "config": {}
+      },
+      "openclaw-weixin": {
+        "enabled": true,
+        "config": {}
+      },
+      "brave": {
+        "enabled": true,
+        "config": {
+          "webSearch": {
+            "apiKey": "BSAVcG_OLy94oPAQmb3ZpymklKZejXs"
+          }
+        }
+      },
+      "moonshot": {
+        "enabled": true
+      },
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    "installs": {
+      "openclaw-weixin": {
+        "source": "npm",
+        "spec": "@tencent-weixin/openclaw-weixin",
+        "installPath": "C:\\Users\\luzhe\\.openclaw\\extensions\\openclaw-weixin",
+        "version": "2.1.6",
+        "resolvedName": "@tencent-weixin/openclaw-weixin",
+        "resolvedVersion": "2.1.6",
+        "resolvedSpec": "@tencent-weixin/openclaw-weixin@2.1.6",
+        "integrity": "sha512-EEnSZBU+NysjEJ3ur7JHYnvy2q3pvHcfFOHZVV/jkUrUG0zQuOpuIK2bs7Fi8We/zZ+FWVA+xewqu4mzDs7EUQ==",
+        "shasum": "c177c98f1c2ccd3fd83dd096c79287bc780f5b15",
+        "resolvedAt": "2026-04-06T09:26:23.622Z",
+        "installedAt": "2026-04-06T09:26:35.979Z"
+      }
+    }
+  }
+}
