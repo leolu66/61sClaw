@@ -1,0 +1,59 @@
+# AI科技评论
+# https://www.leiphone.com
+# 技术栈：传统 HTML，结构简单
+
+_schema_version: "1.0"
+
+site:
+  name: "AI科技评论"
+  base_url: "https://www.leiphone.com"
+  enabled: true
+  config_version: "2024-03-09-v3"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    timeout: 30
+    delay: 2
+
+list_page:
+  url: "https://www.leiphone.com"
+  
+  item_selector:
+    # 只选择包含 h3 > a 的 li（新闻项）
+    type: "xpath"
+    value: "//li[.//h3/a]"
+  
+  fields:
+    # 链接
+    link:
+      type: "xpath"
+      value: ".//h3/a/@href"
+      transform: "absolute_url"
+    
+    # 标题
+    title:
+      type: "xpath"
+      value: ".//h3/a/text()"
+      required: true
+    
+    # 摘要（在 .des div 中）
+    summary:
+      type: "xpath"
+      value: ".//div[@class='des']/text()"
+      default: ""
+    
+    # 作者（在 .msg .aut 中）
+    author:
+      type: "css"
+      value: ".msg a.aut"
+      default: "AI科技评论"
+    
+    # 时间（在 .msg .time 中）
+    publish_time:
+      type: "xpath"
+      value: ".//div[@class='time']/text()"
+
+dedup:
+  field: "url"
+  method: "url_normalize"

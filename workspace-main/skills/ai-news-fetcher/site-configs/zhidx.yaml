@@ -1,0 +1,67 @@
+# 智东西
+# https://zhidx.com/p/category/zhidongxi/topnews
+# 技术栈：传统 HTML，非 SSR
+# 注意：分页有反爬机制，只采集首页
+
+_schema_version: "1.0"
+
+site:
+  name: "智东西"
+  base_url: "https://zhidx.com"
+  enabled: true
+  config_version: "2024-03-09-v2"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      Accept: "text/html,application/xhtml+xml"
+      Accept-Language: "zh-CN,zh;q=0.9"
+    timeout: 30
+    delay: 2
+
+list_page:
+  url: "https://zhidx.com/p/category/zhidongxi/topnews"
+  # 智东西分页有反爬，只采集首页
+  # pagination: "https://zhidx.com/p/category/zhidongxi/topnews/page/{page}/"
+  # page_start: 1
+  # page_max: 1
+  
+  item_selector:
+    type: "css"
+    value: "#info-left > ul > li"
+  
+  fields:
+    # 链接
+    link:
+      type: "xpath"
+      value: ".//div[@class='info-left-content']//div[@class='info-left-title']/a/@href"
+      transform: "absolute_url"
+    
+    # 标题
+    title:
+      type: "xpath"
+      value: ".//div[@class='info-left-content']//div[@class='info-left-title']/a/text()"
+      required: true
+    
+    # 摘要
+    summary:
+      type: "xpath"
+      value: ".//div[@class='info-left-content']//div[@class='info-left-desc']/text()"
+      default: ""
+    
+    # 作者
+    author:
+      type: "xpath"
+      value: ".//div[@class='info-left-content']//div[@class='ilr-author-name']/a/text()"
+      default: "智东西"
+    
+    # 时间（格式如 "03-08"）
+    publish_time:
+      type: "xpath"
+      value: ".//div[@class='info-left-content']//div[@class='ilr-time']/text()"
+      # 格式为 MM-DD，需要添加年份
+      transform: "add_year_to_date"
+
+dedup:
+  field: "url"
+  method: "url_normalize"

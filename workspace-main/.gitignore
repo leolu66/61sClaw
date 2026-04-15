@@ -1,0 +1,77 @@
+# Shared directory (should be outside workspace)
+shared/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Debug and test files
+debug*.py
+test*.py
+*_debug.py
+*_backup.py
+*_old.py
+check_balance*.py
+fix_*.py
+query_balance_*.py
+
+# Skill data (user-specific, not synced)
+skills/*/data/
+skills/*/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Memory and personal notes (user-specific, not synced)
+TOOLS.md
+memory/
+
+# Personalized workspace configuration files
+MEMORY.md
+USER.md
+SOUL.md
+AGENTS.md
+IDENTITY.md
+HEARTBEAT.md
+BOOTSTRAP.md
+CORE_PRINCIPLES.md
+
+# OpenClaw workspace state
+.openclaw/
+
+# User data directories
+datas/
+data/
+
+# All agfiles (user-specific)
+agfiles/
+
+# Billing reports (privacy-sensitive)
+# agfiles/billing_report/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 用户指定不同步的目录
+backups/
+.clawhub/
+.learnings/
+config/
+docs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Skill source markers (sync metadata, not actual content)
+skills/*/.skill-source

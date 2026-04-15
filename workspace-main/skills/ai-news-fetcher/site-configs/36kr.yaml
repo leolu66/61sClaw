@@ -1,0 +1,62 @@
+# 36氪 AI频道
+# https://36kr.com/information/AI/
+# 注意：有反爬机制，短时间多次访问会触发滑块验证
+
+_schema_version: "1.0"
+
+site:
+  name: "36氪AI"
+  base_url: "https://36kr.com"
+  enabled: true
+  config_version: "2024-03-09-v2"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      Accept: "text/html,application/xhtml+xml"
+      Accept-Language: "zh-CN,zh;q=0.9"
+    timeout: 30
+    # 延迟设长一点，避免触发反爬
+    delay: 3
+
+list_page:
+  url: "https://36kr.com/information/AI/"
+  # 36氪有分页但可能触发反爬，先只采集首页
+  
+  item_selector:
+    type: "css"
+    value: ".kr-flow-article-item"
+  
+  fields:
+    # 链接
+    link:
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-item-title')]/@href"
+      transform: "absolute_url"
+    
+    # 标题
+    title:
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-item-title')]/text()"
+      required: true
+    
+    # 摘要
+    summary:
+      type: "xpath"
+      value: ".//a[contains(@class, 'article-item-description')]/text()"
+      default: ""
+    
+    # 作者
+    author:
+      type: "xpath"
+      value: ".//*[contains(@class, 'kr-flow-bar-author')]/text()"
+      default: "36氪"
+    
+    # 时间（相对时间如"13分钟前"）
+    publish_time:
+      type: "xpath"
+      value: ".//*[contains(@class, 'kr-flow-bar-time')]/text()"
+
+dedup:
+  field: "url"
+  method: "url_normalize"

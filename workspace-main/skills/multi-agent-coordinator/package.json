@@ -1,0 +1,20 @@
+{
+  "name": "multi-agent-coordinator",
+  "version": "1.0.0",
+  "description": "多节点协同工作协调器",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "node-agent": "node scripts/node-agent.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.19"
+  },
+  "keywords": [
+    "multi-agent",
+    "coordinator",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,999 @@
+/**
+ * index.js - Multi-Agent Coordinator 技能主入口
+ * 处理用户指令，调用 CLI 工具控制扫描器
+ * 
+ * 集成：任务状态控制模块 (SQLite)
+ * - 任务创建时写入数据库
+ * - 状态变更时更新数据库
+ * - 异步子 Agent 更新状态
+ */
+
+const { execSync, spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const SKILL_DIR = __dirname;
+const CONFIG_DIR = path.join(SKILL_DIR, '..', '..', 'config');
+const PID_FILE = path.join(CONFIG_DIR, 'coordinator.pid');
+const STATUS_FILE = path.join(CONFIG_DIR, 'coordinator.status');
+const DB_PATH = path.join(CONFIG_DIR, 'task_states.db');
+
+// 待确认的任务计划存储（使用文件持久化）
+const PENDING_PLANS_FILE = path.join(CONFIG_DIR, 'pending-plans.json');
+
+/**
+ * 调用 Python 任务状态控制器
+ */
+function callTaskController(action, params) {
+  const pythonScript = `
+import sys
+sys.path.insert(0, '${path.join(SKILL_DIR, 'src').replace(/\\/g, '/')}')
+from task_state_controller import TaskStateController, TaskStatus
+
+ctrl = TaskStateController('${DB_PATH.replace(/\\/g, '/')}')
+
+if '${action}' == 'create':
+    result = ctrl.create_task(**${JSON.stringify(params)})
+    print('SUCCESS' if result else 'FAILED')
+    
+elif '${action}' == 'update':
+    status = TaskStatus('${params.status}')
+    result = ctrl.update_status(
+        '${params.task_id}',
+        status,
+        '${params.changed_by || 'system'}',
+        '${params.reason || ''}',
+        ${params.error_msg ? `'${params.error_msg}'` : 'None'}
+    )
+    print('SUCCESS' if result else 'FAILED')
+    
+elif '${action}' == 'get':
+    task = ctrl.get_task('${params.task_id}')
+    import json
+    print(json.dumps(task, default=str))
+    
+elif '${action}' == 'list_active':
+    tasks = ctrl.list_active_tasks()
+    import json
+    print(json.dumps(tasks, default=str))
+`;
+  
+  try {
+    const tempScript = path.join(CONFIG_DIR, 'temp_ctrl.py');
+    fs.writeFileSync(tempScript, pythonScript, 'utf-8');
+    
+    const result = execSync(`python "${tempScript}"`, {
+      encoding: 'utf-8',
+      timeout: 5000
+    });
+    
+    fs.unlinkSync(tempScript);
+    
+    // 尝试解析 JSON
+    try {
+      return JSON.parse(result.trim());
+    } catch {
+      return result.trim();
+    }
+  } catch (e) {
+    console.error('[错误] 调用状态控制器失败:', e.message);
+    return null;
+  }
+}
+
+/**
+ * 保存待确认计划到文件
+ */
+function savePendingPlan(plan) {
+  try {
+    const plans = loadPendingPlans();
+    plans[plan.id] = plan;
+    fs.writeFileSync(PENDING_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf-8');
+    return true;
+  } catch (e) {
+    console.error(`[错误] 保存计划失败: ${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 加载待确认计划
+ */
+function loadPendingPlans() {
+  try {
+    if (fs.existsSync(PENDING_PLANS_FILE)) {
+      return JSON.parse(fs.readFileSync(PENDING_PLANS_FILE, 'utf-8'));
+    }
+  } catch (e) {
+    console.error(`[错误] 加载计划失败: ${e.message}`);
+  }
+  return {};
+}
+
+/**
+ * 获取并移除待确认计划
+ */
+function getAndRemovePendingPlan() {
+  const plans = loadPendingPlans();
+  const planIds = Object.keys(plans);
+  if (planIds.length === 0) return null;
+  
+  const planId = planIds[0];
+  const plan = plans[planId];
+  delete plans[planId];
+  
+  try {
+    fs.writeFileSync(PENDING_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf-8');
+  } catch (e) {
+    console.error(`[错误] 更新计划文件失败: ${e.message}`);
+  }
+  
+  return { planId, plan };
+}
+
+/**
+ * 清空待确认计划
+ */
+function clearPendingPlans() {
+  try {
+    if (fs.existsSync(PENDING_PLANS_FILE)) {
+      fs.unlinkSync(PENDING_PLANS_FILE);
+    }
+    return true;
+  } catch (e) {
+    console.error(`[错误] 清空计划失败: ${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 生成任务执行计划
+ * @param {string} userRequest - 用户的原始需求
+ * @returns {Object} 任务计划
+ */
+function generateTaskPlan(userRequest) {
+  // 分析需求类型
+  const request = userRequest.toLowerCase();
+  
+  // 账单分析任务
+  if (request.includes('账单') || request.includes('billing')) {
+    return {
+      id: `plan-${Date.now()}`,
+      title: '账单分析报告生成',
+      description: userRequest,
+      steps: [
+        { step: 1, action: '复制账单文件到共享目录', node: '主节点 (kimi)', status: 'pending' },
+        { step: 2, action: '预建输出目录结构', node: '主节点 (kimi)', status: 'pending' },
+        { step: 3, action: '发送分析任务给 Claude Code', node: '主节点 (kimi)', status: 'pending' },
+        { step: 4, action: '读取账单数据并分析', node: '子节点 (claude)', status: 'pending' },
+        { step: 5, action: '生成 Markdown 报告', node: '子节点 (claude)', status: 'pending' },
+        { step: 6, action: '读取报告并展示给用户', node: '主节点 (kimi)', status: 'pending' }
+      ],
+      estimatedTime: '2-3 分钟',
+      involvedNodes: ['kimi (主)', 'claude (子)'],
+      resources: {
+        inputFiles: ['billing_*.csv'],
+        outputDir: 'D:\\projects\\workspace\\shared\\output\\'
+      }
+    };
+  }
+  
+  // 代码开发任务
+  if (request.includes('代码') || request.includes('开发') || request.includes('编写')) {
+    return {
+      id: `plan-${Date.now()}`,
+      title: '代码开发任务',
+      description: userRequest,
+      steps: [
+        { step: 1, action: '分析需求并设计架构', node: '主节点 (kimi)', status: 'pending' },
+        { step: 2, action: '预建项目目录结构', node: '主节点 (kimi)', status: 'pending' },
+        { step: 3, action: '分配编码任务给子节点', node: '主节点 (kimi)', status: 'pending' },
+        { step: 4, action: '编写核心代码', node: '子节点 (claude)', status: 'pending' },
+        { step: 5, action: '代码审查和测试', node: '主节点 (kimi)', status: 'pending' }
+      ],
+      estimatedTime: '5-10 分钟',
+      involvedNodes: ['kimi (主)', 'claude (子)'],
+      resources: {
+        outputDir: 'D:\\projects\\workspace\\shared\\output\\'
+      }
+    };
+  }
+  
+  // 通用任务模板
+  return {
+    id: `plan-${Date.now()}`,
+    title: '多节点协作任务',
+    description: userRequest,
+    steps: [
+      { step: 1, action: '分析需求并制定计划', node: '主节点 (kimi)', status: 'pending' },
+      { step: 2, action: '预建必要的目录结构', node: '主节点 (kimi)', status: 'pending' },
+      { step: 3, action: '发送任务给子节点执行', node: '主节点 (kimi)', status: 'pending' },
+      { step: 4, action: '执行任务', node: '子节点', status: 'pending' },
+      { step: 5, action: '汇总结果并展示', node: '主节点 (kimi)', status: 'pending' }
+    ],
+    estimatedTime: '3-5 分钟',
+    involvedNodes: ['kimi (主)', 'claude (子)'],
+    resources: {
+      outputDir: 'D:\\projects\\workspace\\shared\\output\\'
+    }
+  };
+}
+
+/**
+ * 格式化任务计划为可读文本
+ */
+function formatTaskPlan(plan) {
+  let output = `\n========================================\n`;
+  output += `📋 任务执行计划\n`;
+  output += `========================================\n\n`;
+  output += `任务: ${plan.title}\n`;
+  output += `描述: ${plan.description}\n\n`;
+  
+  output += `执行步骤:\n`;
+  plan.steps.forEach(s => {
+    output += `  ${s.step}. [${s.node}] ${s.action}\n`;
+  });
+  
+  output += `\n预计耗时: ${plan.estimatedTime}\n`;
+  output += `涉及节点: ${plan.involvedNodes.join(', ')}\n`;
+  
+  if (plan.resources.inputFiles) {
+    output += `输入文件: ${plan.resources.inputFiles.join(', ')}\n`;
+  }
+  output += `输出目录: ${plan.resources.outputDir}\n`;
+  
+  output += `\n========================================\n`;
+  output += `请回复 "确认" 开始执行，或回复 "取消" 放弃\n`;
+  output += `========================================\n`;
+  
+  return output;
+}
+
+/**
+ * 生成示例报告（实际应该调用子节点生成）
+ */
+function generateSampleReport() {
+  return `# AI 模型账单分析报告
+
+**账单周期**: 2026-02-09 ~ 2026-03-04
+
+---
+
+## 总体概览
+
+| 指标 | 数值 |
+|------|------|
+| **总消费金额** | 1,280.81 元 |
+| **日均消费** | 55.69 元/天 |
+| **总请求次数** | 12,377 次 |
+| **总 Token 数** | 249,316,876 |
+| **使用模型数量** | 13 个 |
+| **计费天数** | 23 天 |
+
+---
+
+## 消费排行 TOP 5
+
+| 排名 | 模型 | 消费(元) | 占比 |
+|------|------|----------|------|
+| 1 | MiniMax-M2.5 | 716.24 | 55.92% |
+| 2 | kimi-k2.5 | 274.66 | 21.45% |
+| 3 | claude-4.5-sonnet | 150.52 | 11.75% |
+| 4 | doubao-seed-2.0-pro | 70.79 | 5.53% |
+| 5 | glm-4.7 | 79.71 | 6.22% |
+
+---
+
+## 关键洞察
+
+1. **消费集中度高**: MiniMax-M2.5 占总消费 55.92%
+2. **国内模型主导**: 国内模型占比 95.96%
+3. **日消费波动大**: 最高 201.36 元 vs 最低 1.90 元
+
+---
+
+*报告生成时间: ${new Date().toLocaleString('zh-CN')}*
+`;
+}
+function prepareDirectories(outputDir) {
+  try {
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+      console.log(`[准备] 创建目录: ${outputDir}`);
+    }
+    return true;
+  } catch (e) {
+    console.error(`[错误] 创建目录失败: ${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 任务执行清单文件路径
+ */
+function getTaskChecklistPath(planId) {
+  return path.join(CONFIG_DIR, `task-checklist-${planId}.md`);
+}
+
+/**
+ * 创建任务执行清单文件
+ */
+function createTaskChecklist(plan) {
+  const checklistPath = getTaskChecklistPath(plan.id);
+  const timestamp = new Date().toLocaleString('zh-CN');
+  
+  let content = `# 任务执行清单\n\n`;
+  content += `**任务ID**: ${plan.id}\n`;
+  content += `**任务名称**: ${plan.title}\n`;
+  content += `**创建时间**: ${timestamp}\n`;
+  content += `**状态**: 🔄 执行中\n\n`;
+  content += `## 执行步骤\n\n`;
+  
+  plan.steps.forEach(s => {
+    content += `- [ ] **步骤 ${s.step}** - ${s.action} (${s.node})\n`;
+  });
+  
+  content += `\n## 执行日志\n\n`;
+  
+  try {
+    fs.writeFileSync(checklistPath, content, 'utf-8');
+    console.log(`[清单] 创建任务执行清单: ${checklistPath}`);
+    return checklistPath;
+  } catch (e) {
+    console.error(`[错误] 创建清单文件失败: ${e.message}`);
+    return null;
+  }
+}
+
+/**
+ * 更新任务步骤状态
+ */
+function updateTaskStep(planId, stepNumber, status, errorMessage = null) {
+  const checklistPath = getTaskChecklistPath(planId);
+  
+  try {
+    if (!fs.existsSync(checklistPath)) {
+      console.error(`[错误] 清单文件不存在: ${checklistPath}`);
+      return false;
+    }
+    
+    let content = fs.readFileSync(checklistPath, 'utf-8');
+    const timestamp = new Date().toLocaleString('zh-CN');
+    
+    // 更新步骤状态
+    const stepPattern = new RegExp(`- \\[ ${status === 'completed' ? ' ' : 'x'}?\\] \\*\\*步骤 ${stepNumber}\\*\\*`, 'g');
+    
+    if (status === 'completed') {
+      content = content.replace(
+        new RegExp(`- \\[ \\] \\*\\*步骤 ${stepNumber}\\*\\*`, 'g'),
+        `- [x] **步骤 ${stepNumber}**`
+      );
+      // 添加完成日志
+      content += `\n[${timestamp}] ✅ 步骤 ${stepNumber} 完成\n`;
+    } else if (status === 'failed') {
+      content = content.replace(
+        new RegExp(`- \\[ \\] \\*\\*步骤 ${stepNumber}\\*\\*`, 'g'),
+        `- [x] **步骤 ${stepNumber}** ❌ 失败: ${errorMessage}`
+      );
+      // 添加错误日志
+      content += `\n[${timestamp}] ❌ 步骤 ${stepNumber} 失败: ${errorMessage}\n`;
+    } else if (status === 'in_progress') {
+      // 添加开始日志
+      content += `\n[${timestamp}] 🔄 步骤 ${stepNumber} 开始执行\n`;
+    }
+    
+    fs.writeFileSync(checklistPath, content, 'utf-8');
+    return true;
+  } catch (e) {
+    console.error(`[错误] 更新清单失败: ${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 完成任务清单
+ */
+function completeTaskChecklist(planId, success = true, finalMessage = '') {
+  const checklistPath = getTaskChecklistPath(planId);
+  
+  try {
+    if (!fs.existsSync(checklistPath)) {
+      return false;
+    }
+    
+    let content = fs.readFileSync(checklistPath, 'utf-8');
+    const timestamp = new Date().toLocaleString('zh-CN');
+    
+    // 更新状态
+    content = content.replace(
+      /\*\*状态\*\*: .*$/m,
+      `**状态**: ${success ? '✅ 已完成' : '❌ 失败'}`
+    );
+    
+    // 添加完成记录
+    content += `\n## 任务完成\n\n`;
+    content += `- **完成时间**: ${timestamp}\n`;
+    content += `- **最终结果**: ${success ? '成功' : '失败'}\n`;
+    if (finalMessage) {
+      content += `- **备注**: ${finalMessage}\n`;
+    }
+    
+    fs.writeFileSync(checklistPath, content, 'utf-8');
+    return true;
+  } catch (e) {
+    console.error(`[错误] 完成清单失败: ${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 读取任务执行清单
+ */
+function readTaskChecklist(planId) {
+  const checklistPath = getTaskChecklistPath(planId);
+  
+  try {
+    if (fs.existsSync(checklistPath)) {
+      return fs.readFileSync(checklistPath, 'utf-8');
+    }
+    return null;
+  } catch (e) {
+    console.error(`[错误] 读取清单失败: ${e.message}`);
+    return null;
+  }
+}
+
+/**
+ * 执行 CLI 命令
+ */
+function runCli(command) {
+  const cliPath = path.join(SKILL_DIR, 'coordinator-cli.js');
+  try {
+    const output = execSync(`node "${cliPath}" ${command}`, {
+      encoding: 'utf-8',
+      timeout: 10000
+    });
+    return { success: true, output: output.trim() };
+  } catch (error) {
+    return { 
+      success: false, 
+      output: error.stdout?.trim() || '',
+      error: error.stderr?.trim() || error.message 
+    };
+  }
+}
+
+/**
+ * 读取状态文件
+ */
+function readStatus() {
+  try {
+    if (!fs.existsSync(STATUS_FILE)) {
+      return null;
+    }
+    return JSON.parse(fs.readFileSync(STATUS_FILE, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 读取 PID 文件
+ */
+function readPid() {
+  try {
+    if (!fs.existsSync(PID_FILE)) {
+      return null;
+    }
+    return JSON.parse(fs.readFileSync(PID_FILE, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 启动任务扫描
+ */
+function startScan() {
+  console.log('[技能] 正在启动任务扫描...');
+  
+  const result = runCli('start');
+  
+  if (!result.success) {
+    return {
+      success: false,
+      message: `启动失败: ${result.error}`
+    };
+  }
+  
+  // 等待并检查状态
+  setTimeout(() => {
+    const status = readStatus();
+    const pidInfo = readPid();
+    
+    if (status && status.status === 'running') {
+      console.log(`[技能] 扫描器已启动`);
+      console.log(`  - 节点类型: ${status.nodeType || pidInfo?.nodeType}`);
+      console.log(`  - 进程ID: ${status.pid}`);
+      console.log(`  - 已处理任务: ${status.tasksProcessed || 0}`);
+    } else {
+      console.log(`[技能] 扫描器启动中，请稍后查看状态`);
+    }
+  }, 1500);
+  
+  return {
+    success: true,
+    message: '扫描器启动指令已发送',
+    output: result.output
+  };
+}
+
+/**
+ * 停止任务扫描
+ */
+function stopScan() {
+  console.log('[技能] 正在停止任务扫描...');
+  
+  const pidInfo = readPid();
+  if (!pidInfo) {
+    return {
+      success: false,
+      message: '扫描器未运行'
+    };
+  }
+  
+  const result = runCli('stop');
+  
+  // 检查是否已停止
+  setTimeout(() => {
+    const newPidInfo = readPid();
+    if (!newPidInfo) {
+      console.log('[技能] 扫描器已停止');
+    }
+  }, 1000);
+  
+  return {
+    success: result.success,
+    message: result.success ? '扫描器停止指令已发送' : `停止失败: ${result.error}`,
+    output: result.output
+  };
+}
+
+/**
+ * 查看扫描状态
+ */
+function getStatus() {
+  const result = runCli('status');
+  
+  // 同时读取详细状态
+  const status = readStatus();
+  const pidInfo = readPid();
+  
+  let detail = '';
+  if (status) {
+    const uptime = status.startTime ? Math.floor((Date.now() - status.startTime) / 1000) : 0;
+    const mins = Math.floor(uptime / 60);
+    const secs = uptime % 60;
+    
+    detail = `
+详细状态:
+  - 运行状态: ${status.status}
+  - 进程ID: ${status.pid || pidInfo?.pid || '未知'}
+  - 运行时间: ${mins}分${secs}秒
+  - 已处理任务: ${status.tasksProcessed || 0}
+  - 错误次数: ${status.errors || 0}
+  - 最后扫描: ${status.lastScan ? new Date(status.lastScan).toLocaleString() : '无'}
+  - 最后更新: ${new Date(status.timestamp).toLocaleString()}`;
+  }
+  
+  return {
+    success: true,
+    message: result.output + detail,
+    status: status,
+    pidInfo: pidInfo
+  };
+}
+
+/**
+ * 重载配置
+ */
+function reloadConfig() {
+  console.log('[技能] 正在重载配置...');
+  
+  const pidInfo = readPid();
+  if (!pidInfo) {
+    return {
+      success: false,
+      message: '扫描器未运行，无需重载'
+    };
+  }
+  
+  const result = runCli('reload');
+  
+  // 检查重载状态
+  setTimeout(() => {
+    const status = readStatus();
+    if (status && status.status === 'running' && status.reloadedAt) {
+      console.log(`[技能] 配置已重载于 ${new Date(status.reloadedAt).toLocaleString()}`);
+    }
+  }, 2000);
+  
+  return {
+    success: result.success,
+    message: result.success ? '配置重载指令已发送' : `重载失败: ${result.error}`,
+    output: result.output
+  };
+}
+
+/**
+ * 主处理函数
+ * @param {string} command - 用户指令
+ * @returns {Object} 处理结果
+ */
+function handleCommand(command) {
+  const cmd = command.toLowerCase().trim();
+  
+  // 检查是否有待确认的计划
+  if (cmd === '确认' || cmd === '确认执行') {
+    const pending = getAndRemovePendingPlan();
+    
+    if (pending) {
+      const { planId, plan } = pending;
+      
+      // 创建任务执行清单
+      const checklistPath = createTaskChecklist(plan);
+      
+      // 在 SQLite 中创建任务记录
+      console.log(`[状态] 创建任务记录: ${planId}`);
+      callTaskController('create', {
+        task_id: planId,
+        title: plan.title,
+        description: plan.description,
+        sender: 'kimi',
+        receiver: 'claude',
+        output_dir: plan.resources.outputDir,
+        claude_workspace: `D:\\projects\\workspace\\node-claude\\task-${planId}`,
+        metadata: { steps: plan.steps.length, estimated_time: plan.estimatedTime }
+      });
+      
+      // 开始执行计划
+      console.log(`[执行] 开始执行任务计划: ${plan.title}`);
+      
+      // 步骤1: 复制账单文件到共享目录
+      updateTaskStep(planId, 1, 'in_progress');
+      const sourceFile = 'C:\\Users\\luzhe\\.openclaw\\workspace-main\\datas\\billing_2026-02-09_2026-03-04.csv';
+      const sharedInputDir = 'D:\\projects\\workspace\\shared\\input\\';
+      try {
+        if (!fs.existsSync(sharedInputDir)) {
+          fs.mkdirSync(sharedInputDir, { recursive: true });
+        }
+        fs.copyFileSync(sourceFile, path.join(sharedInputDir, 'billing_2026-02-09_2026-03-04.csv'));
+        updateTaskStep(planId, 1, 'completed');
+        console.log('[步骤1] ✅ 复制账单文件完成');
+      } catch (e) {
+        updateTaskStep(planId, 1, 'failed', e.message);
+        completeTaskChecklist(planId, false, '步骤1失败：无法复制文件');
+        // 更新数据库状态为失败
+        callTaskController('update', {
+          task_id: planId,
+          status: 'failed',
+          changed_by: 'kimi',
+          reason: '步骤1失败：无法复制文件',
+          error_msg: e.message
+        });
+        return {
+          success: false,
+          message: `❌ 任务执行失败\n\n${readTaskChecklist(planId)}`,
+          checklistPath: checklistPath
+        };
+      }
+      
+      // 步骤2: 预建输出目录结构
+      updateTaskStep(planId, 2, 'in_progress');
+      const outputDir = path.join(plan.resources.outputDir, 'task-billing-' + Date.now());
+      const dirSuccess = prepareDirectories(outputDir);
+      if (dirSuccess) {
+        updateTaskStep(planId, 2, 'completed');
+        console.log('[步骤2] ✅ 预建输出目录完成');
+      } else {
+        updateTaskStep(planId, 2, 'failed', '创建目录失败');
+        completeTaskChecklist(planId, false, '步骤2失败：无法创建目录');
+        // 更新数据库状态为失败
+        callTaskController('update', {
+          task_id: planId,
+          status: 'failed',
+          changed_by: 'kimi',
+          reason: '步骤2失败：无法创建目录',
+          error_msg: '创建目录失败'
+        });
+        return {
+          success: false,
+          message: `❌ 任务执行失败\n\n${readTaskChecklist(planId)}`,
+          checklistPath: checklistPath
+        };
+      }
+      
+      // 步骤3: 发送分析任务给 Claude Code（异步方式）
+      updateTaskStep(planId, 3, 'in_progress');
+      console.log('[步骤3] 🔄 启动异步子 Agent 发送任务给 Claude Code...');
+      
+      // Claude Code 只能写入自己的工作区
+      const claudeWorkspace = 'D:\\projects\\workspace\\node-claude';
+      const claudeOutputDir = path.join(claudeWorkspace, `task-${planId}`);
+      
+      // 构建发送给 Claude Code 的任务指令
+      const taskInstruction = `# [TASK] 协同工作任务单
+
+## 任务信息
+- 任务ID: ${planId}
+- 发送者: kimi
+- 发送时间: ${new Date().toLocaleString('zh-CN')}
+- 优先级: high
+
+## 任务指令
+请分析账单文件并生成专业报告：
+
+1. 读取文件: billing_2026-02-09_2026-03-04.csv（当前目录）
+2. 分析账单数据，计算：
+   - 总消费金额
+   - 日均消费
+   - 总请求次数
+   - 总Token数
+   - 使用的模型数量
+   - 按模型统计消费排行
+   - 按日期统计消费趋势
+   - 按提供商统计消费分布
+3. 生成 Markdown 格式的完整报告
+
+## 输出要求
+- 输出目录: ${claudeOutputDir}
+- 报告文件: ${path.join(claudeOutputDir, 'billing_report.md')}
+- 结果文件: ${path.join(claudeOutputDir, 'result.json')}
+
+## result.json 格式
+{
+  "taskId": "${planId}",
+  "status": "success/failed",
+  "output": "执行结果摘要",
+  "outputFiles": ["billing_report.md"],
+  "executedAt": "ISO时间戳"
+}
+
+请使用 Read 工具读取 CSV 文件，然后用 Write 工具写入报告文件。`;
+
+      // 记录发送的消息到任务清单
+      const messageLog = `## 发送给 Claude Code 的消息\n\n\`\`\`\n${taskInstruction}\n\`\`\`\n`;
+      try {
+        const checklistPathForLog = getTaskChecklistPath(planId);
+        let checklistContent = fs.readFileSync(checklistPathForLog, 'utf-8');
+        checklistContent += messageLog;
+        fs.writeFileSync(checklistPathForLog, checklistContent, 'utf-8');
+      } catch (e) {
+        console.error('[警告] 记录消息到清单失败:', e.message);
+      }
+      
+      // 创建异步子 Agent 脚本
+      const asyncWorkerScript = `
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const planId = '${planId}';
+const claudeWorkspace = '${claudeWorkspace}';
+const claudeOutputDir = '${claudeOutputDir}';
+const sharedOutputDir = '${outputDir}';
+const taskInstruction = \`${taskInstruction.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+
+console.log('[子Agent] 启动异步任务处理...');
+console.log('[子Agent] 任务ID:', planId);
+
+// 发送任务给 Claude Code
+console.log('[子Agent] 📤 正在调用 Claude Code...');
+console.log('[子Agent] ⏱️ 这可能需要 1-2 分钟，请耐心等待...');
+
+try {
+  const claudeCmd = \`claude -p "\${taskInstruction.replace(/"/g, '\\\\"').replace(/\n/g, '\\\\n')}" --permission-mode acceptEdits --output-format json --max-turns 15\`;
+  
+  const claudeOutput = execSync(claudeCmd, {
+    encoding: 'utf-8',
+    timeout: 300000,
+    cwd: claudeWorkspace
+  });
+  
+  console.log('[子Agent] ✅ Claude Code 调用完成');
+  
+  // 解析结果
+  let sendResult;
+  try {
+    const jsonOutput = JSON.parse(claudeOutput.trim());
+    sendResult = {
+      success: jsonOutput.subtype === 'success' && !jsonOutput.is_error,
+      session_id: jsonOutput.session_id,
+      cost_usd: jsonOutput.total_cost_usd,
+      duration_ms: jsonOutput.duration_ms
+    };
+  } catch (e) {
+    sendResult = { success: true };
+  }
+  
+  // 等待文件生成
+  console.log('[子Agent] ⏱️ 等待 15 秒让 Claude Code 生成文件...');
+  const startWait = Date.now();
+  while (Date.now() - startWait < 15000) {
+    // 忙等待
+  }
+  
+  // 检查并复制文件
+  const claudeResultJsonPath = path.join(claudeOutputDir, 'result.json');
+  const claudeReportPath = path.join(claudeOutputDir, 'billing_report.md');
+  
+  if (fs.existsSync(claudeResultJsonPath) && fs.existsSync(claudeReportPath)) {
+    // 复制到共享目录
+    fs.copyFileSync(claudeResultJsonPath, path.join(sharedOutputDir, 'result.json'));
+    fs.copyFileSync(claudeReportPath, path.join(sharedOutputDir, 'billing_report.md'));
+    console.log('[子Agent] ✅ 文件已复制到共享目录');
+    
+    // 写入完成标记文件
+    const completionMarker = path.join(sharedOutputDir, '.task-completed');
+    fs.writeFileSync(completionMarker, JSON.stringify({
+      planId: planId,
+      completedAt: new Date().toISOString(),
+      status: 'success'
+    }, null, 2));
+    
+    console.log('[子Agent] ✅ 任务完成标记已创建');
+  } else {
+    console.error('[子Agent] ❌ Claude Code 未生成文件');
+    
+    // 写入失败标记
+    const failureMarker = path.join(sharedOutputDir, '.task-failed');
+    fs.writeFileSync(failureMarker, JSON.stringify({
+      planId: planId,
+      failedAt: new Date().toISOString(),
+      reason: 'Claude Code 未生成文件'
+    }, null, 2));
+  }
+  
+} catch (e) {
+  console.error('[子Agent] ❌ 执行失败:', e.message);
+  
+  // 写入失败标记
+  const failureMarker = path.join(sharedOutputDir, '.task-failed');
+  fs.writeFileSync(failureMarker, JSON.stringify({
+    planId: planId,
+    failedAt: new Date().toISOString(),
+    reason: e.message
+  }, null, 2));
+}
+
+console.log('[子Agent] 🏁 子 Agent 执行结束');
+`;
+      
+      // 写入子 Agent 脚本
+      const workerScriptPath = path.join(CONFIG_DIR, `async-worker-${planId}.js`);
+      fs.writeFileSync(workerScriptPath, asyncWorkerScript, 'utf-8');
+      
+      // 启动子 Agent（非阻塞）
+      const { spawn } = require('child_process');
+      const workerProcess = spawn('node', [workerScriptPath], {
+        detached: true,
+        stdio: ['ignore', 'ignore', 'ignore']
+      });
+      workerProcess.unref();
+      
+      console.log(`[步骤3] ✅ 异步子 Agent 已启动 (PID: ${workerProcess.pid})`);
+      updateTaskStep(planId, 3, 'completed');
+      
+      // 记录启动信息到清单
+      const workerLog = `\n## 异步子 Agent 启动\n\n- 子 Agent PID: ${workerProcess.pid}\n- 脚本路径: ${workerScriptPath}\n- 状态: 后台运行中\n- 注意: 任务正在后台执行，完成后会生成标记文件\n\n`;
+      try {
+        const checklistPathForWorker = getTaskChecklistPath(planId);
+        let checklistContent = fs.readFileSync(checklistPathForWorker, 'utf-8');
+        checklistContent += workerLog;
+        fs.writeFileSync(checklistPathForWorker, checklistContent, 'utf-8');
+      } catch (e) {
+        console.error('[警告] 记录子 Agent 信息失败:', e.message);
+      }
+      
+      // 立即返回，不等待 Claude Code 完成
+      return {
+        success: true,
+        message: `✅ 任务已提交给异步子 Agent 处理！\n\n任务: ${plan.title}\n子 Agent PID: ${workerProcess.pid}\n\n任务正在后台执行，预计 1-2 分钟完成。\n完成后会生成标记文件: ${path.join(outputDir, '.task-completed')}\n\n您可以继续其他操作，或稍后查看任务状态。`,
+        plan: plan,
+        workerPid: workerProcess.pid,
+        status: 'async_running'
+      };
+    }
+    
+    return {
+      success: false,
+      message: '没有待确认的任务计划'
+    };
+  }
+  
+  // 取消计划
+  if (cmd === '取消' || cmd === '取消任务') {
+    const plans = loadPendingPlans();
+    if (Object.keys(plans).length > 0) {
+      clearPendingPlans();
+      return {
+        success: true,
+        message: '已取消任务计划'
+      };
+    }
+    return {
+      success: false,
+      message: '没有待取消的任务计划'
+    };
+  }
+  
+  // 启动扫描
+  if (cmd.includes('启动') && cmd.includes('扫描')) {
+    return startScan();
+  }
+  
+  // 停止扫描
+  if (cmd.includes('停止') && cmd.includes('扫描')) {
+    return stopScan();
+  }
+  
+  // 查看状态
+  if (cmd.includes('查看') && cmd.includes('状态')) {
+    return getStatus();
+  }
+  
+  // 重载配置
+  if (cmd.includes('重载') || (cmd.includes(' reload'))) {
+    return reloadConfig();
+  }
+  
+  // 创建任务 - 生成计划并等待确认
+  if (cmd.includes('创建任务') || cmd.includes('分析') || cmd.includes('生成')) {
+    const plan = generateTaskPlan(command);
+    savePendingPlan(plan);
+    
+    return {
+      success: true,
+      message: formatTaskPlan(plan),
+      planId: plan.id,
+      status: 'pending_confirmation'
+    };
+  }
+  
+  return {
+    success: false,
+    message: '未知指令，支持的指令:\n- 创建任务 xxx / 分析 xxx / 生成 xxx\n- 确认 / 取消\n- 启动任务扫描 / 停止任务扫描\n- 查看扫描状态 / 重载扫描配置'
+  };
+}
+
+// 如果直接运行，处理命令行参数
+if (require.main === module) {
+  const command = process.argv[2] || 'status';
+  const result = handleCommand(command);
+  
+  console.log('\n========================================');
+  console.log('执行结果:', result.success ? '成功' : '失败');
+  console.log('消息:', result.message);
+  console.log('========================================\n');
+  
+  process.exit(result.success ? 0 : 1);
+}
+
+module.exports = {
+  handleCommand,
+  startScan,
+  stopScan,
+  getStatus,
+  reloadConfig,
+  generateTaskPlan,
+  formatTaskPlan,
+  prepareDirectories,
+  createTaskChecklist,
+  updateTaskStep,
+  completeTaskChecklist,
+  readTaskChecklist,
+  savePendingPlan,
+  loadPendingPlans,
+  getAndRemovePendingPlan,
+  clearPendingPlans
+};

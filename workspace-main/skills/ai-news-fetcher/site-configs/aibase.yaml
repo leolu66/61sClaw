@@ -1,0 +1,58 @@
+# AiBase 新闻
+# https://news.aibase.cn/news
+# 技术栈：Nuxt SSR，数据在 JSON 中
+
+_schema_version: "1.0"
+
+site:
+  name: "AiBase新闻"
+  base_url: "https://news.aibase.cn"
+  enabled: true
+  config_version: "2024-03-09-v1"
+  
+  request:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    timeout: 30
+    delay: 2
+
+list_page:
+  url: "https://news.aibase.cn/news"
+  
+  item_selector:
+    type: "json_ssr"
+    # AiBase 的列表在索引 15，每条新闻包含 title, description, createTime 等字段
+    ssr_list_index: 15
+  
+  fields:
+    title:
+      type: "json_ssr_field"
+      value: "title"
+      required: true
+    
+    summary:
+      type: "json_ssr_field"
+      value: "description"
+      default: ""
+    
+    # 使用 oid 构建链接
+    link:
+      type: "json_ssr_field"
+      value: "oid"
+      transform: "aibase_link"
+    
+    # AiBase 有 author 字段
+    author:
+      type: "json_ssr_field"
+      value: "author"
+      default: "AiBase"
+    
+    # 时间戳（秒级）
+    publish_time:
+      type: "json_ssr_field"
+      value: "createTime"
+      transform: "timestamp_seconds_to_iso"
+
+dedup:
+  field: "url"
+  method: "url_normalize"

@@ -1,0 +1,242 @@
+[
+  {
+    "title": "500万美元，AI语言学习App月流水被拉到新高度",
+    "url": "https://36kr.com/p/3766708074955266",
+    "summary": "靠抱Duolingo大腿？",
+    "publish_time": "6分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "刚刚，李飞飞世界模型新成果发布",
+    "url": "https://36kr.com/p/3767429011800840",
+    "summary": "1亿splats进浏览器，手机VR都能开超大规模3D世界",
+    "publish_time": "7分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "打倒 Sam Altman",
+    "url": "https://36kr.com/p/3766636925596417",
+    "summary": "革命的火种终于播撒在大洋彼岸。",
+    "publish_time": "11分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "做 AI 竞品分析失败了：一次被 Bug 和需求膨胀拖垮的尝试",
+    "url": "https://36kr.com/p/3767314713821955",
+    "summary": "虽然心痛，但也算交了学费。",
+    "publish_time": "13分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "Agentic AI 从“副驾驶”走向“自动驾驶”，谁来为智能体越权买单？",
+    "url": "https://36kr.com/p/3767348033126918",
+    "summary": "智能体越权、系统瘫痪、数据外泄——那张赔偿账单，该由谁来签字？",
+    "publish_time": "43分钟前",
+    "source": "36氪AI",
+    "site_url": "https://36kr.com"
+  },
+  {
+    "title": "供应链攻击波及 OpenAI！macOS 用户请立刻检查你的应用版本",
+    "url": "https://news.aibase.cn/news/27127",
+    "summary": "OpenAI确认其产品受Axios库供应链攻击影响，但未发现数据泄露或系统入侵。公司已更新macOS应用安全认证，敦促用户尽快升级至最新版本以防范风险。",
+    "publish_time": "2026-04-15T09:56:44",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "谷歌 Gemini 新功能炸了！复杂概念秒变可玩模拟，学物理再也不用死记硬背",
+    "url": "https://news.aibase.cn/news/27126",
+    "summary": "谷歌Gemini推出交互式模拟生成功能，可将复杂概念转化为可操作的动态模拟，让用户通过动手操作直观理解，如月球绕地球运行等抽象知识。",
+    "publish_time": "2026-04-15T09:35:55",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "国产万亿大模型 Kimi K2.6-code 上线：对标 Sonnet 4.6 的编程新利器",
+    "url": "https://news.aibase.cn/news/27125",
+    "summary": "月之暗面推出专为AI编程优化的万亿参数大模型Kimi K2.6-code-preview，已在Kimi Code上线，标志着国产编程AI进入万亿参数时代。该模型在K2.5基础上深度优化，重点提升推理深度、代码生成可靠性和多轮对话能力，思维链表现更强，代码生成更稳定，支持复杂编程任务。",
+    "publish_time": "2026-04-15T09:25:07",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "​ NAACP 控告埃隆・马斯克的 xAI 在孟菲斯附近排放有毒污染物",
+    "url": "https://news.aibase.cn/news/27124",
+    "summary": "美国全国有色人种协进会（NAACP）起诉马斯克旗下人工智能公司xAI，指控其在孟菲斯黑人社区非法排放有毒污染物，违反《清洁空气法》。诉讼由环境组织代表提出，涉及xAI为数据中心供电的临时发电厂。",
+    "publish_time": "2026-04-15T09:19:54",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "估值达 3 亿美元，AfterQuery完成A轮融资助力AI数据创新",
+    "url": "https://news.aibase.cn/news/27123",
+    "summary": "人工智能实验室AfterQuery完成3000万美元A轮融资，估值达3亿美元。本轮由Altos Ventures领投，资金将用于拓展专家网络与专业数据覆盖。公司年化营收已突破1亿美元。",
+    "publish_time": "2026-04-15T09:16:10",
+    "source": "AiBase新闻",
+    "site_url": "https://news.aibase.cn"
+  },
+  {
+    "title": "Anthropic未发布模型Claude Mythos Preview通过复杂端到端网络靶场评估",
+    "url": "https://x.com/WesRoth/status/2044223375841874362",
+    "summary": "英国AI安全研究所（AISI）近日确认，Anthropic公司尚未发布的AI模型“Claude Mythos Preview”成为首个成功完成高度复杂端到端网络靶场评估的AI模型。该评估模拟了一个完整的企业级网络环境。",
+    "publish_time": "2026-04-15T09:24:06.562000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "Anthropic 部署 Claude Opus 4.6 作为自动对齐研究员",
+    "url": "https://x.com/WesRoth/status/2044219158175642101",
+    "summary": "Anthropic 近日部署了 Claude Opus 4.6 模型，并将其作为“自动对齐研究员”，旨在解决“弱到强泛化”这一复杂的 AI 对齐问题。该问题指的是利用一个较弱的 AI 模型来安全地监督一个更强大模型的训练。据文中所述，Anthropic 的研究员已进行了一项实验，以探究 Claude Opus 4.6 是否能加速这一关键对齐问题的研究。原文未提供实验的具体方法、过程、结果或任何数据细节。",
+    "publish_time": "2026-04-15T09:04:11.110000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "斯坦福AI实验室提出零样本世界模型，缩小AI与人类儿童视觉学习数据差距",
+    "url": "https://x.com/StanfordAILab/status/2044214490972205157",
+    "summary": "斯坦福AI实验室（StanfordAILab）近日指出，当前最先进的AI模型实现视觉能力所需的数据量远超人类儿童数个数量级。为缩小这一差距，研究者提出了Zero-shot World Model（ZWM，零样本世界模型）方法。该方法取得了显著进展，其BabyZWM模型在仅使用单个儿童的第一人称视角数据进行训练的情况下，性能达到了与某个未明确说明的基准相当的水平。",
+    "publish_time": "2026-04-15T09:04:11.109000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "ArgaLabs 推出 AI 测试工具，为每个 PR 创建沙盒并运行端到端测试",
+    "url": "https://x.com/garrytan/status/2044212026927657330",
+    "summary": "ArgaLabs 近日发布了一款 AI 工具，旨在弥合开发与测试之间的能力差距。该工具的核心功能是为每个 Pull Request (PR) 自动创建一个沙盒环境，该环境包含 Stripe、Slack 等模拟服务以及数据库、Redis 等内存依赖。在此沙盒中，工具会自动生成并运行端到端（E2E）测试。当测试失败时，它会将失败信息发送回用户的 AI 代理，以便代理进行修复。",
+    "publish_time": "2026-04-15T08:44:06.719000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "Canva宣布将于4月16日举办“Canva Create”活动，整合AI进展开启创作新纪元",
+    "url": "https://x.com/canva/status/2044186745814540765",
+    "summary": "Canva宣布即将开启其发展的新纪元，并将于2026年4月16日在洛杉矶SoFi Stadium举办“Canva Create”活动，预计有6000人到场，全球数百万人线上参与。文章回顾了Canva过去十年将设计整合到一个平台，为190个国家超过2.5亿人赋能的历史。文中观点认为，当前AI创作过程仍高度碎片化，用户需在多个工具间切换。Canva的愿景是将整个创作过程整合到一个地方，实现从概念到成品的无缝流程。其AI产品已被使用超过270亿次，成为全球第三大最常用的AI产品。此次活动将整合所有进展，标志着创作新时代的开始。",
+    "publish_time": "2026-04-15T07:04:06.836000",
+    "source": "InfoQ AI简报",
+    "site_url": "https://www.infoq.cn"
+  },
+  {
+    "title": "推理卡毛利率下滑超7%，天数智芯「降价换量」的买卖值不值？",
+    "url": "https://www.leiphone.com/category/chips/bwKuuKUGYn8a3IbY.html",
+    "summary": "贡献超六成营收的训练系列“天垓”，依然是主力。",
+    "publish_time": "04月13日 12:56",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "明日新程完成连续两轮融资，领跑Harness群体多智能体赛道",
+    "url": "https://www.leiphone.com/category/industrynews/aiDP2A7dwvwQL6Ue.html",
+    "summary": "让亿万多智能体与人类结成巨大的价值网络。",
+    "publish_time": "04月13日 12:12",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "「作弊」内幕曝光！3DMark回应将某知名国产手机除名；李想朋友圈炮轰东风日产恶意拉踩，后者高管回应；美的空调又发行业首创产品",
+    "url": "https://www.leiphone.com/category/zaobao/aAthIc8n66aAjB1c.html",
+    "summary": "早报来啦~",
+    "publish_time": "04月13日 09:34",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "50万起步的蔚来ES9，能否站稳高端？",
+    "url": "https://www.leiphone.com/category/transportation/jBTqlSGmVPNug7Er.html",
+    "summary": "不与其他“9系”竞争，蔚来ES9定位「行政旗舰SUV」。",
+    "publish_time": "04月12日 21:54",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "金立创始人刘立荣消失8年后最新动向：疑在印尼卖家具；月薪3万，DeepSeek聘人去内蒙草原守机房；比亚迪坪山园区大火，公司回应火势已扑灭",
+    "url": "https://www.leiphone.com/category/zaobao/TTND3GWsmzuoRuiC.html",
+    "summary": "早报来啦~",
+    "publish_time": "32分钟前",
+    "source": "AI科技评论",
+    "site_url": "https://www.leiphone.com"
+  },
+  {
+    "title": "荣耀PC家族大爆发！荣耀“打洲本”“养虾本”集中亮相",
+    "url": "https://www.qbitai.com/2026/04/401202.html",
+    "summary": "首创“养虾本”，荣耀AI PC迈入3.0时代",
+    "publish_time": "12小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "教育部等五部门关于印发《“人工智能+教育”行动计划》的通知",
+    "url": "https://www.qbitai.com/2026/04/401190.html",
+    "summary": "推进人工智能人才培养和应用创新，统筹谋划基础环境和创新生态建设，系统构建智能时代的教育体系。",
+    "publish_time": "15小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "什么Excel这函数那公式，我千问永远一步搞定",
+    "url": "https://www.qbitai.com/2026/04/401127.html",
+    "summary": "手机电脑全打通，随时随地大白话改表格",
+    "publish_time": "17小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "斯坦福年度结论：中美大模型已没差距",
+    "url": "https://www.qbitai.com/2026/04/401094.html",
+    "summary": "AI普及率正在历史性加速",
+    "publish_time": "19小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "李开复陆奇重仓同一家Harness智能体公司，李笛带队，4个月2轮融资3-5年粮草",
+    "url": "https://www.qbitai.com/2026/04/401065.html",
+    "summary": "团队即将发布最新成果",
+    "publish_time": "20小时前",
+    "source": "量子位",
+    "site_url": "https://www.qbitai.com"
+  },
+  {
+    "title": "中国AI芯片论文入选计算机体系结构界Nature！芯片会自己做决策了",
+    "url": "https://zhidx.com/p/548156.html",
+    "summary": "AI算力的下一个红利，是让芯片“吃饱”。",
+    "publish_time": "2026-04-14T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "中兴如何赢下“AI马拉松”？连接+算力正撬动万亿级市场",
+    "url": "https://zhidx.com/p/547785.html",
+    "summary": "AI产品、生态协同双升级，中兴通讯交出战略升级新答卷。",
+    "publish_time": "2026-04-13T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "护航MiniMax、驯服小龙虾，腾讯云的AI Agent“数字总部”亮了",
+    "url": "https://zhidx.com/p/547940.html",
+    "summary": "腾讯云“防爆箱”护航百万“龙虾”上岗，已助力MiniMax强化学习训练。",
+    "publish_time": "2026-04-12T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "我在扣子“领养”了哆啦A梦！帮我招人、做视频、跑出一家工作室，实测效果超预期",
+    "url": "https://zhidx.com/p/547672.html",
+    "summary": "云电脑、云手机、Seedance 2.0，扣子里都有了。",
+    "publish_time": "2026-04-11T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  },
+  {
+    "title": "又一国产模型黑马出世，追平Gemini 2.5 Pro，空间编辑反超视频模型？",
+    "url": "https://zhidx.com/p/547805.html",
+    "summary": "京东发力“空间智能”图像模型，一手开源、一手卷落地。",
+    "publish_time": "2026-04-10T00:00:00",
+    "source": "智东西",
+    "site_url": "https://zhidx.com"
+  }
+]
