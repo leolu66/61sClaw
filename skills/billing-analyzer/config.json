@@ -1,5 +1,0 @@
-{
-  "_comment": "账单分析技能配置文件 - 使用相对路径，相对于技能目录",
-  "output_dir": "./output",
-  "shared_output_dir": "D:\\projects\\workspace\\shared\\output\\billing_report"
-}
