@@ -1,0 +1,51 @@
+# GitHub 合规检查自动生成的忽略规则
+# 隐私文件和敏感信息
+**/MEMORY.md
+**/USER.md
+**/SOUL.md
+**/AGENTS.md
+**/IDENTITY.md
+**/HEARTBEAT.md
+**/BOOTSTRAP.md
+**/CORE_PRINCIPLES.md
+
+# 工作日志和历史记忆
+**/logs/
+**/memory/
+
+# 用户数据
+**/datas/
+**/data/
+**/agfiles/
+
+# 技能运行时数据
+**/skills/*/data/
+**/skills/*/node_modules/
+
+# Python 缓存
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# IDE 配置
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+
+# 临时文件
+**/tmp/
+**/temp/
+**/*.tmp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 调试文件
+debug*.py
+test*.py
+*_debug.py
+*_test.py
+*_backup.py
+*_old.py

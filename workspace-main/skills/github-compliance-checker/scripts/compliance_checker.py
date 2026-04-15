@@ -58,41 +58,56 @@ class ComplianceChecker:
     # 确认记录文件路径（放在技能自己的 data 目录下）
     APPROVALS_FILE = Path(__file__).parent.parent / 'data' / '.compliance_approvals.json'
     
-    # 允许在根目录存在的目录（白名单）
+    # 工作空间名称列表（多工作空间结构）
+    WORKSPACE_NAMES = {
+        'workspace-main',
+        'workspace-entertainment',
+        'workspace-validator',
+        'workspace-feishu-agent',
+        'workspace-test-agent',
+    }
+    
+    # 允许在工作空间根目录存在的目录（白名单）
     ALLOWED_TOP_LEVEL_DIRS = {
         'skills',           # 技能目录（核心，唯一允许同步的代码目录）
         'scripts',          # 公共脚本目录
         '.git',             # Git 系统目录（必须保留，不会同步到远程）
     }
     
-    # 允许在根目录存在的文件（白名单）
+    # 允许在工作空间根目录存在的文件（白名单）
     ALLOWED_TOP_LEVEL_FILES = {
         '.gitignore',       # Git 忽略规则文件（唯一允许同步的根目录文件）
     }
     
-    # 合规规则定义
+    # 合规规则定义（支持多工作空间结构，路径格式: workspace-name/path/to/file）
     RULES = {
         # 高风险 - 隐私保护
         "memory.md": {
-            "pattern": r"^MEMORY\.md$",
+            "pattern": r"^([^/]+/)?MEMORY\.md$",
             "type": "个人记忆文件",
             "risk": RiskLevel.HIGH,
             "description": "包含长期记忆和个人偏好"
         },
         "user_config": {
-            "pattern": r"^(USER|SOUL|AGENTS|IDENTITY|HEARTBEAT|BOOTSTRAP|CORE_PRINCIPLES)\.md$",
+            "pattern": r"^([^/]+/)?(USER|SOUL|AGENTS|IDENTITY|HEARTBEAT|BOOTSTRAP|CORE_PRINCIPLES)\.md$",
             "type": "用户配置文件",
             "risk": RiskLevel.HIGH,
             "description": "包含用户个人信息和配置"
         },
         "logs": {
-            "pattern": r"^logs/.*$",
+            "pattern": r"^([^/]+/)?logs/.*$",
             "type": "工作日志",
             "risk": RiskLevel.HIGH,
             "description": "工作日志文件，可能包含敏感信息"
         },
+        "memory_dir": {
+            "pattern": r"^([^/]+/)?memory/.*$",
+            "type": "历史记忆文件",
+            "risk": RiskLevel.HIGH,
+            "description": "历史记忆文件，包含个人数据"
+        },
         "user_data": {
-            "pattern": r"^(datas|data|agfiles)/.*$",
+            "pattern": r"^([^/]+/)?(datas|data|agfiles)/.*$",
             "type": "用户数据",
             "risk": RiskLevel.HIGH,
             "description": "用户数据目录"
@@ -100,19 +115,19 @@ class ComplianceChecker:
         
         # 中风险
         "tools_md": {
-            "pattern": r"^TOOLS\.md$",
+            "pattern": r"^([^/]+/)?TOOLS\.md$",
             "type": "本地工具配置",
             "risk": RiskLevel.MEDIUM,
             "description": "本地工具配置，包含环境特定信息"
         },
         "skill_data": {
-            "pattern": r"^skills/[^/]+/data/.*$",
+            "pattern": r"^([^/]+/)?skills/[^/]+/data/.*$",
             "type": "技能数据",
             "risk": RiskLevel.MEDIUM,
             "description": "技能运行时数据"
         },
         "skill_node_modules": {
-            "pattern": r"^skills/[^/]+/node_modules/.*$",
+            "pattern": r"^([^/]+/)?skills/[^/]+/node_modules/.*$",
             "type": "技能依赖",
             "risk": RiskLevel.MEDIUM,
             "description": "技能 node_modules 目录"
@@ -120,7 +135,7 @@ class ComplianceChecker:
         
         # 低风险 - 技术规范
         "pycache": {
-            "pattern": r"^__pycache__/.*$",
+            "pattern": r"^([^/]+/)?__pycache__/.*$",
             "type": "Python 缓存",
             "risk": RiskLevel.LOW,
             "description": "Python 缓存文件"
@@ -138,13 +153,13 @@ class ComplianceChecker:
             "description": "Python 优化后的字节码"
         },
         "vscode": {
-            "pattern": r"^\.vscode/.*$",
+            "pattern": r"^([^/]+/)?\.vscode/.*$",
             "type": "VS Code 配置",
             "risk": RiskLevel.LOW,
             "description": "VS Code 编辑器配置"
         },
         "idea": {
-            "pattern": r"^\.idea/.*$",
+            "pattern": r"^([^/]+/)?\.idea/.*$",
             "type": "IDEA 配置",
             "risk": RiskLevel.LOW,
             "description": "JetBrains IDEA 配置"
@@ -162,7 +177,7 @@ class ComplianceChecker:
             "description": "Vim 编辑器交换文件"
         },
         "tmp": {
-            "pattern": r"^(tmp|temp)/.*$|.*\.tmp$",
+            "pattern": r"^([^/]+/)?(tmp|temp)/.*$|.*\.tmp$",
             "type": "临时文件",
             "risk": RiskLevel.LOW,
             "description": "临时文件"
@@ -180,7 +195,7 @@ class ComplianceChecker:
             "description": "Windows 缩略图缓存"
         },
         "debug_files": {
-            "pattern": r"^(debug|test).*\.py$|.*_(debug|test|backup|old)\.py$",
+            "pattern": r"^([^/]+/)?(debug|test).*\.py$|.*_(debug|test|backup|old)\.py$",
             "type": "调试文件",
             "risk": RiskLevel.LOW,
             "description": "调试和测试文件"
@@ -192,9 +207,14 @@ class ComplianceChecker:
         初始化检查器
         
         Args:
-            repo_path: 仓库路径，默认为当前目录
+            repo_path: 仓库路径，默认为 ~/.openclaw (GitHub根目录)
+                      支持多工作空间结构，如 workspace-main, workspace-entertainment 等
         """
-        self.repo_path = Path(repo_path) if repo_path else Path.cwd()
+        if repo_path:
+            self.repo_path = Path(repo_path)
+        else:
+            # 默认使用 ~/.openclaw 作为GitHub根目录
+            self.repo_path = Path.home() / '.openclaw'
         self.issues: List[ComplianceIssue] = []
         self.approved_items: Dict[str, dict] = self._load_approvals()
     
@@ -339,9 +359,25 @@ class ComplianceChecker:
         else:
             print(f"[警告] 未找到确认记录: {item_path}")
     
+    def _get_workspace_relative_path(self, file_path: str) -> Tuple[str, str]:
+        """
+        解析文件路径，提取工作空间名称和相对路径
+        
+        Args:
+            file_path: 文件路径（如 "workspace-main/skills/test/skill.yaml"）
+            
+        Returns:
+            (workspace_name, relative_path) 元组
+            如果不是在工作空间内，返回 ("", file_path)
+        """
+        parts = file_path.split('/')
+        if len(parts) > 0 and parts[0] in self.WORKSPACE_NAMES:
+            return parts[0], '/'.join(parts[1:])
+        return "", file_path
+    
     def check_non_skills_content(self, files: List[str]) -> List[ComplianceIssue]:
         """
-        检查 skills 目录外的新增内容
+        检查 skills 目录外的新增内容（支持多工作空间结构）
         
         Args:
             files: 文件路径列表
@@ -355,24 +391,45 @@ class ComplianceChecker:
             # 跳过空路径
             if not file_path:
                 continue
-                
-            # 检查是否在 skills 目录内
-            if file_path.startswith('skills/'):
+            
+            # 解析工作空间和相对路径
+            workspace, relative_path = self._get_workspace_relative_path(file_path)
+            
+            # 如果不在任何工作空间内，检查是否是工作空间本身或其他允许的内容
+            if not workspace:
+                # 检查是否是工作空间目录本身
+                if file_path in self.WORKSPACE_NAMES or any(file_path.startswith(ws + '/') for ws in self.WORKSPACE_NAMES):
+                    continue
+                # 检查是否是根级别的其他允许内容
+                if self.is_approved(file_path):
+                    continue
+                # 根目录下的其他内容需要确认
+                issues.append(ComplianceIssue(
+                    file_path=file_path,
+                    issue_type="非白名单根目录内容",
+                    risk_level=RiskLevel.HIGH,
+                    description=f"路径 '{file_path}' 不在工作空间内，请确认是否允许同步",
+                    rule="external_content"
+                ))
+                continue
+            
+            # 检查是否在 skills 目录内（在工作空间内）
+            if relative_path.startswith('skills/'):
                 continue
             
             # 检查是否已确认
             if self.is_approved(file_path):
                 continue
             
-            # 获取顶级目录或文件名
-            top_level = file_path.split('/')[0]
+            # 获取工作空间内的顶级目录或文件名
+            top_level = relative_path.split('/')[0] if relative_path else ""
             
             # 检查是否是允许的顶级目录
             if top_level in self.ALLOWED_TOP_LEVEL_DIRS:
                 continue
             
             # 检查是否是允许的顶级文件
-            if file_path in self.ALLOWED_TOP_LEVEL_FILES:
+            if relative_path in self.ALLOWED_TOP_LEVEL_FILES:
                 continue
             
             # 检查是否是 .gitignore 中的文件
@@ -380,22 +437,22 @@ class ComplianceChecker:
                 continue
             
             # 不在白名单内的内容，发出告警
-            if '/' in file_path:
+            if '/' in relative_path:
                 # 这是一个目录下的文件
                 issues.append(ComplianceIssue(
                     file_path=file_path,
                     issue_type="非白名单目录内容",
                     risk_level=RiskLevel.HIGH,
-                    description=f"目录 '{top_level}' 不在允许同步的白名单内，请确认是否允许同步",
+                    description=f"工作空间 '{workspace}' 中的目录 '{top_level}' 不在允许同步的白名单内",
                     rule="external_content"
                 ))
             else:
                 # 这是一个顶级文件
                 issues.append(ComplianceIssue(
                     file_path=file_path,
-                    issue_type="非白名单根目录文件",
+                    issue_type="非白名单工作空间根目录文件",
                     risk_level=RiskLevel.HIGH,
-                    description=f"文件 '{file_path}' 不在允许同步的白名单内，请确认是否允许同步",
+                    description=f"工作空间 '{workspace}' 中的文件 '{relative_path}' 不在允许同步的白名单内",
                     rule="external_content"
                 ))
         
