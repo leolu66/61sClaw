@@ -122,32 +122,34 @@ def test_model(base_url, api_key, model, timeout=30, max_tokens=10):
 
 def print_report(results):
     """打印健康状态报告"""
-    print("\n" + "=" * 60)
+    # 标准输出：模型名称 | 状态 | 响应时间 | 错误信息
+    print("\n" + "=" * 80)
     print("🔍 WhaleCloud 模型健康状态报告")
-    print("=" * 60)
+    print("=" * 80)
+    print(f"{'模型名称':<25} {'状态':<12} {'响应时间':<12} {'错误信息'}")
+    print("-" * 80)
     
     available = 0
     total = len(results)
     
     for result in results:
-        model_name = result['name']
-        model_id = result['id']
+        model_name = result['name'][:24]
         status = result['status']
         response_time = result['response_time']
-        error = result.get('error')
+        error = result.get('error') or '-'
         
         if status.startswith('✅'):
             available += 1
         
-        print(f"\n{status} {model_name}")
-        print(f"   模型 ID: {model_id}")
-        print(f"   响应时间: {response_time}")
-        if error:
-            print(f"   错误: {error}")
+        # 截断错误信息以适应输出
+        if len(error) > 40:
+            error = error[:37] + '...'
+        
+        print(f"{model_name:<25} {status:<12} {response_time:<12} {error}")
     
-    print("\n" + "-" * 60)
+    print("=" * 80)
     print(f"📊 总结: {available}/{total} 个模型可用")
-    print("=" * 60 + "\n")
+    print("=" * 80 + "\n")
 
 
 def main():
