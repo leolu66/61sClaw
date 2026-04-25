@@ -105,6 +105,7 @@
 | **multi-agent-coordinator** | 多智能体协调服务 | 复杂任务调度 | L2 |
 | **mouseinfo-launcher** | 鼠标坐标获取服务 | 获取屏幕坐标、取色 | L2 |
 | **image-recognition** | 图像识别服务 | OCR、截图分析 | L2 |
+| **whalecloud-model-health-checker** | WhaleCloud 模型健康检查 | 测试模型可用性 | L2 |
 
 ### 2.6 搜索与信息获取服务
 
