@@ -280,10 +280,10 @@ def filter_by_operator(news_list, operators):
         return news_list
     
     operator_keywords = {
-        '中国移动': ['中国移动', '中移动', 'China Mobile'],
-        '中国电信': ['中国电信', '中电信', 'China Telecom'],
-        '中国联通': ['中国联通', '中联通', 'China Unicom'],
-        '中国铁塔': ['中国铁塔', '中铁塔', 'China Tower']
+        '中国移动': ['中国移动', '中移动', 'China Mobile', '移动'],
+        '中国电信': ['中国电信', '中电信', 'China Telecom', '电信'],
+        '中国联通': ['中国联通', '中联通', 'China Unicom', '联通'],
+        '中国铁塔': ['中国铁塔', '中铁塔', 'China Tower', '铁塔']
     }
     
     filtered = []
