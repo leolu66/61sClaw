@@ -10,15 +10,15 @@ const openai = createOpenAI({
   baseURL: process.env.OPENAI_BASE_URL,
 });
 
-// Models - 使用鲸云可用模型
-export const gpt4Model = openai('claude-4.5-sonnet', {
+// Models - 使用鲸云可用模型 (OpenAI 兼容接口)
+// 注意：kimi-k2.5 不支持 structuredOutputs，改用 gpt-4o
+export const gpt4Model = openai('gpt-4o', {
   structuredOutputs: true,
 });
-export const gpt4MiniModel = openai('doubao-seed-2.0-pro', {
+export const gpt4MiniModel = openai('gpt-4o-mini', {
   structuredOutputs: true,
 });
-export const o3MiniModel = openai('doubao-seed-2.0-lite', {
-  reasoningEffort: 'medium',
+export const o3MiniModel = openai('gpt-4o', {
   structuredOutputs: true,
 });
 

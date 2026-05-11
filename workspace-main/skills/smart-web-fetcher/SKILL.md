@@ -7,169 +7,113 @@ description: "智能网页内容获取工具，自动适配不同类型网页。
 
 ## Overview
 智能网页内容抓取工具，自动选择最优抓取策略：
-- 普通静态网页：使用内置web_fetch工具，快速高效提取markdown格式内容
-- 复杂场景（反爬限制/动态渲染/需要登录/需要交互）：自动切换到playwright模拟浏览器操作，绕过限制获取完整内容
+- **普通静态网页**：使用内置 web_fetch 工具，快速高效提取 markdown 格式内容
+- **复杂场景**（反爬限制/动态渲染/需要登录/需要交互）：自动切换到 playwright 模拟浏览器操作，绕过限制获取完整内容
 
 ## 核心功能
 1. 自动识别网页类型，选择最优抓取方案
-2. 支持自定义User-Agent、请求头等参数
+2. 支持自定义 User-Agent、请求头等参数
 3. 支持模拟点击、滚动、输入等交互操作
-4. 支持提取纯文本、markdown、HTML等多种格式内容
-5. 自动处理反爬验证、Cookie管理
+4. 支持提取纯文本、markdown、HTML 等多种格式内容
+5. 自动处理反爬验证、Cookie 管理
+6. **自动提取网页标题生成文件名**，Windows 系统兼容（非法字符替换为 `-`）
+7. **可指定输出目录**，默认输出到 `skills/smart-web-fetcher/output/`
+8. **自动下载图片至本地**：在输出目录下创建 `images/` 文件夹，将网页中所有图片下载到本地，MD 文件中图片引用地址自动替换为本地路径
 
 ## 快速使用
 
-### 基础调用
+### 基础调用（自动生成文件名）
 ```bash
 python scripts/fetch_web_content.py <网页URL>
 ```
+会自动提取网页标题 → 生成 `标题.md` 保存到 `output/` 目录
 
-### 高级参数
+### 指定输出目录
 ```bash
-# 强制使用playwright模式抓取
-python scripts/fetch_web_content.py <网页URL> --mode playwright
-
-# 指定输出格式（markdown/text/html）
-python scripts/fetch_web_content.py <网页URL> --format markdown
-
-# 保存结果到文件
-python scripts/fetch_web_content.py <网页URL> -o output.md
-
-# 等待页面加载完成时间（秒）
-python scripts/fetch_web_content.py <网页URL> --wait 3
+python scripts/fetch_web_content.py <网页URL> --output-dir D:\my_articles
 ```
 
-### 特殊场景处理
-- 需要登录的网页：先手动登录获取Cookie，通过`--cookie`参数传入
-- 需要点击按钮/接受弹窗的页面：通过`--click-selector`参数指定要点击的元素选择器
-- 需要滚动加载的页面：通过`--scroll`参数自动滚动到底部加载全部内容
+### 指定完整输出路径
+```bash
+python scripts/fetch_web_content.py <网页URL> -o result.md
+```
+
+### 强制使用 playwright 模式
+```bash
+python scripts/fetch_web_content.py <网页URL> --mode playwright
+```
+
+### 复杂页面（接受Cookie+滚动+等待）
+```bash
+python scripts/fetch_web_content.py <网页URL> --mode playwright --click-selector "#accept-btn" --scroll --wait 5
+```
+
+### 全参数示例
+```bash
+python scripts/fetch_web_content.py https://www.toutiao.com/article/xxx \
+    --mode playwright \
+    --format markdown \
+    --output-dir ./output \
+    --wait 5 \
+    --scroll \
+    --click-selector ".close-btn" \
+    --cookie "sessionid=abc123; token=xyz"
+```
+
+## 参数说明
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `url` | 要抓取的网页URL | **必填** |
+| `--mode` | 抓取模式：auto / web_fetch / playwright | auto |
+| `--format` | 输出格式：markdown / text / html | markdown |
+| `-o, --output` | 指定完整输出文件路径 | 自动生成 |
+| `--output-dir` | 输出目录（不指定 -o 时有效） | `output/` |
+| `--wait` | playwright 页面加载等待秒数 | 3 |
+| `--cookie` | Cookie，格式 `"key1=val1; key2=val2"` | 无 |
+| `--click-selector` | 页面加载后要点击的元素CSS选择器 | 无 |
+| `--scroll` | 是否自动滚动加载全部内容 | 否 |
+| `--no-images` | 不下载图片（仅提取文本） | 否 |
+
+## 图片下载与本地化
+
+默认情况下，抓取网页内容时会自动执行以下操作：
+
+1. **提取图片 URL** — 支持 Markdown `![alt](url)`、HTML `<img src>`、微信 `data-src` 等格式
+2. **下载到本地** — 在输出目录下创建 `images/` 文件夹，按 URL 哈希命名（`a1b2c3d4e5f6.jpg`）
+3. **替换引用路径** — MD 文件中的图片地址自动改为 `images/文件名.扩展名`
+4. **去重复用** — 同一张图片重复出现只下载一次
+5. **智能格式识别** — 根据 HTTP 响应的 Content-Type 自动修正扩展名（如 URL 无后缀也能正确识别）
+6. **失败隔离** — 单张图片下载失败不影响整体流程，失败图片保留原 URL
+
+### 禁用图片下载
+```bash
+python scripts/fetch_web_content.py <URL> --no-images
+```
+
+## 文件命名规则
+
+- 自动提取网页 `<title>` 标签或 markdown 第一个 `# 标题`
+- Windows 非法字符（`\ / : * ? " < > |`）自动替换为 `-`
+- 多个连续 `-` 合并为一个
+- 文件名超过 200 字符自动截断
+- 未提取到标题时，从 URL 中取最后一段作为后备文件名
 
 ## Structuring This Skill
 
-[TODO: Choose the structure that best fits this skill's purpose. Common patterns:
+Workflow-Based
 
-**1. Workflow-Based** (best for sequential processes)
-- Works well when there are clear step-by-step procedures
-- Example: DOCX skill with "Workflow Decision Tree" -> "Reading" -> "Creating" -> "Editing"
-- Structure: ## Overview -> ## Workflow Decision Tree -> ## Step 1 -> ## Step 2...
+## Workflow Decision Tree
 
-**2. Task-Based** (best for tool collections)
-- Works well when the skill offers different operations/capabilities
-- Example: PDF skill with "Quick Start" -> "Merge PDFs" -> "Split PDFs" -> "Extract Text"
-- Structure: ## Overview -> ## Quick Start -> ## Task Category 1 -> ## Task Category 2...
+1. 用户提供 URL → 判断是否需要特殊交互（点击/滚动/登录）
+2. 无交互 → 优先 `web_fetch`（快速） → 成功则输出
+3. 有交互 / web_fetch 失败 → 自动 `playwright`（模拟浏览器） → 输出
+4. 提取网页标题 → 生成 Windows 兼容文件名 → 保存到指定目录
 
-**3. Reference/Guidelines** (best for standards or specifications)
-- Works well for brand guidelines, coding standards, or requirements
-- Example: Brand styling with "Brand Guidelines" -> "Colors" -> "Typography" -> "Features"
-- Structure: ## Overview -> ## Guidelines -> ## Specifications -> ## Usage...
-
-**4. Capabilities-Based** (best for integrated systems)
-- Works well when the skill provides multiple interrelated features
-- Example: Product Management with "Core Capabilities" -> numbered capability list
-- Structure: ## Overview -> ## Core Capabilities -> ### 1. Feature -> ### 2. Feature...
-
-Patterns can be mixed and matched as needed. Most skills combine patterns (e.g., start with task-based, add workflow for complex operations).
-
-Delete this entire "Structuring This Skill" section when done - it's just guidance.]
-
-## [TODO: Replace with the first main section based on chosen structure]
-
-[TODO: Add content here. See examples in existing skills:
-- Code samples for technical skills
-- Decision trees for complex workflows
-- Concrete examples with realistic user requests
-- References to scripts/templates/references as needed]
-
-## Resources (optional)
-
-Create only the resource directories this skill actually needs. Delete this section if no resources are required.
+## Resources
 
 ### scripts/
-Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
+- `fetch_web_content.py` — 主抓取脚本，支持 web_fetch / playwright 双模式
 
-**Examples from other skills:**
-- PDF skill: `fill_fillable_fields.py`, `extract_form_field_info.py` - utilities for PDF manipulation
-- DOCX skill: `document.py`, `utilities.py` - Python modules for document processing
-
-**Appropriate for:** Python scripts, shell scripts, or any executable code that performs automation, data processing, or specific operations.
-
-**Note:** Scripts may be executed without loading into context, but can still be read by Codex for patching or environment adjustments.
-
-### references/
-Documentation and reference material intended to be loaded into context to inform Codex's process and thinking.
-
-**Examples from other skills:**
-- Product management: `communication.md`, `context_building.md` - detailed workflow guides
-- BigQuery: API reference documentation and query examples
-- Finance: Schema documentation, company policies
-
-**Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Codex should reference while working.
-
-### assets/
-Files not intended to be loaded into context, but rather used within the output Codex produces.
-
-**Examples from other skills:**
-- Brand styling: PowerPoint template files (.pptx), logo files
-- Frontend builder: HTML/React boilerplate project directories
-- Typography: Font files (.ttf, .woff2)
-
-**Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
-
----
-
-**Not every skill requires all three types of resources.**
-
-## 开发规范参考
-
-文件路径规范（重要）：**
-
-#### 原则 1：技能自包含
-
-**所有技能默认只能在自己的工作空间内读写文件**。
-
-```python
-# ✅ 正确：使用相对路径，保存在技能目录内
-output_dir = Path(__file__).parent / "output"
-
-# ❌ 错误：使用绝对路径或硬编码路径
-output_dir = "D:\\projects\\workspace\\output"
-output_dir = "C:\\Users\\xxx\\Documents"
-```
-
-**要求**：
-- 使用相对路径（相对于技能目录）
-- 默认输出到技能自己的工作空间
-- 确保技能分享后仍可用
-
-#### 原则 2：外部协作需配置
-
-**如果技能需要在工作空间外读写文件（如多智能体共享目录），必须通过配置文件设置路径**。
-
-```python
-# ✅ 正确：从配置文件读取路径
-import json
-config = json.load(open("config.json"))
-shared_dir = config.get("shared_output_dir")
-
-# ❌ 错误：硬编码共享路径
-shared_dir = "D:\\projects\\workspace\\shared\\output"
-```
-
-**要求**：
-- 不硬编码外部路径
-- 通过配置文件或环境变量传入
-- 配置项名称清晰（如 `shared_dir`, `output_path`）
-
-#### 示例配置
-
-```json
-{
-  "output_dir": "./output",
-  "shared_dir": "D:\\projects\\workspace\\shared\\output"
-}
-```
-
-**为什么需要这个规范**：
-1. **可移植性** - 技能分享后，其他用户可以直接使用
-2. **安全性** - 避免意外写入系统目录
-3. **协作性** - 明确哪些路径是配置的，哪些是固定的
+### output/
+默认输出目录（自动创建），抓取结果文件保存在此。

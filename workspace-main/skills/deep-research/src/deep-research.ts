@@ -1,4 +1,3 @@
-import FirecrawlApp, { SearchResponse } from '@mendable/firecrawl-js';
 import { generateObject } from 'ai';
 import { compact } from 'lodash-es';
 import pLimit from 'p-limit';
@@ -6,6 +5,7 @@ import { z } from 'zod';
 
 import { o3MiniModel, trimPrompt } from './ai/providers';
 import { systemPrompt } from './prompt';
+import { smartSearch, SearchResult } from './search-providers';
 
 type Source = {
   url: string;
@@ -19,13 +19,6 @@ type ResearchResult = {
 
 // increase this if you have higher API rate limits
 const ConcurrencyLimit = 2;
-
-// Initialize Firecrawl with optional API key and optional base url
-
-const firecrawl = new FirecrawlApp({
-  apiKey: process.env.FIRECRAWL_KEY ?? '',
-  apiUrl: process.env.FIRECRAWL_BASE_URL,
-});
 
 // take en user query, return a list of SERP queries
 async function generateSerpQueries({
@@ -74,16 +67,16 @@ async function generateSerpQueries({
 
 async function processSerpResult({
   query,
-  result,
+  results,
   numLearnings = 3,
   numFollowUpQuestions = 3,
 }: {
   query: string;
-  result: SearchResponse;
+  results: SearchResult[];
   numLearnings?: number;
   numFollowUpQuestions?: number;
 }) {
-  const contents = compact(result.data.map(item => item.markdown)).map(
+  const contents = compact(results.map(item => item.markdown)).map(
     content => trimPrompt(content, 25_000),
   );
   console.log(`Ran ${query}, found ${contents.length} contents`);
@@ -174,14 +167,21 @@ export async function deepResearch({
     serpQueries.map(serpQuery =>
       limit(async () => {
         try {
-          const result = await firecrawl.search(serpQuery.query, {
-            timeout: 15000,
-            limit: 5,
-            scrapeOptions: { formats: ['markdown'] },
-          });
+          // 使用智能搜索（支持多搜索源）
+          const { results: searchResults, provider } = await smartSearch(serpQuery.query, 5);
+
+          if (searchResults.length === 0) {
+            console.log(`No results found for: ${serpQuery.query}`);
+            return {
+              learnings: [],
+              visitedSources: [],
+            };
+          }
+
+          console.log(`Using ${provider} for: ${serpQuery.query}`);
 
           // Collect sources (title + url) from this search
-          const newSources = compact(result.data.map(item => 
+          const newSources = compact(searchResults.map(item => 
             item.url && item.title ? { url: item.url, title: item.title.trim() } : null
           ));
           const newBreadth = Math.ceil(breadth / 2);
@@ -189,7 +189,7 @@ export async function deepResearch({
 
           const newLearnings = await processSerpResult({
             query: serpQuery.query,
-            result,
+            results: searchResults,
             numFollowUpQuestions: newBreadth,
           });
           const allLearnings = [...learnings, ...newLearnings.learnings];

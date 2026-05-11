@@ -38,7 +38,12 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
     Returns:
         TripSegment 列表
     """
+    from datetime import datetime as dt
+    today = dt.now()
+    
     print(f"\n📥 从 FOL 系统导入最近 {count} 条申请单...")
+    print(f"📅 当前日期: {today.strftime('%Y-%m-%d')}")
+    print(f"🔍 过滤条件: 状态='完成' 且 行程已开始 (开始日期 <= 今天)")
     
     applications_data = []
     
@@ -141,8 +146,48 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
     
     print(f"✅ 共 {len(applications_data)} 条申请单")
     
+    # 过滤：只保留状态为"完成"且行程已开始（开始日期 <= 今天）的申请单
+    from datetime import datetime as dt
+    today = dt.now()
+    
+    filtered_apps = []
+    for app in applications_data:
+        status = app.get('status', '')
+        start_date_str = app.get('start_date')
+        
+        # 检查状态
+        if status != '完成':
+            print(f"   ⏭️ 跳过 {app.get('form_no', '未知')}: 状态='{status}'（非完成）")
+            continue
+        
+        # 检查是否已开始（开始日期 <= 今天）
+        if start_date_str:
+            try:
+                start_date = dt.strptime(start_date_str, '%Y-%m-%d')
+                if start_date > today:
+                    print(f"   ⏭️ 跳过 {app.get('form_no', '未知')}: 行程未开始（{start_date_str} > {today.strftime('%Y-%m-%d')}）")
+                    continue
+            except:
+                pass
+        
+        filtered_apps.append(app)
+    
+    print(f"✅ 过滤后剩余 {len(filtered_apps)} 条申请单（状态=完成且已开始）")
+    
+    # 按结束日期降序排序（最近完成的优先）
+    def sort_key(app):
+        end_date_str = app.get('end_date', '')
+        if end_date_str:
+            try:
+                return dt.strptime(end_date_str, '%Y-%m-%d')
+            except:
+                pass
+        return dt.min
+    
+    filtered_apps.sort(key=sort_key, reverse=True)
+    
     # 取最近 N 条
-    applications_data = applications_data[:count]
+    applications_data = filtered_apps[:count]
     
     segments = []
     for app_data in applications_data:

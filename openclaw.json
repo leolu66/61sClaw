@@ -1,11 +1,11 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.4.11",
-    "lastTouchedAt": "2026-04-13T13:46:19.284Z"
+    "lastTouchedVersion": "2026.5.7",
+    "lastTouchedAt": "2026-05-11T01:45:59.412Z"
   },
   "wizard": {
-    "lastRunAt": "2026-03-28T12:11:36.879Z",
-    "lastRunVersion": "2026.3.24",
+    "lastRunAt": "2026-05-06T16:52:02.682Z",
+    "lastRunVersion": "2026.5.5",
     "lastRunCommand": "doctor",
     "lastRunMode": "local"
   },
@@ -17,6 +17,14 @@
       },
       "whalecloud:default": {
         "provider": "whalecloud",
+        "mode": "api_key"
+      },
+      "poloapi:default": {
+        "provider": "poloapi",
+        "mode": "api_key"
+      },
+      "poloapi-glm:default": {
+        "provider": "poloapi-glm",
         "mode": "api_key"
       }
     }
@@ -46,78 +54,38 @@
           }
         ]
       },
+      "poloapi": {
+        "baseUrl": "https://work.poloapi.com/v1",
+        "apiKey": "sk-0RE71Ka81hdmJyThVVEKsAkBgOT5j0cl1i27IiqX98JeovJf",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "Kimi-K2.5",
+            "name": "Kimi K2.5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 4,
+              "output": 21,
+              "cacheRead": 0.4,
+              "cacheWrite": 0
+            },
+            "contextWindow": 256000,
+            "maxTokens": 204800
+          }
+        ]
+      },
       "whalecloud": {
         "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/anthropic",
         "apiKey": "ailab_0MSAtJQa9d/tXaT2eW7wCK1FAfqh8ZVJlhptKupF2F/2ZaU01zwO0SyJtkLIXfo1f5iBemAbJBGR/wA8vkfuw8uUQIgcNB6gvKl2NGsjd0YdVnK0GP31spo=",
         "api": "anthropic-messages",
         "models": [
           {
-            "id": "claude-4.5-sonnet",
-            "name": "Claude 4.5 Sonnet",
-            "reasoning": true,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "claude-4.5-haiku",
-            "name": "Claude 4.5 Haiku",
-            "reasoning": false,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "claude-4.6-sonnet",
-            "name": "Claude 4.6 Sonnet",
-            "reasoning": true,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 65536
-          },
-          {
-            "id": "MiniMax-M2.5",
-            "name": "MiniMax M2.5",
-            "reasoning": false,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 192000
-          },
-          {
             "id": "MiniMax-M2.7",
             "name": "MiniMax M2.7",
+            "api": "anthropic-messages",
             "reasoning": true,
             "input": [
               "text"
@@ -134,6 +102,7 @@
           {
             "id": "doubao-seed-2.0-pro",
             "name": "Doubao Seed 2.0 Pro",
+            "api": "anthropic-messages",
             "reasoning": true,
             "input": [
               "text",
@@ -151,22 +120,7 @@
           {
             "id": "doubao-seed-2.0-lite",
             "name": "Doubao Seed 2.0 Lite",
-            "reasoning": false,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 256000,
-            "maxTokens": 131072
-          },
-          {
-            "id": "doubao-seed-2.0-mini",
-            "name": "Doubao Seed 2.0 Mini",
+            "api": "openai-completions",
             "reasoning": false,
             "input": [
               "text"
@@ -183,6 +137,7 @@
           {
             "id": "doubao-seed-2.0-code",
             "name": "Doubao Seed 2.0 Code",
+            "api": "anthropic-messages",
             "reasoning": true,
             "input": [
               "text"
@@ -197,24 +152,45 @@
             "maxTokens": 131072
           },
           {
-            "id": "glm-4.7",
-            "name": "Zhipu GLM-4.7",
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5",
+            "api": "anthropic-messages",
             "reasoning": false,
             "input": [
-              "text"
+              "text",
+              "image"
             ],
             "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
+              "input": 4,
+              "output": 21,
+              "cacheRead": 0.7,
               "cacheWrite": 0
             },
-            "contextWindow": 200000,
-            "maxTokens": 131072
+            "contextWindow": 256000,
+            "maxTokens": 204800
+          },
+          {
+            "id": "qwen3.6-plus",
+            "name": "QWen 3.6 Plus",
+            "api": "anthropic-messages",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 2,
+              "output": 12,
+              "cacheRead": 0.2,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
           },
           {
             "id": "glm-5",
             "name": "Zhipu GLM-5",
+            "api": "anthropic-messages",
             "reasoning": true,
             "input": [
               "text"
@@ -231,6 +207,7 @@
           {
             "id": "glm-5.1",
             "name": "Zhipu GLM-5.1",
+            "api": "anthropic-messages",
             "reasoning": true,
             "input": [
               "text"
@@ -243,6 +220,59 @@
             },
             "contextWindow": 200000,
             "maxTokens": 128000
+          },
+          {
+            "id": "kimi-k2.6",
+            "name": "Kimi K2.6",
+            "api": "anthropic-messages",
+            "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/v1",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 6.5,
+              "output": 27,
+              "cacheRead": 1.1,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 32768
+          },
+          {
+            "id": "deepseek-v4-pro",
+            "name": "DeepSeek V4 Pro",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 12,
+              "output": 24,
+              "cacheRead": 1,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1048576,
+            "maxTokens": 393216
+          },
+          {
+            "id": "deepseek-v4-flash",
+            "name": "DeepSeek V4 Flash",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 1,
+              "output": 2,
+              "cacheRead": 0.2,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1048576,
+            "maxTokens": 393216
           }
         ]
       },
@@ -284,95 +314,42 @@
           }
         ]
       },
-      "qwen": {
-        "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/anthropic",
-        "api": "anthropic-messages",
-        "models": [
-          {
-            "id": "qwen3.6-plus",
-            "name": "QWen 3.6 Plus",
-            "api": "anthropic-messages",
-            "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
-            "cost": {
-              "input": 2,
-              "output": 12,
-              "cacheRead": 0.2,
-              "cacheWrite": 0
-            },
-            "contextWindow": 1000000,
-            "maxTokens": 65536
-          },
-          {
-            "id": "qwen3.5-plus",
-            "name": "QWen 3.5 Plus",
-            "api": "anthropic-messages",
-            "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 1000000,
-            "maxTokens": 65536
-          },
-          {
-            "id": "qwen3.5-flash",
-            "name": "QWen 3.5 Flash",
-            "api": "anthropic-messages",
-            "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 1000000,
-            "maxTokens": 65536
-          }
-        ]
-      },
-      "cherry-90e84c85-ad91-4917-8fb8-4695475b7ebd": {
-        "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/v1",
-        "apiKey": "ailab_0MSAtJQa9d/tXaT2eW7wCK1FAfqh8ZVJlhptKupF2F/2ZaU01zwO0SyJtkLIXfo1f5iBemAbJBGR/wA8vkfuw8uUQIgcNB6gvKl2NGsjd0YdVnK0GP31spo=",
+      "poloapi-glm": {
+        "baseUrl": "https://work.poloapi.com/v1",
+        "apiKey": "sk-sU8eXebnm9Ycr8tEi0g5dvgCwZxyGiXPGwsIaJxeAIDQLMQu",
         "api": "openai-completions",
         "models": [
           {
-            "id": "kimi-k2.5",
-            "name": "kimi-k2.5",
-            "contextWindow": 128000
+            "id": "glm-5",
+            "name": "Zhipu GLM-5",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 4.8,
+              "output": 17.6,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 131072
           },
           {
-            "id": "kimi-k2-turbo",
-            "name": "kimi-k2-turbo",
-            "contextWindow": 128000
-          },
-          {
-            "id": "kimi-k2-thinking-turbo",
-            "name": "kimi-k2-thinking-turbo",
-            "contextWindow": 128000
-          },
-          {
-            "id": "kimi-k2-thinking",
-            "name": "kimi-k2-thinking",
-            "contextWindow": 128000
-          },
-          {
-            "id": "kimi-k2",
-            "name": "kimi-k2",
-            "contextWindow": 128000
+            "id": "glm-5.1",
+            "name": "Zhipu GLM-5.1",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 8,
+              "output": 56,
+              "cacheRead": 0.8,
+              "cacheWrite": 10
+            },
+            "contextWindow": 200000,
+            "maxTokens": 128000
           }
         ]
       }
@@ -381,12 +358,9 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "cherry-90e84c85-ad91-4917-8fb8-4695475b7ebd/kimi-k2.5"
+        "primary": "whalecloud/iWC-DeepSeek-V4-Flash"
       },
       "models": {
-        "whalecloud/MiniMax-M2.5": {
-          "alias": "iWC-MiniMax-M2.5"
-        },
         "whalecloud/MiniMax-M2.7": {
           "alias": "iWC-MiniMax-M2.7"
         },
@@ -405,6 +379,9 @@
         "whalecloud/doubao-seed-2.0-lite": {
           "alias": "iWC-Doubao-Lite"
         },
+        "whalecloud/qwen3.6-plus": {
+          "alias": "iWC-QWen-3.6-Plus"
+        },
         "whalecloud/qwen3.5-plus": {
           "alias": "iWC-QWen-Plus"
         },
@@ -414,20 +391,32 @@
         "whalecloud/glm-5.1": {
           "alias": "iWC-GLM-5.1"
         },
-        "whalecloud/claude-4.5-sonnet": {
-          "alias": "iWC-Claude-4.5-Sonnet"
-        },
-        "whalecloud/claude-4.5-haiku": {
-          "alias": "iWC-Claude-4.5-Haiku"
-        },
         "moonshot/kimi-k2.5": {
-          "alias": "Kimi"
+          "alias": "Moonshot-Kimi"
         },
         "zhipu/glm-4.7": {
           "alias": "Zhipu-GLM"
         },
         "zhipu/glm-5": {
           "alias": "GLM-5"
+        },
+        "whalecloud/kimi-k2.6": {
+          "alias": "iWC-Kimi-2.6"
+        },
+        "whalecloud/deepseek-v4-pro": {
+          "alias": "iWC-DeepSeek-V4-Pro"
+        },
+        "whalecloud/deepseek-v4-flash": {
+          "alias": "iWC-DeepSeek-V4-Flash"
+        },
+        "poloapi/Kimi-K2.5": {
+          "alias": "poloapi-Kimi"
+        },
+        "poloapi-glm/glm-5": {
+          "alias": "poloapi-GLM-5"
+        },
+        "poloapi-glm/glm-5.1": {
+          "alias": "poloapi-GLM-5.1"
         }
       },
       "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-main",
@@ -453,7 +442,7 @@
         "id": "general-agent",
         "name": "通用Agent",
         "model": {
-          "primary": "whalecloud/kimi-k2.5"
+          "primary": "whalecloud/deepseek-v4-flash"
         },
         "skills": [
           "clawhub",
@@ -486,13 +475,13 @@
       {
         "id": "workspace-validator",
         "name": "验证Agent",
+        "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-validator",
         "model": {
           "primary": "whalecloud/kimi-k2.5"
         },
         "skills": [
           "validator-audit"
-        ],
-        "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-validator"
+        ]
       },
       {
         "id": "feishu-agent",
@@ -568,7 +557,10 @@
     }
   ],
   "messages": {
-    "ackReactionScope": "group-mentions"
+    "ackReactionScope": "group-mentions",
+    "groupChat": {
+      "visibleReplies": "message_tool"
+    }
   },
   "commands": {
     "native": "auto",
@@ -581,13 +573,13 @@
       "accounts": {
         "default": {
           "appId": "cli_a915882c43b8dccb",
-          "appSecret": "yG1lvioIPswoEdrL39ltHdt4nav6Suyv",
-          "enabled": true
+          "appSecret": "__REDACTED__",
+          "enabled": false
         },
         "openclawd": {
           "appId": "cli_a900853b21385cb5",
-          "appSecret": "etHxHUrZLbUjkKPBq9Ie6gySKQ8uOwN7",
-          "enabled": true
+          "appSecret": "__REDACTED__",
+          "enabled": false
         }
       },
       "dmPolicy": "allowlist",
@@ -603,7 +595,7 @@
       "reactionNotifications": "own",
       "typingIndicator": true,
       "resolveSenderNames": true,
-      "enabled": true
+      "enabled": false
     },
     "openclaw-weixin": {
       "accounts": {}
@@ -671,6 +663,9 @@
       },
       "discord": {
         "enabled": false
+      },
+      "clawhub": {
+        "enabled": false
       }
     }
   },
@@ -683,12 +678,8 @@
       "memory-core"
     ],
     "entries": {
-      "feishu": {
-        "enabled": false,
-        "config": {}
-      },
       "openclaw-weixin": {
-        "enabled": true,
+        "enabled": false,
         "config": {}
       },
       "brave": {
@@ -705,25 +696,15 @@
       "memory-core": {
         "config": {
           "dreaming": {
-            "enabled": true
+            "enabled": false
           }
-        }
+        },
+        "enabled": true
+      },
+      "feishu": {
+        "enabled": false
       }
     },
-    "installs": {
-      "openclaw-weixin": {
-        "source": "npm",
-        "spec": "@tencent-weixin/openclaw-weixin",
-        "installPath": "C:\\Users\\luzhe\\.openclaw\\extensions\\openclaw-weixin",
-        "version": "2.1.6",
-        "resolvedName": "@tencent-weixin/openclaw-weixin",
-        "resolvedVersion": "2.1.6",
-        "resolvedSpec": "@tencent-weixin/openclaw-weixin@2.1.6",
-        "integrity": "sha512-EEnSZBU+NysjEJ3ur7JHYnvy2q3pvHcfFOHZVV/jkUrUG0zQuOpuIK2bs7Fi8We/zZ+FWVA+xewqu4mzDs7EUQ==",
-        "shasum": "c177c98f1c2ccd3fd83dd096c79287bc780f5b15",
-        "resolvedAt": "2026-04-06T09:26:23.622Z",
-        "installedAt": "2026-04-06T09:26:35.979Z"
-      }
-    }
+    "bundledDiscovery": "compat"
   }
 }

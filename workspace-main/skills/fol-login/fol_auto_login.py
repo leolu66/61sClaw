@@ -270,6 +270,11 @@ def get_applications():
             
             print(f"[INFO] JavaScript 找到 {len(table_data)} 行数据", file=sys.stderr)
             
+            # 调试：打印所有行的内容
+            for idx, row_info in enumerate(table_data):
+                cells = row_info.get('cells', [])
+                print(f"[DEBUG] 行 {idx}: {cells}", file=sys.stderr)
+            
             for row_info in table_data:
                 try:
                     cells = row_info.get('cells', [])
@@ -280,22 +285,33 @@ def get_applications():
                     submit_time = ''
                     status = '完成'
                     
+                    # 首先找到单号所在位置，按位置推断其他字段
+                    form_no_idx = -1
                     for i, text in enumerate(cells):
-                        # 查找单号 (1-SQ 开头)
                         if text and '1-SQ' in text:
                             form_no = text
-                            print(f"[DEBUG] 找到单号: {form_no}", file=sys.stderr)
-                        # 查找描述（通常是较长的文本，不含日期格式）
-                        elif text and len(text) > 2 and not re.match(r'\d{4}-\d{2}-\d{2}', text):
-                            if text not in ['国内差旅申请单', '陆震', '完成', '审批中', '集团市场拓展项目-联通', '商业发展部', '0.00']:
-                                if not description or len(text) > len(description):
-                                    description = text
-                        # 查找日期（格式：2026-03-17）
-                        elif text and re.match(r'\d{4}-\d{2}-\d{2}', text) and not submit_time:
-                            submit_time = text
-                        # 查找状态
-                        elif text and text in ['完成', '审批中', '待提交', '已驳回']:
-                            status = text
+                            form_no_idx = i
+                            print(f"[DEBUG] 找到单号: {form_no} 在位置 {i}", file=sys.stderr)
+                            break
+                    
+                    if form_no:
+                        # 根据表格结构推断其他字段（基于用户提供的表格格式）
+                        # 表单名称[0], 单号[1], 报销人[2], 提单人[3], 描述[4], 项目名称[5], 部门[6], 金额[7], 审核金额[8], 核算体系[9], 提交时间[10], 单据状态[11], 当前审批[12]
+                        if len(cells) >= 5:
+                            description = cells[4] if cells[4] else ''  # 描述在第5列
+                        if len(cells) >= 11:
+                            submit_time = cells[10] if re.match(r'\d{4}-\d{2}-\d{2}', cells[10]) else ''  # 提交时间在第11列
+                        if len(cells) >= 12:
+                            status = cells[11] if cells[11] else '未知'  # 单据状态在第12列
+                            print(f"[DEBUG] 找到状态: {status}", file=sys.stderr)
+                        
+                        # 如果按位置没找到，尝试模糊匹配
+                        if not description:
+                            for i, text in enumerate(cells):
+                                if text and len(text) > 2 and not re.match(r'\d{4}-\d{2}-\d{2}', text):
+                                    if text not in ['国内差旅申请单', '陆震', '完成', '审批中', '业务审批', '集团市场拓展项目-联通', '商业发展部', '0.00', '']:
+                                        if not description or len(text) > len(description):
+                                            description = text
                     
                     if form_no:
                         app = {
@@ -314,145 +330,96 @@ def get_applications():
             
             print(f"[INFO] 共获取 {len(applications)} 条申请单", file=sys.stderr)
             
-            # 双击第一行打开详情页（只有第一行需要详情）
+            # 为每个申请单获取详情
             if applications:
-                first_app = applications[0]
-                form_no = first_app.get('form_no', '')
-                print(f"[INFO] 正在双击第一行打开详情页: {form_no}", file=sys.stderr)
+                print(f"[INFO] 正在为 {len(applications)} 条申请单获取详情...", file=sys.stderr)
                 
-                try:
-                    # 在 iframe 中查找包含该单号的行并双击
-                    for i, iframe_element in enumerate(iframe_elements):
-                        try:
-                            frame = iframe_element.content_frame()
-                            if frame and '1-SQ' in frame.inner_text('body'):
-                                # 查找包含单号的行
-                                row_locator = frame.locator(f'tr:has-text("{form_no}")').first
-                                if row_locator.is_visible(timeout=5000):
-                                    # 先获取当前文本作为基准
-                                    original_text = frame.inner_text('body')
-                                    
-                                    # 双击该行
-                                    row_locator.dblclick()
-                                    print(f"[INFO] 已双击申请单: {form_no}", file=sys.stderr)
-                                    time.sleep(5)  # 等待详情页加载
-                                    
-                                    # 重新获取所有 iframe（因为可能新增了 iframe）
-                                    iframe_elements_after = page.query_selector_all('iframe')
-                                    print(f"[DEBUG] 双击后 iframe 数量: {len(iframe_elements_after)}", file=sys.stderr)
-                                    
-                                    # 查找包含详情数据的 iframe
-                                    detail_frame = None
-                                    for j, iframe_elem in enumerate(iframe_elements_after):
-                                        try:
-                                            frm = iframe_elem.content_frame()
-                                            if frm:
-                                                txt = frm.inner_text('body')
-                                                # 详情页应该包含这些字段
-                                                if '单号' in txt and ('出发日期' in txt or '出发地' in txt):
-                                                    detail_frame = frm
-                                                    print(f"[INFO] 找到详情页在 iframe {j}, 文本长度: {len(txt)}", file=sys.stderr)
-                                                    break
-                                        except Exception as e:
-                                            print(f"[DEBUG] 检查 iframe {j} 失败: {e}", file=sys.stderr)
-                                            continue
-                                    
-                                    # 如果没找到新的，尝试使用当前 frame
-                                    if not detail_frame:
-                                        detail_frame = frame
-                                        print(f"[INFO] 使用当前 iframe 作为详情页", file=sys.stderr)
-                                    
-                                    # 获取详情页文本用于调试
-                                    detail_text = detail_frame.inner_text('body')
-                                    print(f"[DEBUG] 详情页文本预览: {detail_text[:800]}", file=sys.stderr)
-                                    
-                                    # 尝试从文本中直接提取字段
-                                    # 提取单号
-                                    match = re.search(r'单号\s*[:：]\s*(1-SQ\d+)', detail_text)
-                                    if match:
-                                        print(f"[INFO] 从文本提取到单号: {match.group(1)}", file=sys.stderr)
-                                    
-                                    # 提取出发地
-                                    match = re.search(r'出发地\s*[:：]\s*(\S+)', detail_text)
-                                    if match:
-                                        first_app['departure_city'] = match.group(1).replace('市', '')
-                                        print(f"[INFO] 从文本提取到出发地: {first_app['departure_city']}", file=sys.stderr)
-                                    
-                                    # 提取出差地
-                                    match = re.search(r'出差地\s*[:：]\s*(\S+)', detail_text)
-                                    if match:
-                                        first_app['destination_city'] = match.group(1).replace('市', '')
-                                        print(f"[INFO] 从文本提取到出差地: {first_app['destination_city']}", file=sys.stderr)
-                                    
-                                    # 提取出发日期
-                                    match = re.search(r'出发日期\s*[:：]\s*(\d{4}-\d{2}-\d{2})', detail_text)
-                                    if match:
-                                        first_app['start_date'] = match.group(1)
-                                        print(f"[INFO] 从文本提取到出发日期: {first_app['start_date']}", file=sys.stderr)
-                                    
-                                    # 提取结束日期
-                                    match = re.search(r'结束日期\s*[:：]\s*(\d{4}-\d{2}-\d{2})', detail_text)
-                                    if match:
-                                        first_app['end_date'] = match.group(1)
-                                        print(f"[INFO] 从文本提取到结束日期: {first_app['end_date']}", file=sys.stderr)
-                                    
-                                    # 提取交通工具
-                                    match = re.search(r'交通工具\s*[:：]\s*(\S+)', detail_text)
-                                    if match:
-                                        first_app['transport'] = match.group(1)
-                                        print(f"[INFO] 从文本提取到交通工具: {first_app['transport']}", file=sys.stderr)
-                                    
-                                    # 使用 JavaScript 提取表格数据（作为备选）
-                                    detail_data = detail_frame.evaluate("""
-                                        () => {
-                                            const data = {};
-                                            const rows = document.querySelectorAll('table tr, table tbody tr');
-                                            rows.forEach(row => {
-                                                const cells = row.querySelectorAll('td');
-                                                if (cells.length >= 2) {
-                                                    const label = cells[0].innerText.trim();
-                                                    const value = cells[1].innerText.trim();
-                                                    if (label && value && label !== value) {
-                                                        data[label] = value;
-                                                    }
-                                                }
-                                            });
-                                            return data;
-                                        }
-                                    """)
-                                    
-                                    print(f"[DEBUG] JavaScript 提取的数据: {json.dumps(detail_data, ensure_ascii=False)[:200]}", file=sys.stderr)
-                                    
-                                    print(f"[DEBUG] 提取的详情数据: {json.dumps(detail_data, ensure_ascii=False)}", file=sys.stderr)
-                                    
-                                    # 从提取的数据中更新申请单信息
-                                    if detail_data and len(detail_data) > 0:
-                                        if '单号' in detail_data:
-                                            print(f"[INFO] 确认单号: {detail_data['单号']}", file=sys.stderr)
-                                        if '出发地' in detail_data:
-                                            first_app['departure_city'] = detail_data['出发地'].replace('市', '')
-                                            print(f"[INFO] 详情页出发地: {first_app['departure_city']}", file=sys.stderr)
-                                        if '出差地' in detail_data:
-                                            first_app['destination_city'] = detail_data['出差地'].replace('市', '')
-                                            print(f"[INFO] 详情页出差地: {first_app['destination_city']}", file=sys.stderr)
-                                        if '出发日期' in detail_data:
-                                            first_app['start_date'] = detail_data['出发日期']
-                                            print(f"[INFO] 详情页出发日期: {first_app['start_date']}", file=sys.stderr)
-                                        if '结束日期' in detail_data:
-                                            first_app['end_date'] = detail_data['结束日期']
-                                            print(f"[INFO] 详情页结束日期: {first_app['end_date']}", file=sys.stderr)
-                                        if '交通工具' in detail_data:
-                                            first_app['transport'] = detail_data['交通工具']
-                                            print(f"[INFO] 详情页交通工具: {first_app['transport']}", file=sys.stderr)
-                                    else:
-                                        print(f"[WARNING] 未从详情页提取到数据", file=sys.stderr)
-                                    
-                                    break
-                        except Exception as e:
-                            print(f"[DEBUG] iframe {i} 双击失败: {e}", file=sys.stderr)
-                            continue
-                except Exception as e:
-                    print(f"[WARNING] 获取详情页失败: {e}", file=sys.stderr)
+                # 处理每个申请单
+                for idx, app in enumerate(applications):
+                    form_no = app.get('form_no', '')
+                    print(f"\n[INFO] [{idx+1}/{len(applications)}] 正在获取详情: {form_no}", file=sys.stderr)
+                    
+                    try:
+                        # 重新获取 iframe（每次处理后重新获取）
+                        current_iframes = page.query_selector_all('iframe')
+                        detail_frame = None
+                        
+                        for i, iframe_elem in enumerate(current_iframes):
+                            try:
+                                frame = iframe_elem.content_frame()
+                                if frame and '1-SQ' in frame.inner_text('body'):
+                                    # 查找包含单号的行并双击
+                                    row_locator = frame.locator(f'tr:has-text("{form_no}")').first
+                                    if row_locator.is_visible(timeout=3000):
+                                        # 双击打开详情
+                                        row_locator.dblclick()
+                                        print(f"[INFO] 已双击: {form_no}", file=sys.stderr)
+                                        time.sleep(4)  # 等待详情页加载
+                                        
+                                        # 查找详情页 iframe
+                                        detail_iframes = page.query_selector_all('iframe')
+                                        for j, detail_iframe in enumerate(detail_iframes):
+                                            try:
+                                                dframe = detail_iframe.content_frame()
+                                                if dframe:
+                                                    txt = dframe.inner_text('body')
+                                                    if '单号' in txt and ('出发日期' in txt or '出发地' in txt):
+                                                        detail_frame = dframe
+                                                        print(f"[INFO] 找到详情页 iframe {j}", file=sys.stderr)
+                                                        break
+                                            except:
+                                                continue
+                                        
+                                        if detail_frame:
+                                            break
+                            except Exception as e:
+                                continue
+                        
+                        # 从详情页提取信息
+                        if detail_frame:
+                            detail_text = detail_frame.inner_text('body')
+                            
+                            # 提取出发地
+                            match = re.search(r'出发地\s*[:：]\s*(\S+)', detail_text)
+                            if match:
+                                app['departure_city'] = match.group(1).replace('市', '')
+                            
+                            # 提取出差地
+                            match = re.search(r'出差地\s*[:：]\s*(\S+)', detail_text)
+                            if match:
+                                app['destination_city'] = match.group(1).replace('市', '')
+                            
+                            # 提取出发日期
+                            match = re.search(r'出发日期\s*[:：]\s*(\d{4}-\d{2}-\d{2})', detail_text)
+                            if match:
+                                app['start_date'] = match.group(1)
+                            
+                            # 提取结束日期
+                            match = re.search(r'结束日期\s*[:：]\s*(\d{4}-\d{2}-\d{2})', detail_text)
+                            if match:
+                                app['end_date'] = match.group(1)
+                            
+                            # 提取交通工具
+                            match = re.search(r'交通工具\s*[:：]\s*(\S+)', detail_text)
+                            if match:
+                                app['transport'] = match.group(1)
+                            
+                            print(f"[INFO] {form_no} 详情: {app.get('departure_city','?')}->{app.get('destination_city','?')} {app.get('start_date','?')}~{app.get('end_date','?')}", file=sys.stderr)
+                            
+                            # 关闭详情页（按ESC或点击返回）
+                            try:
+                                page.keyboard.press('Escape')
+                                time.sleep(1)
+                            except:
+                                pass
+                        else:
+                            print(f"[WARNING] 未找到 {form_no} 的详情页", file=sys.stderr)
+                            
+                    except Exception as e:
+                        print(f"[ERROR] 获取 {form_no} 详情失败: {e}", file=sys.stderr)
+                        continue
+                
+                print(f"\n[INFO] 完成 {len(applications)} 条申请单的详情获取", file=sys.stderr)
             
             # 为每个申请单推断行程信息（如果还没有）
             for app in applications:
