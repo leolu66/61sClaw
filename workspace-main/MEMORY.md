@@ -131,6 +131,31 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 | 运营商名称匹配 | "中国联通"匹配不到"海南联通" | 添加简写关键词："联通"、"移动"、"电信"、"铁塔" |
 | 中文关键词 | lower()对中文无效，但无害 | 简写形式比完整形式更重要，覆盖更多变体 |
 
+### 前端调试经验（2026-05-12）
+| 问题 | 原因 | 解决方案 |
+|------|------|---------|
+| HTML PPT 空白页 | CSS `display: none !important` 优先级高于 JS `element.style.display = 'block'` | 移除 CSS 中的 display 规则，JS 全权控制 |
+| Shadow DOM 自定义元素在 file:// 下不兼容 | Web Component 的 `:scope` 选择器 + `connectedCallback` 时序在本地协议下行为不确定 | 替换为 `<div>` + vanilla JS，避免 Shadow DOM |
+| JS 语法错误导致静默失败 | `try{}catch(e){}` 被误截断为 `try{}`（缺 catch） | 使用更简洁的 IIFE + 直接 `element.style` 操作，减少依赖 |
+
+### 文章尾部截断安全策略（smart-web-fetcher v3）
+| 原则 | 说明 |
+|------|------|
+| 关键词定位 + 段落分析 > 单一规则 | 先用关键词找尾部区域，再分析段落结构找精确边界 |
+| 安全优先 | 4道检查防线：截断点太靠前❌ / 弱标记+正文密度低❌ / 噪声不明显❌ / 删除太少❌ |
+| 避免泛化关键词 | "更多"、"关闭"等词在平台UI中无处不在，不能用做尾部标记 |
+| 正文密度检测 | 弱标记前25行内正文<3行 → 标记嵌在UI中，放弃截断 |
+| 强/弱标记分级 | reference/end_marker=高权重(9-10)，attribution=中(7-8)，social/meta=低(3-5) |
+
+### PPT 生成路径对比（2026-05-12）
+| 路径 | 格式 | 可靠性 | 适用场景 |
+|------|------|--------|---------|
+| python-pptx 原生创建 | .pptx | ★★★★★ | 需要真实可编辑PPTX时首选 |
+| html-ppt-skill | .html | ★★★★ | 技术分享、有现成模板时 |
+| guizang-ppt-skill | .html | ★★★★ | 杂志风、设计感强的场景 |
+| huashu-design | .html | ★★★ | 高保真设计Demo（需注意兼容性） |
+| HTML→PPTX转换 | .pptx | ★★ | 需严格约束HTML结构（4条硬约束），不推荐 |
+
 ### Smart Web Fetcher 图片本地化方案
 ```python
 # MD5 哈希命名 + Content-Type 智能扩展名

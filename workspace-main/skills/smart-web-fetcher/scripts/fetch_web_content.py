@@ -32,6 +32,296 @@ IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.
 # 图片下载请求超时(秒)
 IMAGE_DOWNLOAD_TIMEOUT = 15
 
+# ============================================================
+# 文章尾部截断 —— 安全策略
+# ============================================================
+# 策略：关键词定位尾部区域 → 段落/语义分析找精确边界 → 不确定则保留
+
+# 阶段1：尾部定位关键词（高权重 = 更可靠）
+TAIL_KEYWORDS = [
+    # 参考/来源区域 —— 几乎总在文章尾部（高权重）
+    (r'^参考资料[：:]?\s*$', 10, 'reference'),
+    (r'^参考文献[：:]?\s*$', 10, 'reference'),
+    (r'^参考链接[：:]?\s*$', 9, 'reference'),
+    (r'^参考来源[：:]?\s*$', 9, 'reference'),
+    # 明确结束标识
+    (r'^(?:—{2,}|-{3,}|={3,})\s*(?:END|结束|完|全文完|The\s*End|结尾)?\s*(?:—{2,}|-{3,}|={3,})?\s*$', 10, 'end_marker'),
+    (r'^[（\(]?\s*(?:全文完|完|END|The\s*End|结尾)\s*[）\)]?\s*$', 9, 'end_marker'),
+    # 版权归属 —— 文章末常见
+    (r'^本文来自', 8, 'attribution'),
+    (r'^本文转载自', 8, 'attribution'),
+    (r'^本文经.*授权发布', 8, 'attribution'),
+    (r'^来源[：:].*(?:微信公众号|新智元|36氪|量子位|今日头条|机器之心|InfoQ)', 7, 'attribution'),
+    # 编者信息 —— 较低权重，需配合其他标记
+    (r'^编辑[：:].*$', 3, 'meta'),
+    (r'^责任编辑[：:].*$', 5, 'meta'),
+    (r'^作者[：:].*$', 3, 'meta'),
+    (r'^原标题[：:].*$', 5, 'meta'),
+    # 平台尾部特征 —— 低权重，需要段落分析确认确实是尾部
+    (r'^暂无留言\s*$', 5, 'social'),
+    (r'^已无更多数据\s*$', 5, 'social'),
+    (r'^关注该公众号\s*$', 4, 'social'),
+    (r'^预览时标签不可点\s*$', 4, 'social'),
+    (r'^微信扫一扫.*关注', 3, 'social'),
+    # 参考/更多（需要段落确认）
+    # 注意: "更多"和"关闭"太泛，容易在平台UI中误匹配，已移除
+]
+
+# 尾部区域内明显的噪声模式（用于确认"这确实是尾部"）
+NOISE_PATTERNS = [
+    r'^举报\s*$',
+    r'^评论\s*\d*\s*$',
+    r'^请先\s*登录',
+    r'^登录后.*更精彩',
+    r'^推荐视频',
+    r'^推荐阅读',
+    r'^推荐文章',
+    r'^更多推荐',
+    r'^下载.*APP',
+    r'^扫码下载',
+    r'^打开.*APP',
+    r'^微信扫一扫',
+    r'^Scan to Follow',
+    r'^赞赏作者',
+    r'^Like the Author',
+    r'^暂无留言',
+    r'^写留言',
+    r'^留言\s*$',
+    r'^免责声明[：:]',
+    r'^版权声明[：:]',
+    r'^声明[：:].*[转截]载',
+    # 微信赞赏/UI 行
+    r'^喜欢作者$',
+    r'^其它金额$',
+    r'^赞赏后展示',
+    r'^作品$',
+    r'^暂无作品$',
+    r'^正在加载',
+    r'^系统错误',
+    r'^名称已清空',
+    r'^确认提交投诉',
+    r'^赞赏金额$',
+    r'^最低赞赏',
+]
+
+
+def _is_content_line(line):
+    """判断一行是否包含实质性文章内容（非URL、非噪声、有一定长度）"""
+    s = line.strip()
+    if not s:
+        return False
+    # 明显噪声行直接排除
+    if _is_noise_line(line):
+        return False
+    if s.startswith('http://') or s.startswith('https://'):
+        return False
+    # 太短的行不太可能是文章正文
+    if len(s) < 25:
+        return False
+    # 纯数字/符号行
+    if re.match(r'^[\d\s,.;:!?\-+/=*#@$%^&|~`<>\[\]{}()\u201c\u201d\u2018\u2019\u300a\u300b]+$', s):
+        return False
+    return True
+
+
+def _is_noise_line(line):
+    """判断一行是否明显是尾部噪声"""
+    s = line.strip()
+    if not s:
+        return False
+    for pat in NOISE_PATTERNS:
+        if re.match(pat, s):
+            return True
+    return False
+
+
+def _find_content_boundary(lines, tail_area_start):
+    """
+    在尾部区域之前，查找最后一个实质性内容段落的结束位置。
+    从 tail_area_start 往前扫描，找到「长段落 → 短行/空行 → 尾部」的转换点。
+    """
+    consecutive_non_content = 0
+    last_content_line = tail_area_start
+
+    for i in range(tail_area_start - 1, max(0, tail_area_start - 50), -1):
+        if _is_content_line(lines[i]):
+            consecutive_non_content = 0
+            last_content_line = i + 1
+        elif not lines[i].strip():
+            consecutive_non_content += 1
+            if consecutive_non_content >= 3 and last_content_line == tail_area_start:
+                last_content_line = i
+        else:
+            consecutive_non_content += 1
+            if consecutive_non_content >= 6 and last_content_line == tail_area_start:
+                last_content_line = i + 1
+
+    return last_content_line
+
+
+def _find_attribution_end(lines, start, total):
+    """
+    从尾部标记开始往后扫描，确定"引用/版权信息"区域的结束位置。
+    保留：URL 链接、空白行、版权声明行；遇到实质性新内容或明显噪声时停止。
+    """
+    end = start
+    found_attribution = False
+
+    for i in range(start, min(total, start + 20)):
+        s = lines[i].strip()
+        if not s:
+            continue
+        # URL 链接跟着参考资料
+        if s.startswith('http'):
+            end = i + 1
+            found_attribution = True
+        # 版权归属行
+        elif re.match(r'^(?:本文来自|本文转载|本文经.*授权|编辑[：:]|作者[：:]|责任编辑[：:]|来源[：:].*(?:微信|36氪|量子|今日|InfoQ))', s):
+            end = i + 1
+            found_attribution = True
+        # 编者/作者元信息（短行）
+        elif re.match(r'^(?:编辑|作者|责编|责任编辑)[：:]', s) and len(s) < 40:
+            end = i + 1
+            found_attribution = True
+        # 命中明显噪声 → 停止
+        elif _is_noise_line(s):
+            break
+        # 命中新的正文内容 → 停止
+        elif _is_content_line(s) and found_attribution:
+            break
+        # 短行且已经有了引用内容 → 可能是尾巴，继续
+        elif len(s) < 30 and found_attribution:
+            end = i + 1
+        else:
+            # 不确定的情况 → 保留（安全策略）
+            pass
+
+    return end
+
+
+def truncate_article_end(content):
+    """
+    安全截断策略：
+    1. 用关键词（参考资料、End、本文来自等）定位文章尾部区域
+    2. 在尾部区域内，用段落结构分析找到"正文段落结束"的精确位置
+    3. 保留引用链接和版权信息，截断后续噪声
+    4. 不确定时保留内容
+    """
+    global lines  # 供辅助函数使用
+    lines = content.split('\n')
+    total = len(lines)
+
+    # 文档太短不处理
+    if total < 30:
+        return content
+
+    # === 阶段1：定位尾部候选 ===
+    # 收集所有关键词匹配（排除文档最前面 8%，那通常是页面导航而非正文尾）
+    matches = []
+    start_scan = max(1, int(total * 0.06))
+
+    for i in range(start_scan, total):
+        stripped = lines[i].strip()
+        if not stripped:
+            continue
+        for pattern, weight, tag in TAIL_KEYWORDS:
+            if re.match(pattern, stripped):
+                matches.append({'line': i, 'weight': weight, 'tag': tag, 'text': stripped[:60]})
+                break
+
+    if not matches:
+        return content  # 未找到尾部标记，保留全文
+
+    # 将邻近的匹配聚合成"尾部候选区域"（间隔 ≤ 15 行视为同一区域）
+    matches.sort(key=lambda m: m['line'])
+    clusters = []
+    current = [matches[0]]
+    for m in matches[1:]:
+        if m['line'] - current[-1]['line'] <= 15:
+            current.append(m)
+        else:
+            clusters.append(current)
+            current = [m]
+    clusters.append(current)
+
+    # 评估每个候选区域：优先选包含 reference/end_marker/attribution 的，其次按权重和
+    best_cluster = None
+    best_score = 0
+    best_has_strong = False
+
+    # strong tags: the ones we can really trust
+    STRONG_TAGS = {'reference', 'end_marker', 'attribution'}
+
+    for cluster in clusters:
+        score = sum(m['weight'] for m in cluster)
+        has_strong = any(m['tag'] in STRONG_TAGS for m in cluster)
+        # 优先有强标记的，同等条件下选权重高的
+        if has_strong and not best_has_strong:
+            best_cluster = cluster
+            best_score = score
+            best_has_strong = True
+        elif has_strong == best_has_strong and score > best_score:
+            best_cluster = cluster
+            best_score = score
+
+    if not best_cluster:
+        return content
+
+    tail_area_start = best_cluster[0]['line']
+    has_strong_marker = best_has_strong
+
+    # === 阶段2：在尾部区域内找精确边界 ===
+    # 往前找最后一个正文段落结束的位置
+    content_end = _find_content_boundary(lines, tail_area_start)
+
+    # 往后找引用/版权区结束位置
+    attr_end = _find_attribution_end(lines, tail_area_start, total)
+
+    # 最终截断点 = max(正文结束, 引用区结束)
+    boundary = max(content_end, attr_end)
+
+    # === 阶段3：安全检查 ===
+    # 检查1：截断点不能太靠前（至少保留 6%）
+    if boundary < total * 0.06:
+        print("⚠️ 截断点过于靠前，保留全文", file=sys.stderr)
+        return content
+
+    # 检查2：弱标记下（social/weak/meta），需要更严格的确认
+    # 强标记 = reference/end_marker/attribution；其他为弱标记
+    if not has_strong_marker:
+        # 2a: 检查标记前的正文密度 — 如果标记前 25 行缺少实质性内容，说明标记嵌在 UI 噪声中
+        pre_lines = list(range(max(0, tail_area_start - 25), tail_area_start))
+        pre_content_count = sum(1 for i in pre_lines if _is_content_line(lines[i]))
+        if pre_content_count < 3:
+            print("⚠️ 弱标记附近缺少正文（标记可能嵌在平台UI中），保留全文", file=sys.stderr)
+            return content
+        # 2b: 弱标记最多只能删除文档的 30%
+        if (total - boundary) > total * 0.3:
+            noise_count = sum(1 for i in range(boundary, min(total, boundary + 30)) if _is_noise_line(lines[i]))
+            if noise_count < 3:
+                print("⚠️ 弱标记下尾部噪声不明确，保留全文", file=sys.stderr)
+                return content
+
+    # 检查3：如果删除的内容太少（< 3%），不值得截断
+    if total - boundary < total * 0.02 and total - boundary < 10:
+        return content
+
+    # === 执行截断 ===
+    if boundary >= total:
+        return content
+
+    # 清理尾部多余空行（最多保留 1 个）
+    result_lines = lines[:boundary]
+    while len(result_lines) >= 2 and result_lines[-1].strip() == '' and result_lines[-2].strip() == '':
+        result_lines.pop()
+
+    truncated = '\n'.join(result_lines).rstrip('\n')
+    removed = total - boundary
+    confidence = 'high' if has_strong_marker else 'medium'
+    tag_desc = ', '.join(set(m['tag'] for m in best_cluster))
+    print(f"✂️ 文章尾部截断: 去除 {removed} 行 (confidence: {confidence}, 标记: {tag_desc})", file=sys.stderr)
+    return truncated
+
 
 def sanitize_filename(title, max_length=200):
     """
@@ -484,6 +774,7 @@ def main():
     parser.add_argument('--click-selector', help='页面加载后要点击的元素CSS选择器,用于关闭弹窗等')
     parser.add_argument('--scroll', action='store_true', help='是否自动滚动到底部加载全部内容')
     parser.add_argument('--no-images', action='store_true', help='不下载图片(仅提取文本)')
+    parser.add_argument('--no-truncate', action='store_true', help='不截断文章尾部噪声(保留评论区/推荐等)')
 
     args = parser.parse_args()
 
@@ -552,6 +843,10 @@ def main():
     if args.format != 'text' and not args.no_images:
         base_url = args.url
         content = download_and_replace_images(content, output_dir, base_url, extra_image_urls)
+
+    # 截断文章尾部噪声(默认开启)
+    if not args.no_truncate and args.format != 'html':
+        content = truncate_article_end(content)
 
     # 写入文件
     with open(output_path, 'w', encoding='utf-8') as f:
