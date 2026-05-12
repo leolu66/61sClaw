@@ -22,7 +22,7 @@
 
 **执行过程**：
 1. 在密码箱中添加 clawhub 凭据
-2. 添加字段：name=leoray, api_token=clh_kNPs5m1WT2CfmLhcOaFqnE-qbkD6kcEfRJ-phb-rxOQ
+2. 添加字段：name=leoray, api_token=[已脱敏 - ClawHub API Token，已泄露至 GitHub]
 
 **使用工具**：
 - `vault`：密码箱技能
