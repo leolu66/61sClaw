@@ -147,14 +147,14 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 | 正文密度检测 | 弱标记前25行内正文<3行 → 标记嵌在UI中，放弃截断 |
 | 强/弱标记分级 | reference/end_marker=高权重(9-10)，attribution=中(7-8)，social/meta=低(3-5) |
 
-### PPT 生成路径对比（2026-05-12）
+### PPT 生成路径对比（2026-05-14 更新）
 | 路径 | 格式 | 可靠性 | 适用场景 |
 |------|------|--------|---------|
 | python-pptx 原生创建 | .pptx | ★★★★★ | 需要真实可编辑PPTX时首选 |
 | html-ppt-skill | .html | ★★★★ | 技术分享、有现成模板时 |
 | guizang-ppt-skill | .html | ★★★★ | 杂志风、设计感强的场景 |
 | huashu-design | .html | ★★★ | 高保真设计Demo（需注意兼容性） |
-| HTML→PPTX转换 | .pptx | ★★ | 需严格约束HTML结构（4条硬约束），不推荐 |
+| **slideflow-ppt HTML→PPTX** | .pptx | ★★★★ | 3种格式自动检测，Playwright渲染+DOM重建，文字可编辑 |
 
 ### Smart Web Fetcher 图片本地化方案
 ```python
@@ -184,6 +184,32 @@ ct_to_ext = {'image/jpeg': '.jpg', 'image/png': '.png', ...}
 - **禁止行为** → 不要直接用 `web_fetch` 手动搜索拼凑报告
 - **原因** → Deep Research 技能有自动保存、结构化输出、递归搜索等完整能力
 - **输出位置** → 研究报告自动保存到 `skills/deep-research/output/{标题}.md`
+
+## 8. slideflow-ppt 技能
+
+### 技能概览
+- **位置**: `skills/slideflow-ppt/`
+- **项目**: `repos/SlideFlow/` (xiaoyesoso/SlideFlow, MIT)
+- **功能 A**: AI 自动生成 PPT（LangGraph 编排 + DuckDuckGo 搜索 + HTML 模板 + PPTX 转换）
+- **功能 B**: HTML 多页转 PPTX（3 种格式自动检测 + Playwright 渲染 + DOM 重建）
+
+### HTML→PPTX 三种格式适配
+| 格式 | 结构 | 导航 | 要点 |
+|------|------|------|------|
+| huashu-design | `#deck > .slide-page` | display:block/none | CSS 全内联，无需额外处理 |
+| html-ppt-skill | `.deck > section.slide` | .is-active + opacity | 外部 CSS 需本地化或注入 |
+| guizang-ppt | `#deck > .slide` | translateX | WebGL 背景、Hero 页、Google Fonts |
+
+### 模型配置
+- SlideFlow 用 `openai.AsyncOpenAI()`，配置从 `config/config.json` 读取
+- WhaleCloud DeepSeek V4 Pro 通过 `/gpt-proxy/v1` (OpenAI 兼容端点) 接入
+- 命令行参数优先级: `--model/--base-url/--api-key` > skill config > env > project config
+
+### HTML 转换技术要点
+- Playwright 打开 HTML 用 `wait_until="domcontentloaded"` 避免 Google Fonts 卡死
+- 外部 CSS 注入: `page.add_style_tag(content="...")` 可动态添加关键 CSS 规则
+- 文字隐藏取背景: 注入 `<style id=_bg_hide>*{color:transparent}</style>` → 截图 → 再移除
+- 字体映射: Google Fonts → 系统字体（微软雅黑/SimSun/Georgia/Consolas）
 
 
 
