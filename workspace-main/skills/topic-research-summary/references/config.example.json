@@ -1,0 +1,10 @@
+{
+  "comment": "专题研究总结 — 文件输出路径配置",
+  "workspace_dir": "./workspace",
+  "default_output": {
+    "raw_dir": "workspace/{topic}/raw",
+    "report_path": "workspace/{topic}/{topic}-综合笔记.md",
+    "ppt_path": "workspace/{topic}/{topic}-单页总结.html"
+  },
+  "html_ppt_skill_path": "../html-ppt-skill"
+}
