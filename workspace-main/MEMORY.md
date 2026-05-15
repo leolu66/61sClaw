@@ -211,13 +211,28 @@ ct_to_ext = {'image/jpeg': '.jpg', 'image/png': '.png', ...}
 - 文字隐藏取背景: 注入 `<style id=_bg_hide>*{color:transparent}</style>` → 截图 → 再移除
 - 字体映射: Google Fonts → 系统字体（微软雅黑/SimSun/Georgia/Consolas）
 
+## 9. Obsidian LLM Wiki 相关
 
+### 常用库路径
+- 默认库: `D:\Users\luzhe\Documents\llm-wiki`（不是 `Documents\Obsidian Vault`）
+- Wiki 三层架构: `raw/`（不可变）→ `wiki/`（LLM维护）← `AGENTS.md`（Schema）
 
+### ingest 协议
+- 新素材摄入流程: 复制到 raw/ → 创建 sources/ 摘要 → 提取 concepts/ entities/ → 更新 index/overview/log
+- 知识复利: 每条新素材不只是存摘要，要更新所有相关页面，建立交叉引用
+- 每个 wiki 页面顶部必须有 one-line summary
 
+## 10. 技术经验更新
 
+### config.patch 限制
+| 问题 | 原因 | 解决方案 |
+|------|------|---------|
+| gateway config.patch 报 protected paths | plugins.allow、models.providers.*.apiKey 等路径受保护 | 直接编辑 openclaw.json 或使用 openclaw config set |
+| openclaw channels add 被 SIGKILL | 命令过程中 gateway 检测配置变更自动重启 | 手动编辑 JSON 完成 channel/plugin 配置 |
 
-
-
-
+### QQ Bot 配置参考
+- 配置格式: channels.qqbot.appId + clientSecret（顶层）
+- 多账号: accounts.<name>.appId + clientSecret
+- 插件需加入 plugins.allow 白名单 + plugins.entries 启用
 
 

@@ -39,12 +39,14 @@ version: 1.0
 
 ### 第3步：同步 GitHub
 
-执行 Git 操作：
+执行 Git 操作（**不推送 logs/ 和 memory/ 目录**）：
 ```bash
-git add -A
+git add -A && git reset -- logs/ memory/
 git commit -m "提交描述"
 git push origin main
 ```
+
+> ⚠️ `logs/` 和 `memory/` 已在 `.gitignore` 中排除，不得使用 `-f` 强制添加。
 
 ## 输出格式
 
