@@ -235,4 +235,30 @@ ct_to_ext = {'image/jpeg': '.jpg', 'image/png': '.png', ...}
 - 多账号: accounts.<name>.appId + clientSecret
 - 插件需加入 plugins.allow 白名单 + plugins.entries 启用
 
+## 11. AI 新闻简报技能 (ai-news-briefing)
+
+### 技能概览
+- **位置**: `skills/ai-news-briefing/`
+- **触发词**: AI新闻简报、生成AI简报、AI新闻分析、AI新闻周报、分析AI新闻
+- **输入**: 起始日期（可选，默认30天前）
+- **数据源**: `skills/ai-news-fetcher/output/*.md` + `skills/ai-news-collectors*/output/*.md`
+
+### 工作流程
+1. 列文件 → 扫描两个目录中指定日期后的 .md 文件
+2. 读新闻 → 优先读 collector 聚合版 → 最新3天 → 首尾对比样本
+3. 提取关键信息 → 按客服/运维/知识库/私有化/成本/政策 6 维度筛选
+4. 访问重大新闻链接 → 运营商相关、头部企业发布用 web_fetch 获取详情
+5. 生成简报 → 一页式模板：核心判断 → TOP10 → 机会风险 → 建议动作 → 结论 → 附录
+6. 保存到 `skills/ai-news-fetcher/output/briefing_{start}-{end}.md`
+
+### 简报框架
+- **看结论**: 趋势判断 + 行业影响 + 我司建议 (各一句)
+- **看影响**: TOP10 新闻，每条标注分类/运营商影响/启示/建议动作
+- **看动作**: 机会(5维) + 风险(4维) + 建议动作(含责任方向+优先级+时间)
+
+### 经验教训
+- 子代理处理大量文件易超时 → 改用 exec 提取 + 模型直接分析
+- 简报生成优先读 collector 聚合版（评级+分类，信息密度最高）
+- 面向领导的简报必须简练：一句话说清，不说"可能""或许"
+
 
