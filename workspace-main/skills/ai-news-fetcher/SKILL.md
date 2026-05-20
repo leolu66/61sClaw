@@ -13,12 +13,15 @@ description: 获取国内权威AI科技网站的最新新闻，并以带摘要�
 - **智能缓存机制** - 4小时内重复查询自动从缓存读取，避免重复抓取
 - **Markdown 输出** - 表格形式展示，标题带链接，摘要自动截断
 - **多站点支持** - 机器之心、量子位、InfoQ、36氪、智东西、雷锋网、AI基地
+- **🆕 RSS 国际信源** - 6个国际 RSS 信源 → 过滤去重 → Top 20精选 → 抓原文 → LLM深度总结
 
 ## 脚本路径
 
 `C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_news.py`
 
 ## 支持的网站
+
+### 国内站点（8个）
 
 | 中文名 | 配置名 | 状态 |
 |--------|--------|------|
@@ -30,6 +33,17 @@ description: 获取国内权威AI科技网站的最新新闻，并以带摘要�
 | AiBase | aibase | ✅ |
 | 极客公园 | geekpark | ✅ |
 | 机器之心 | jiqizhixin | ✅ |
+
+### 🆕 国际 RSS 信源（6个）
+
+| 信源 | RSS 地址 | 说明 |
+|------|---------|------|
+| TechCrunch AI | `https://techcrunch.com/category/artificial-intelligence/feed/` | 聚焦 AI/ML 领域科技新闻 |
+| The Verge AI | `https://www.theverge.com/rss/ai-artificial-intelligence/index.xml` | AI 产品、伦理与大众向解读 |
+| Ars Technica AI | `https://arstechnica.com/tag/ai/feed/` | 深度技术分析、AI 研究与产业 |
+| MIT Tech Review AI | `https://www.technologyreview.com/topic/artificial-intelligence/feed/` | 权威 AI 前沿研究报道 |
+| Hacker News | `https://news.ycombinator.com/rss` | 开发者社区热门讨论 |
+| VentureBeat AI | `https://venturebeat.com/category/ai/feed/` | 科技创业与 AI 产业新闻 |
 
 ## 使用方法
 
@@ -52,6 +66,13 @@ python "C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_
 - `--no-cache`: 强制刷新，忽略缓存
 - `--cache-hours N`: 设置缓存有效期（默认4小时）
 
+**RSS 相关参数：**
+- `--rss`: 同时获取国际 RSS 信源的 AI 新闻
+- `--rss-only`: 仅获取 RSS 国际新闻，跳过国内站点
+- `--rss-limit N`: RSS 精选条数（默认20条）
+- `--no-rss-content`: 不抓取文章原文（仅标题+摘要）
+- `--no-rss-summarize`: 不使用 LLM 深度总结（保留 RSS 原始摘要）
+
 ### 示例命令
 
 ```bash
@@ -66,6 +87,15 @@ python "C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_
 
 # 保存到指定文件（同时仍会缓存）
 python "C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_news.py" --output ai_news.md
+
+# 🆕 国内站点 + RSS 国际新闻
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_news.py" --rss
+
+# 🆕 仅 RSS 国际新闻（跳过国内站点）
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_news.py" --rss-only --rss-limit 30
+
+# 🆕 RSS 快速模式（不抓原文不总结，仅标题摘要）
+python "C:\Users\luzhe\.openclaw\workspace-main\skills\ai-news-fetcher\fetch_ai_news.py" --rss-only --no-rss-content --no-rss-summarize
 ```
 
 ## 输出格式
@@ -103,7 +133,9 @@ ai-news-fetcher/
 │   ├── extractors.py       # 字段提取器
 │   ├── engine.py           # 采集引擎
 │   ├── monitor.py          # 监控告警
-│   └── storage.py          # 数据存储
+│   ├── storage.py          # 数据存储
+│   ├── rss_fetcher.py      # 🆕 RSS 获取 + 原文抓取
+│   └── rss_summarizer.py   # 🆕 LLM 深度总结
 ├── site-configs/           # 站点配置（YAML）
 │   ├── _template.yaml      # 配置模板
 │   ├── jiqizhixin.yaml     # 机器之心（已禁用）
@@ -147,6 +179,9 @@ pip install -r requirements.txt
 - `lxml` - HTML/XML解析
 - `click` - 命令行工具
 - `pyyaml` - YAML配置解析
+- `feedparser` - 🆕 RSS 解析
+- `beautifulsoup4` - 🆕 文章正文提取
+- `openai` - 🆕 LLM 深度总结
 
 ## 调试工具
 

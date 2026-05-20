@@ -19,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from spider.config_loader import ConfigLoader
 from spider.engine import SpiderEngine, NewsItem
 from spider.storage import StorageFactory
+from spider.rss_fetcher import fetch_all_rss, generate_rss_markdown
+from spider.rss_summarizer import translate_and_summarize, summarize_items
 
 # 配置日志
 logging.basicConfig(
@@ -254,67 +256,79 @@ async def fetch_with_playwright(config: dict, limit: int) -> List[dict]:
     return items
 
 
-def generate_markdown_output(all_items: List[dict], source_stats: dict) -> str:
+def generate_markdown_output(all_items: List[dict], source_stats: dict, rss_items=None) -> str:
     """生成 Markdown 格式输出"""
     lines = []
     
     # 标题
-    lines.append(f"# 🤖 AI 新闻速递 ({datetime.now().strftime('%m月%d日 %H:%M')})")
+    total_count = len(all_items)
+    if rss_items:
+        total_count += len(rss_items)
+    lines.append(f"# 🤖 AI 新闻速递 ({datetime.now().strftime('%m月%d日 %H:%M')})" if all_items else f"# 🌍 RSS 国际 AI 快讯 ({datetime.now().strftime('%m月%d日 %H:%M')})")
     lines.append("")
     
-    # 结果汇总表格
-    lines.append("## 📊 采集汇总")
-    lines.append("")
-    lines.append("| 来源 | 获取数量 | 链接 |")
-    lines.append("|------|----------|------|")
-    
-    for site_name, count in source_stats.items():
-        site_url = ""
-        # 从配置中获取站点URL
-        for item in all_items:
-            if item.get("source") == site_name:
-                site_url = item.get("site_url", "")
-                break
-        if site_url:
-            lines.append(f"| {site_name} | {count}条 | [{site_url.split('//')[1].split('/')[0]}]({site_url}) |")
-        else:
-            lines.append(f"| {site_name} | {count}条 | - |")
-    
-    lines.append("")
-    lines.append(f"**总计: {len(all_items)} 条新闻**")
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-    
-    # 按来源分组显示详细内容
-    from collections import defaultdict
-    items_by_source = defaultdict(list)
-    for item in all_items:
-        items_by_source[item.get("source", "未知")].append(item)
-    
-    for site_name, items in items_by_source.items():
-        # 获取站点图标，如果没有则使用默认图标
-        icon = SITE_ICONS.get(site_name, "📰")
-        lines.append(f"## {icon} {site_name}")
+    if all_items:
+        # 结果汇总表格
+        lines.append("## 📊 采集汇总")
         lines.append("")
-        lines.append("| 序号 | 标题 | 摘要 | 更新时间 |")
-        lines.append("|------|------|------|----------|")
+        lines.append("| 来源 | 获取数量 | 链接 |")
+        lines.append("|------|----------|------|")
         
-        for i, item in enumerate(items, 1):
-            title = item.get("title", "无标题")
-            url = item.get("url", "")
-            summary = truncate_summary(item.get("summary", ""))
-            pub_time = format_time(item.get("publish_time", ""))
-            
-            # 标题带链接
-            if url:
-                title_cell = f"[{title}]({url})"
+        for site_name, count in source_stats.items():
+            site_url = ""
+            # 从配置中获取站点URL
+            for item in all_items:
+                if item.get("source") == site_name:
+                    site_url = item.get("site_url", "")
+                    break
+            if site_url:
+                lines.append(f"| {site_name} | {count}条 | [{site_url.split('//')[1].split('/')[0]}]({site_url}) |")
             else:
-                title_cell = title
-            
-            lines.append(f"| {i} | {title_cell} | {summary} | {pub_time} |")
+                lines.append(f"| {site_name} | {count}条 | - |")
+        
+        if rss_items:
+            lines.append(f"| 🌍 RSS 国际信源 | {len(rss_items)}条 | 6个信源 |")
         
         lines.append("")
+        lines.append(f"**总计: {total_count} 条新闻**")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        
+        # 按来源分组显示详细内容
+        from collections import defaultdict
+        items_by_source = defaultdict(list)
+        for item in all_items:
+            items_by_source[item.get("source", "未知")].append(item)
+        
+        for site_name, items in items_by_source.items():
+            # 获取站点图标，如果没有则使用默认图标
+            icon = SITE_ICONS.get(site_name, "📰")
+            lines.append(f"## {icon} {site_name}")
+            lines.append("")
+            lines.append("| 序号 | 标题 | 摘要 | 更新时间 |")
+            lines.append("|------|------|------|----------|")
+            
+            for i, item in enumerate(items, 1):
+                title = item.get("title", "无标题")
+                url = item.get("url", "")
+                summary = truncate_summary(item.get("summary", ""))
+                pub_time = format_time(item.get("publish_time", ""))
+                
+                # 标题带链接
+                if url:
+                    title_cell = f"[{title}]({url})"
+                else:
+                    title_cell = title
+                
+                lines.append(f"| {i} | {title_cell} | {summary} | {pub_time} |")
+            
+            lines.append("")
+    
+    # RSS 国际快讯部分
+    if rss_items:
+        from spider.rss_fetcher import generate_rss_markdown
+        lines.append(generate_rss_markdown(rss_items))
     
     return "\n".join(lines)
 
@@ -498,40 +512,101 @@ def main():
         help=f"缓存有效期（小时，默认{DEFAULT_CACHE_HOURS}小时）"
     )
     
+    parser.add_argument(
+        "--rss",
+        action="store_true",
+        help="同时获取国际 RSS 信源的 AI 新闻（6个信源→去重→Top20→抓原文→深度总结）"
+    )
+    
+    parser.add_argument(
+        "--rss-only",
+        action="store_true",
+        help="仅获取 RSS 国际新闻，跳过国内站点"
+    )
+    
+    parser.add_argument(
+        "--rss-limit",
+        type=int,
+        default=20,
+        help=f"RSS 精选条数（默认20条）"
+    )
+    
+    parser.add_argument(
+        "--no-rss-content",
+        action="store_true",
+        help="不抓取 RSS 文章原文（仅汇总标题和摘要）"
+    )
+    
+    parser.add_argument(
+        "--no-rss-summarize",
+        action="store_true",
+        help="不使用 LLM 生成深度总结（保留原文摘要）"
+    )
+    
     args = parser.parse_args()
     
     # 解析来源
     sources = parse_sources(args.sources)
     
-    print("🤖 开始获取 AI 新闻...")
-    if sources:
-        print(f"   指定站点: {', '.join(args.sources.split(','))}")
-    else:
-        print("   采集所有启用的站点")
-    print(f"   每站数量: {args.limit} 条")
-    print()
-    
     # 运行采集
-    try:
-        all_items, source_stats = asyncio.run(fetch_news(
-            sources=sources,
-            limit=args.limit,
-            no_cache=args.no_cache,
-            cache_hours=args.cache_hours,
-        ))
-    except KeyboardInterrupt:
-        print("\n⚠️ 用户中断")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ 采集失败: {e}")
-        sys.exit(1)
+    all_items = []
+    source_stats = {}
     
-    if not all_items:
+    if not args.rss_only:
+        print("🤖 开始获取 AI 新闻...")
+        if sources:
+            print(f"   指定站点: {', '.join(args.sources.split(','))}")
+        else:
+            print("   采集所有启用的站点")
+        print(f"   每站数量: {args.limit} 条")
+        print()
+        
+        try:
+            all_items, source_stats = asyncio.run(fetch_news(
+                sources=sources,
+                limit=args.limit,
+                no_cache=args.no_cache,
+                cache_hours=args.cache_hours,
+            ))
+        except KeyboardInterrupt:
+            print("\n⚠️ 用户中断")
+            sys.exit(0)
+        except Exception as e:
+            print(f"\n❌ 采集失败: {e}")
+            sys.exit(1)
+    
+    # RSS 新闻获取
+    rss_items = []
+    if args.rss or args.rss_only:
+        print()
+        print("=" * 50)
+        print("🌍 RSS 国际 AI 新闻")
+        print("=" * 50)
+        print()
+        
+        try:
+            rss_items = asyncio.run(fetch_all_rss(
+                top_n=args.rss_limit,
+                fetch_content=not args.no_rss_content,
+            ))
+            
+            if rss_items and not args.no_rss_summarize:
+                # 翻译标题 + 生成中文深度总结（逐篇并发模式，避免批量超时）
+                rss_items = asyncio.run(translate_and_summarize(rss_items, batch=False))
+                
+        except KeyboardInterrupt:
+            print("\n⚠️ RSS 采集中断")
+        except Exception as e:
+            print(f"\n❌ RSS 采集失败: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    if not all_items and not rss_items:
         print("\n❌ 未获取到任何新闻")
         sys.exit(1)
     
     # 生成 Markdown 输出
-    markdown_output = generate_markdown_output(all_items, source_stats)
+    markdown_output = generate_markdown_output(all_items, source_stats, rss_items)
     
     # 打印到控制台
     print()
