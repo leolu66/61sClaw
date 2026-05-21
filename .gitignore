@@ -42,6 +42,18 @@
 .DS_Store
 Thumbs.db
 
+# 环境变量和密钥文件
+**/.env
+**/.env.*
+**/.env.local
+**/.env.production
+**/.env.development
+
+# OpenClaw 主配置文件（含 API Key）
+/openclaw.json
+**/openclaw.json
+openclaw.json
+
 # 调试文件
 debug*.py
 test*.py
