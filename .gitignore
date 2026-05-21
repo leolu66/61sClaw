@@ -61,3 +61,56 @@ test*.py
 *_test.py
 *_backup.py
 *_old.py
+
+# 备份文件
+**/*.backup
+**/*.bak.*
+
+# 本地调试脚本
+**/run_gmail.bat
+**/test_gmail.ps1
+**/run_*.bat
+**/run_*.ps1
+
+# 技能运行时数据（JSON输出/缓存）
+**/output/*.json
+**/cache/*.json
+
+# 技能推送/运行记录
+**/push_history.json
+**/skill-categories.json
+**/push_history*
+
+# 配置计划文件
+**/config/async-worker-plan-*.js
+**/config/async-worker-plan-*
+
+# Agent 运行时目录
+**/.clawhub/
+**/.learnings/
+**/.openclaw/
+
+# 备份目录
+**/backups/
+
+# 配置目录
+**/config/coordinator.json
+**/config/.compliance_approvals.json
+
+# 子Agent工作空间
+**/feishu-agent/
+
+# PPT 输出目录
+**/ppt-output/
+
+# 其他输出目录
+**/output/
+
+# 项目简报/临时目录
+**/token-economics-briefing/
+
+# 本地工作目录
+**/workspace/
+
+# 自动生成的新闻简报
+**/ai_news_*.md
