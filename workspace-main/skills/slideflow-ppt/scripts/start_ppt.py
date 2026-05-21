@@ -31,15 +31,23 @@ SlideFlow 命令行 PPT 生成工具
 
 import os
 import sys
+import io
 import json
 import asyncio
 import argparse
 from pathlib import Path
 
+# Windows UTF-8 编码修复
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 SKILL_DIR = Path(__file__).parent.parent
 WORKSPACE = SKILL_DIR.parent.parent
 PROJECT_DIR = (WORKSPACE / "repos" / "SlideFlow").resolve()
 SLIDEFLOW_CONFIG = PROJECT_DIR / "config" / "config.json"
+
+# 将 SlideFlow 项目目录加入 Python 搜索路径
+sys.path.insert(0, str(PROJECT_DIR))
 
 
 def read_slideflow_config() -> dict:

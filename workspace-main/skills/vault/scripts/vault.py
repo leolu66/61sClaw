@@ -172,6 +172,16 @@ PLATFORM_TEMPLATES = {
             {"key": "password", "label": "密码", "type": "password", "isSensitive": True, "isRequired": True}
         ]
     },
+    "qqbot": {
+        "name": "QQ机器人",
+        "category": "api",
+        "icon": "🤖",
+        "fields": [
+            {"key": "url", "label": "地址", "type": "url", "isSensitive": False, "isRequired": False},
+            {"key": "app_id", "label": "AppID", "type": "text", "isSensitive": False, "isRequired": True},
+            {"key": "app_secret", "label": "AppSecret", "type": "token", "isSensitive": True, "isRequired": True}
+        ]
+    },
     "email": {
         "name": "公司邮箱",
         "category": "email",

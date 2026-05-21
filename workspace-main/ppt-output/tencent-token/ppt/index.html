@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>腾讯Token经营启示 · 运营商政企必读</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@200;300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fafaf8; --paper-rgb:250,250,248;
+    --ink:#0a0a0a; --ink-rgb:10,10,10;
+    --grey-1:#f0f0ee; --grey-2:#d4d4d2; --grey-3:#737373;
+    --accent:#002FA7; --accent-rgb:0,47,167; --accent-on:#ffffff; --accent-bright:#5B7BFF;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-helper:#737373;
+    --text-on-color:#ffffff; --border-subtle:#e0e0e0;
+    --sans:"Inter","Helvetica Neue","Helvetica","Arial",system-ui,sans-serif;
+    --sans-zh:"Noto Sans SC","PingFang SC","Microsoft YaHei UI","Microsoft YaHei","微软雅黑",sans-serif;
+    --mono:"JetBrains Mono","Consolas",ui-monospace,monospace;
+    --sp-3:8px; --sp-5:16px; --sp-6:24px; --sp-7:32px; --sp-8:40px; --sp-9:48px; --sp-10:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:var(--sans),var(--sans-zh);font-weight:300}
+  
+  .deck{width:100vw;height:100vh;position:relative}
+  .slide{width:100%;height:100%;position:absolute;top:0;left:0}
+  .slide:not(.is-active){opacity:0;pointer-events:none}
+  .slide.is-active{opacity:1}
+  .slide.light{background:var(--paper)}
+
+  .canvas-card{width:100%;height:100%;display:flex;flex-direction:column;padding:4vh 4vw 3vh;background:var(--paper)}
+  
+  .chrome-min{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.8vh}
+  .chrome-min .tag{font-family:var(--sans),var(--sans-zh);font-size:0.68vw;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);border-bottom:1.5px solid var(--accent);padding-bottom:2px}
+  .chrome-min .pg{font-family:var(--mono);font-size:0.68vw;color:var(--text-helper)}
+  
+  .t-cat{font-family:var(--sans),var(--sans-zh);font-size:0.72vw;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent)}
+  .h-hero{font-family:var(--sans),var(--sans-zh);font-weight:200;letter-spacing:-.04em;line-height:.92;color:var(--ink)}
+  .h-xl-zh{font-family:var(--sans),var(--sans-zh);font-weight:200;letter-spacing:-.03em;line-height:.95}
+  
+  .accent-block{background:var(--accent);color:var(--accent-on);padding:var(--sp-8) var(--sp-9)}
+  .accent-block h3{font-family:var(--sans),var(--sans-zh);font-weight:300;letter-spacing:-.02em;line-height:1.3}
+
+  .card-fill{background:var(--grey-1);padding:var(--sp-7);display:flex;flex-direction:column;gap:var(--sp-5)}
+  .card-fill .idx{font-family:var(--mono);font-size:0.64vw;color:var(--accent);font-weight:500;letter-spacing:.08em}
+  .card-fill h4{font-family:var(--sans),var(--sans-zh);font-weight:400;font-size:0.92vw;line-height:1.4;color:var(--ink)}
+  .card-fill p{font-family:var(--sans),var(--sans-zh);font-weight:300;font-size:0.68vw;line-height:1.55;color:var(--text-secondary)}
+
+  .num-mega{font-family:var(--sans),var(--sans-zh);font-weight:200;letter-spacing:-.05em;line-height:.85;color:var(--accent)}
+  .num-unit{font-family:var(--sans),var(--sans-zh);font-size:0.64vw;font-weight:400;color:var(--text-secondary)}
+
+  hr-hairline{border:none;border-top:1px solid var(--border-subtle);margin:var(--sp-5) 0}
+
+  .grid-2-9{display:grid;grid-template-columns:2fr 9fr;gap:var(--sp-10)}
+  .grid-7{display:grid;grid-template-columns:repeat(7,1fr);gap:var(--sp-5)}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-5)}
+
+  .kpi-row{display:flex;gap:var(--sp-9);margin-top:var(--sp-5)}
+  .kpi-item{display:flex;flex-direction:column;gap:var(--sp-3)}
+  
+  .quote-block{border-left:2px solid var(--accent);padding-left:var(--sp-7);margin-top:var(--sp-7)}
+  .quote-block .q{font-family:var(--sans),var(--sans-zh);font-weight:300;font-size:0.88vw;line-height:1.5;color:var(--ink);font-style:italic}
+  .quote-block .src{font-family:var(--sans),var(--sans-zh);font-size:0.64vw;color:var(--text-helper);margin-top:var(--sp-4)}
+
+  .step-row{display:flex;gap:var(--sp-3);align-items:flex-start;margin-top:var(--sp-5)}
+  .step-row .step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--sp-3)}
+  .step-row .step-nb{font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:2.4vw;line-height:1;color:var(--accent)}
+  .step-row .step-lbl{font-family:var(--sans),var(--sans-zh);font-weight:500;font-size:0.64vw;color:var(--ink);line-height:1.3}
+  .step-row .step-arr{font-family:var(--sans);font-size:0.8vw;color:var(--grey-3);align-self:center;margin-bottom:0.6vw}
+
+  .source{font-family:var(--sans),var(--sans-zh);font-size:0.56vw;color:var(--text-placeholder,#a3a3a3);margin-top:auto;padding-top:var(--sp-5)}
+</style>
+</head>
+<body>
+<div class="deck">
+<section class="slide is-active light" data-layout="S03">
+<div class="canvas-card">
+  <div class="chrome-min">
+    <div class="tag">OPERATOR INSIGHT</div>
+    <div class="pg">01 / 01</div>
+  </div>
+  
+  <!-- Top: Title + KPI row -->
+  <div style="display:flex;align-items:flex-end;gap:var(--sp-10);margin-bottom:var(--sp-6)">
+    <div style="flex:1">
+      <div class="t-cat" style="margin-bottom:var(--sp-5)">数说123 · 腾讯Q1财报解读</div>
+      <h1 class="h-hero" style="font-size:min(6vw,11vh)">腾讯Token经营启示</h1>
+      <div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(3.2vw,6vh);color:var(--text-secondary);margin-top:var(--sp-5);letter-spacing:-.03em">运营商政企必读</div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-item">
+        <div class="num-mega" style="font-size:min(4.8vw,9vh)">52<span style="font-size:0.5em">%</span></div>
+        <div class="num-unit">云服务毛利率</div>
+      </div>
+      <div class="kpi-item">
+        <div class="num-mega" style="font-size:min(4.8vw,9vh)">10<span style="font-size:0.5em">×</span></div>
+        <div class="num-unit">Token调用增长</div>
+      </div>
+      <div class="kpi-item">
+        <div class="num-mega" style="font-size:min(4.8vw,9vh)">+84<span style="font-size:0.5em">%</span></div>
+        <div class="num-unit">CapEx环比增长</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Token经营五步法 -->
+  <div style="margin-bottom:var(--sp-6)">
+    <div class="t-cat" style="margin-bottom:var(--sp-4)">Token经营五步法</div>
+    <div class="step-row">
+      <div class="step"><span class="step-nb">1</span><span class="step-lbl">模型训练<br>内部验证</span></div>
+      <span class="step-arr">→</span>
+      <div class="step"><span class="step-nb">2</span><span class="step-lbl">API化<br>MaaS输出</span></div>
+      <span class="step-arr">→</span>
+      <div class="step"><span class="step-nb">3</span><span class="step-lbl">Token计量<br>按量付费</span></div>
+      <span class="step-arr">→</span>
+      <div class="step"><span class="step-nb">4</span><span class="step-lbl">场景嵌入<br>工作流</span></div>
+      <span class="step-arr">→</span>
+      <div class="step"><span class="step-nb">5</span><span class="step-lbl">持续消耗<br>客户粘性</span></div>
+    </div>
+  </div>
+
+  <!-- 7 Takeaways Grid -->
+  <div class="t-cat" style="margin-bottom:var(--sp-4)">七大运营商启示</div>
+  <div class="grid-7">
+    <div class="card-fill">
+      <div class="idx">01</div>
+      <h4>卖"活水系统"<br>不卖"水"</h4>
+      <p>Token计费绑定客户业务活跃度</p>
+    </div>
+    <div class="card-fill">
+      <div class="idx">02</div>
+      <h4>模型越小<br>越省钱越好用</h4>
+      <p>混元3.0推理成本低→Token暴增10×</p>
+    </div>
+    <div class="card-fill">
+      <div class="idx">03</div>
+      <h4>AI是毛利率<br>的"救星"</h4>
+      <p>IaaS 20-35%→AI API 50-70%</p>
+    </div>
+    <div class="card-fill">
+      <div class="idx">04</div>
+      <h4>短周期造血<br>+长周期布局</h4>
+      <p>GPU租赁+自有行业大模型双轨</p>
+    </div>
+    <div class="card-fill">
+      <div class="idx">05</div>
+      <h4>卡位国产<br>GPU供应链</h4>
+      <p>国产算力+运营商网络=政企合规优势</p>
+    </div>
+    <div class="card-fill">
+      <div class="idx">06</div>
+      <h4>出海卖"能力"<br>不卖"管道"</h4>
+      <p>PaaS/SaaS打包:客服+云视讯+安全</p>
+    </div>
+    <div class="card-fill">
+      <div class="idx">07</div>
+      <h4>让AI像水<br>自然流淌</h4>
+      <p>嵌入OA/政务热线等已有平台</p>
+    </div>
+  </div>
+
+  <!-- Bottom: Quote -->
+  <div class="quote-block">
+    <div class="q">"Token经营的本质不是卖技术，而是经营关系——把'房东-租客'变成'搭档'，客户的业务越好，AI用得越多，云厂商收入越高。"</div>
+    <div class="src">— 数说123, 腾讯Token经营启示, 2026.05.17</div>
+  </div>
+
+  <div class="source">数据来源: 腾讯2026Q1财报 · 数说123行研组 · 制图: 小天才 AI助理</div>
+</div>
+</section>
+</div>
+
+<div style="position:fixed;bottom:2vh;right:3vw;font-family:var(--mono);font-size:0.56vw;color:var(--text-helper);z-index:100">← → 翻页 · B 静态</div>
+<script>
+  // Minimal keyboard nav
+  document.addEventListener('keydown',function(e){
+    var slides=document.querySelectorAll('.slide');
+    var active=document.querySelector('.slide.is-active');
+    var idx=Array.from(slides).indexOf(active);
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+      var next=e.key==='ArrowRight'?Math.min(idx+1,slides.length-1):Math.max(idx-1,0);
+      slides.forEach(function(s,i){s.classList.toggle('is-active',i===next)});
+    }
+  });
+</script>
+</body>
+</html>

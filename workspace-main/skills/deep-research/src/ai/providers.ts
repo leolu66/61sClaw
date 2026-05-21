@@ -11,16 +11,10 @@ const openai = createOpenAI({
 });
 
 // Models - 使用鲸云可用模型 (OpenAI 兼容接口)
-// 注意：kimi-k2.5 不支持 structuredOutputs，改用 gpt-4o
-export const gpt4Model = openai('gpt-4o', {
-  structuredOutputs: true,
-});
-export const gpt4MiniModel = openai('gpt-4o-mini', {
-  structuredOutputs: true,
-});
-export const o3MiniModel = openai('gpt-4o', {
-  structuredOutputs: true,
-});
+// gpt-4o 代理报 500、deepseek/glm 不支持 structured output，关闭 structuredOutputs 由 SDK 用 prompt 做 JSON
+export const gpt4Model = openai('glm-5.1');
+export const gpt4MiniModel = openai('glm-5.1');
+export const o3MiniModel = openai('glm-5.1');
 
 const MinChunkSize = 140;
 const encoder = getEncoding('o200k_base');

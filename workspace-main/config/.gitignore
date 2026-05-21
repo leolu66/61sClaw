@@ -1,0 +1,10 @@
+# 本地配置覆盖文件
+# 此文件用于覆盖 coordinator.json 的本地特定配置
+# 不会被提交到 Git
+
+coordinator.local.json
+
+# 运行时状态文件（自动生成）
+coordinator.pid
+coordinator.status
+.reload

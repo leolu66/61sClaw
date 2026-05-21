@@ -1,6 +1,6 @@
 /**
  * 多搜索源支持模块
- * 支持 Firecrawl、Baidu Search、Brave Search
+ * 支持 Firecrawl、Volcengine、MultiSearch、Baidu Search、Brave Search
  */
 
 import FirecrawlApp, { SearchResponse as FirecrawlResponse } from '@mendable/firecrawl-js';
@@ -13,7 +13,7 @@ export type SearchResult = {
   markdown?: string;
 };
 
-export type SearchProvider = 'firecrawl' | 'baidu' | 'brave';
+export type SearchProvider = 'firecrawl' | 'volc' | 'multi' | 'baidu' | 'brave';
 
 /**
  * 自动检测 Clash 代理是否可用
@@ -77,6 +77,152 @@ async function searchWithFirecrawl(query: string, limit: number = 5): Promise<Se
       title: item.title!.trim(),
       markdown: item.markdown,
     }));
+}
+
+/**
+ * 使用火山引擎融合搜索
+ */
+async function searchWithVolc(query: string, limit: number = 5): Promise<SearchResult[]> {
+  const volcApiKey = await getVolcApiKey();
+  if (!volcApiKey) {
+    console.log('Volcengine API key not found');
+    return [];
+  }
+
+  try {
+    const response = await fetch('https://open.feedcoopapi.com/search_api/web_search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${volcApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        Query: query,
+        SearchType: 'web',
+        Count: Math.min(limit, 50),
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+
+    if (!response.ok) {
+      console.log(`Volcengine search failed: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json() as any;
+
+    // 检查 API 错误
+    if (data?.ResponseMetadata?.Error) {
+      const err = data.ResponseMetadata.Error;
+      console.log(`Volcengine API error: ${err.CodeN || ''} - ${err.Message || 'Unknown'}`);
+      return [];
+    }
+
+    const webResults = data?.Result?.WebResults || [];
+    return webResults
+      .filter((item: any) => item.Url && item.Title)
+      .map((item: any) => ({
+        url: item.Url,
+        title: item.Title.trim(),
+        markdown: item.Snippet || '',
+      }));
+  } catch (error) {
+    console.error('Volcengine search error:', error);
+    return [];
+  }
+}
+
+/**
+ * 从密码箱获取火山引擎 API Key
+ */
+async function getVolcApiKey(): Promise<string> {
+  // 先从环境变量读取
+  const envKey = process.env.VOLCSEARCH_API_KEY;
+  if (envKey) return envKey;
+
+  // 从密码箱读取
+  try {
+    const os = await import('os');
+    const fs = await import('fs');
+    const path = await import('path');
+    const credFile = path.join(os.homedir(), '.openclaw', 'vault', 'credentials.json');
+    if (fs.existsSync(credFile)) {
+      const raw = fs.readFileSync(credFile, 'utf-8');
+      const data = JSON.parse(raw);
+      const creds = data?.credentials || {};
+      const volcCred = creds['volcsearch'] || {};
+      for (const field of volcCred.fields || []) {
+        if (field.key === 'api_key') return field.value || '';
+      }
+    }
+  } catch (e) {
+    console.log('Failed to read volcsearch credentials from vault');
+  }
+
+  return '';
+}
+
+/**
+ * 多搜索引擎 Web 抓取
+ * 封装 multi-search-engine-simple-1.0.0，从 Bing CN / 搜狗 / 360 抓取搜索结果
+ */
+async function searchWithMulti(query: string, limit: number = 5): Promise<SearchResult[]> {
+  // 搜索引擎配置（来自 multi-search-engine-simple-1.0.0）
+  const engines = [
+    {
+      name: 'Bing CN',
+      url: `https://cn.bing.com/search?q=${encodeURIComponent(query)}&ensearch=0&count=${limit}`,
+      // Bing 结果：<li class="b_algo"> 内 <h2><a href="...">title</a></h2> + <p>snippet</p>
+      parser: (html: string): SearchResult[] => {
+        const results: SearchResult[] = [];
+        const algoRegex = /<li class="b_algo">([\s\S]*?)<\/li>/gi;
+        let match;
+        while ((match = algoRegex.exec(html)) !== null) {
+          const block = match[1];
+          const urlMatch = block.match(/<a[^>]*href="(https?:\/\/[^"]+)"[^>]*>/i);
+          const titleMatch = block.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
+          const snippetMatch = block.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+          if (urlMatch && titleMatch) {
+            const url = urlMatch[1];
+            const title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+            const snippet = snippetMatch ? snippetMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+            if (!url.includes('bing.com') && !url.includes('microsoft.com/bing')) {
+              results.push({ url, title, markdown: snippet });
+            }
+          }
+        }
+        return results.slice(0, limit);
+      },
+    },
+  ];
+
+  for (const engine of engines) {
+    try {
+      console.log(`Multi-search trying ${engine.name} for: ${query}`);
+      const response = await fetch(engine.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        },
+        signal: AbortSignal.timeout(15000),
+      });
+
+      if (!response.ok) {
+        console.log(`${engine.name} returned ${response.status}`);
+        continue;
+      }
+
+      const html = await response.text();
+      const results = engine.parser(html);
+      console.log(`${engine.name} returned ${results.length} results`);
+      if (results.length > 0) return results;
+    } catch (error) {
+      console.log(`${engine.name} failed: ${error}`);
+    }
+  }
+
+  return [];
 }
 
 /**
@@ -202,9 +348,11 @@ async function searchWithBrave(query: string, limit: number = 5): Promise<Search
 
 /**
  * 智能搜索：按优先级尝试多个搜索源
- * 1. Firecrawl (最佳质量，但可能额度不足)
- * 2. Baidu (中文优化，无需 VPN)
- * 3. Brave (备用)
+ * 1. Firecrawl (最佳质量，可能额度不足)
+ * 2. Volcengine (火山引擎，中文优化，5000次免费额度，无需 VPN)
+ * 3. MultiSearch (Bing CN Web抓取，补充索引覆盖，无需 VPN)
+ * 4. Baidu (中文优化，无需 VPN)
+ * 5. Brave (国际搜索备用，需 VPN)
  */
 export async function smartSearch(
   query: string,
@@ -219,8 +367,31 @@ export async function smartSearch(
       return { results, provider: 'firecrawl' };
     }
   } catch (error: any) {
-    // 402 = 额度不足，其他错误也继续尝试
     console.log(`Firecrawl failed: ${error.message || error}`);
+  }
+
+  // 尝试火山引擎搜索
+  try {
+    console.log(`Trying Volcengine for: ${query}`);
+    const results = await searchWithVolc(query, limit);
+    if (results.length > 0) {
+      console.log(`Volcengine returned ${results.length} results`);
+      return { results, provider: 'volc' };
+    }
+  } catch (error: any) {
+    console.log(`Volcengine failed: ${error.message || error}`);
+  }
+
+  // 尝试多搜索引擎 Web 抓取
+  try {
+    console.log(`Trying MultiSearch for: ${query}`);
+    const results = await searchWithMulti(query, limit);
+    if (results.length > 0) {
+      console.log(`MultiSearch returned ${results.length} results`);
+      return { results, provider: 'multi' };
+    }
+  } catch (error: any) {
+    console.log(`MultiSearch failed: ${error.message || error}`);
   }
 
   // 尝试百度搜索

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "playwright": "^1.59.1",
     "youtube-transcript-plus": "^1.1.1"
   }
 }
-
