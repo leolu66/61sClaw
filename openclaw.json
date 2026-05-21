@@ -1,11 +1,11 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.5.7",
-    "lastTouchedAt": "2026-05-11T01:45:59.412Z"
+    "lastTouchedVersion": "2026.5.18",
+    "lastTouchedAt": "2026-05-20T02:02:41.643Z"
   },
   "wizard": {
-    "lastRunAt": "2026-05-06T16:52:02.682Z",
-    "lastRunVersion": "2026.5.5",
+    "lastRunAt": "2026-05-20T02:02:15.765Z",
+    "lastRunVersion": "2026.5.18",
     "lastRunCommand": "doctor",
     "lastRunMode": "local"
   },
@@ -79,8 +79,11 @@
       },
       "whalecloud": {
         "baseUrl": "https://lab.iwhalecloud.com/gpt-proxy/anthropic",
-        "apiKey": "ailab_0MSAtJQa9d/tXaT2eW7wCK1FAfqh8ZVJlhptKupF2F/2ZaU01zwO0SyJtkLIXfo1f5iBemAbJBGR/wA8vkfuw8uUQIgcNB6gvKl2NGsjd0YdVnK0GP31spo=",
+        "apiKey": "ailab_oX3mseJzIiRgLXZMTtZ/RRq80JPscGJeGtni5Zn7D/eiRys83x80rc9IaumtjzVKAMLwemZJL98xWNhxabapM3zmEfhIayNm2mSnEDbB6GiF3upMOIKJ9RYzL0VN0/s=",
         "api": "anthropic-messages",
+        "request": {
+          "allowPrivateNetwork": true
+        },
         "models": [
           {
             "id": "MiniMax-M2.7",
@@ -120,7 +123,7 @@
           {
             "id": "doubao-seed-2.0-lite",
             "name": "Doubao Seed 2.0 Lite",
-            "api": "openai-completions",
+            "api": "anthropic-messages",
             "reasoning": false,
             "input": [
               "text"
@@ -417,7 +420,8 @@
         },
         "poloapi-glm/glm-5.1": {
           "alias": "poloapi-GLM-5.1"
-        }
+        },
+        "whalecloud/iWC-DeepSeek-V4-Flash": {}
       },
       "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-main",
       "memorySearch": {
@@ -445,31 +449,21 @@
           "primary": "whalecloud/deepseek-v4-flash"
         },
         "skills": [
-          "clawhub",
-          "summarize",
           "ai-news-fetcher",
           "api-balance-checker",
-          "audio-control",
           "billing-analyzer",
           "brave-search",
-          "claude-code-sender",
           "code-stats",
           "disk-cleaner",
           "exchange-email-reader",
           "github-compliance-checker",
           "log-migrator",
-          "model-selector",
-          "model-switcher",
-          "mouseinfo-launcher",
           "one-click-commit",
           "skill-creator-local",
-          "skill-syncer",
           "telecom-news-fetcher",
           "vpn-controller",
           "wechat-article-fetcher",
-          "work-session-logger",
-          "github",
-          "skill-creator"
+          "work-session-logger"
         ]
       },
       {
@@ -509,7 +503,10 @@
         "name": "娱乐Agent",
         "workspace": "C:\\Users\\luzhe\\.openclaw\\workspace-entertainment",
         "model": {
-          "primary": "whalecloud/doubao-seed-2.0-lite"
+          "primary": "whalecloud/doubao-seed-2.0-lite",
+          "fallbacks": [
+            "whalecloud/deepseek-v4-flash"
+          ]
         },
         "skills": [
           "gobang-game",
@@ -597,8 +594,28 @@
       "resolveSenderNames": true,
       "enabled": false
     },
-    "openclaw-weixin": {
-      "accounts": {}
+    "qqbot": {
+      "enabled": true,
+      "allowFrom": [
+        "*"
+      ],
+      "appId": "1904018036",
+      "clientSecret": "Hct5CC7wgQ5c9gAX",
+      "groupAllowFrom": [
+        "*"
+      ]
+    },
+    "yuanbao": {
+      "appKey": "d9leWsZEZPg7o9sDAHRkBOxJSEGSqu98",
+      "appSecret": "yB9ZrYeVqqSx0hfpl3mdFF3KcUcFbv8J",
+      "enabled": true,
+      "dmPolicy": "open",
+      "allowFrom": [
+        "*"
+      ],
+      "groupAllowFrom": [
+        "*"
+      ]
     }
   },
   "discovery": {
@@ -671,17 +688,14 @@
   },
   "plugins": {
     "allow": [
-      "openclaw-weixin",
-      "feishu",
-      "moonshot",
       "brave",
-      "memory-core"
+      "feishu",
+      "memory-core",
+      "moonshot",
+      "openclaw-plugin-yuanbao",
+      "qqbot"
     ],
     "entries": {
-      "openclaw-weixin": {
-        "enabled": false,
-        "config": {}
-      },
       "brave": {
         "enabled": true,
         "config": {
@@ -703,6 +717,13 @@
       },
       "feishu": {
         "enabled": false
+      },
+      "qqbot": {
+        "enabled": true,
+        "config": {}
+      },
+      "openclaw-plugin-yuanbao": {
+        "enabled": true
       }
     },
     "bundledDiscovery": "compat"
