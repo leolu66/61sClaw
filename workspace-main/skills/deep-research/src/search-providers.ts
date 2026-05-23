@@ -7,13 +7,15 @@ import FirecrawlApp, { SearchResponse as FirecrawlResponse } from '@mendable/fir
 import { execSync } from 'child_process';
 import * as path from 'path';
 
+import { getCached, setCached } from './search-cache';
+
 export type SearchResult = {
   url: string;
   title: string;
   markdown?: string;
 };
 
-export type SearchProvider = 'firecrawl' | 'volc' | 'multi' | 'baidu' | 'brave';
+export type SearchProvider = 'firecrawl' | 'volc' | 'multi' | 'baidu' | 'brave' | 'cache';
 
 /**
  * 自动检测 Clash 代理是否可用
@@ -358,12 +360,19 @@ export async function smartSearch(
   query: string,
   limit: number = 5
 ): Promise<{ results: SearchResult[]; provider: SearchProvider }> {
+  // 先查缓存
+  const cached = await getCached(query);
+  if (cached && cached.length > 0) {
+    return { results: cached, provider: 'cache' };
+  }
+
   // 尝试 Firecrawl
   try {
     console.log(`Trying Firecrawl for: ${query}`);
     const results = await searchWithFirecrawl(query, limit);
     if (results.length > 0) {
       console.log(`Firecrawl returned ${results.length} results`);
+      await setCached(query, 'firecrawl', results);
       return { results, provider: 'firecrawl' };
     }
   } catch (error: any) {
@@ -376,6 +385,7 @@ export async function smartSearch(
     const results = await searchWithVolc(query, limit);
     if (results.length > 0) {
       console.log(`Volcengine returned ${results.length} results`);
+      await setCached(query, 'volc', results);
       return { results, provider: 'volc' };
     }
   } catch (error: any) {
@@ -388,6 +398,7 @@ export async function smartSearch(
     const results = await searchWithMulti(query, limit);
     if (results.length > 0) {
       console.log(`MultiSearch returned ${results.length} results`);
+      await setCached(query, 'multi', results);
       return { results, provider: 'multi' };
     }
   } catch (error: any) {
@@ -400,6 +411,7 @@ export async function smartSearch(
     const results = await searchWithBaidu(query, limit);
     if (results.length > 0) {
       console.log(`Baidu returned ${results.length} results`);
+      await setCached(query, 'baidu', results);
       return { results, provider: 'baidu' };
     }
   } catch (error: any) {
@@ -412,6 +424,7 @@ export async function smartSearch(
     const results = await searchWithBrave(query, limit);
     if (results.length > 0) {
       console.log(`Brave returned ${results.length} results`);
+      await setCached(query, 'brave', results);
       return { results, provider: 'brave' };
     }
   } catch (error: any) {

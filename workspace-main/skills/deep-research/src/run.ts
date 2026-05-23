@@ -3,15 +3,30 @@ import * as readline from 'readline';
 import { parseArgs } from 'util';
 import * as path from 'path';
 
-import { deepResearch, writeFinalReport } from './deep-research';
+import { initConcurrency } from './concurrency';
+import { initCache, cleanExpiredCache } from './search-cache';
+import {
+  deepResearch,
+  deepResearchByPlan,
+  writeFinalReport,
+  writeFinalReportWithOutline,
+} from './deep-research';
 import { generateFeedback } from './feedback';
+import {
+  analyzeQuery,
+  presentAndConfirm,
+  reviewDimensions,
+  presentReviewAndHandle,
+  generateResearchPlan,
+  generateReportOutline,
+  presentOutlineAndConfirm,
+} from './research-plan';
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-// Helper function to get user input
 function askQuestion(query: string): Promise<string> {
   return new Promise(resolve => {
     rl.question(query, answer => {
@@ -20,7 +35,6 @@ function askQuestion(query: string): Promise<string> {
   });
 }
 
-// run the agent
 async function run() {
   // 解析命令行参数
   const { values, positionals } = parseArgs({
@@ -29,6 +43,10 @@ async function run() {
       depth: { type: 'string', default: '3' },
       output: { type: 'string', default: 'report.md' },
       'no-interactive': { type: 'boolean', default: false },
+      'no-plan': { type: 'boolean', default: false },
+      concurrency: { type: 'string', default: '3' },
+      'no-cache': { type: 'boolean', default: false },
+      'cache-ttl': { type: 'string', default: '86400' },
     },
     allowPositionals: true,
   });
@@ -38,6 +56,15 @@ async function run() {
   let depth = parseInt(values.depth as string, 10) || 2;
   const outputPath = values.output as string;
   const interactive = !values['no-interactive'];
+  const usePlan = !values['no-plan'];
+  const concurrency = parseInt(values.concurrency as string, 10) || 3;
+  const cacheEnabled = !values['no-cache'];
+  const cacheTtl = parseInt(values['cache-ttl'] as string, 10) || 86400;
+
+  // 初始化并发控制和缓存
+  initConcurrency(concurrency);
+  initCache({ enabled: cacheEnabled, ttlSeconds: cacheTtl });
+  await cleanExpiredCache();
 
   // 如果没有提供查询参数，提示用户输入
   if (!initialQuery) {
@@ -45,15 +72,13 @@ async function run() {
   }
 
   let combinedQuery = initialQuery;
+  let additionalFeedback = '';
 
-  // 如果是交互模式，询问参数和后续问题
+  // 交互模式：需求澄清
   if (interactive) {
-    // Get breath and depth parameters if not provided
     if (!values.breadth) {
       breadth = parseInt(
-        await askQuestion(
-          'Enter research breadth (recommended 2-10, default 4): ',
-        ),
+        await askQuestion('Enter research breadth (recommended 2-10, default 4): '),
         10,
       ) || 4;
     }
@@ -64,25 +89,20 @@ async function run() {
       ) || 2;
     }
 
-    console.log(`Creating research plan...`);
+    console.log('Creating research plan...');
 
-    // Generate follow-up questions
-    const followUpQuestions = await generateFeedback({
-      query: initialQuery,
-    });
+    const followUpQuestions = await generateFeedback({ query: initialQuery });
 
     console.log(
       '\nTo better understand your research needs, please answer these follow-up questions:',
     );
 
-    // Collect answers to follow-up questions
     const answers: string[] = [];
     for (const question of followUpQuestions) {
       const answer = await askQuestion(`\n${question}\nYour answer: `);
       answers.push(answer);
     }
 
-    // Combine all information for deep research
     combinedQuery = `
 Initial Query: ${initialQuery}
 Follow-up Questions and Answers:
@@ -94,45 +114,85 @@ ${followUpQuestions.map((q, i) => `Q: ${q}\nA: ${answers[i]}`).join('\n')}
     console.log(`Breadth: ${breadth}, Depth: ${depth}`);
   }
 
-  console.log('\nResearching your topic...');
+  let report: string;
 
-  const { learnings, visitedSources } = await deepResearch({
-    query: combinedQuery,
-    breadth,
-    depth,
-  });
+  if (usePlan) {
+    // ─── 计划驱动流程 ─────────────────────
+    console.log('\n━━━ Step 1: 问题分析 ━━━');
+    const analysis = await analyzeQuery(combinedQuery);
+    console.log(`主题: ${analysis.topic}`);
+    console.log(`类型: ${analysis.questionType} | 复杂度: ${analysis.estimatedComplexity}`);
+    console.log(`推荐维度: ${analysis.recommendedDimensions.length} 个`);
 
-  console.log(`\n\nLearnings:\n\n${learnings.join('\n')}`);
-  console.log(
-    `\n\nVisited Sources (${visitedSources.length}):\n\n${visitedSources.map(s => `- [${s.title}](${s.url})`).join('\n')}`,
-  );
-  console.log('Writing final report...');
+    console.log('\n━━━ Step 2: 维度确认 ━━━');
+    let confirmedDims = await presentAndConfirm(analysis, askQuestion, interactive);
 
-  const report = await writeFinalReport({
-    prompt: combinedQuery,
-    learnings,
-    visitedSources,
-  });
+    console.log('\n━━━ Step 2.5: 反思审核 ━━━');
+    const review = await reviewDimensions(combinedQuery, confirmedDims, combinedQuery);
+    const reviewResult = await presentReviewAndHandle(review, confirmedDims, askQuestion, interactive);
+    confirmedDims = reviewResult.dimensions;
+    if (reviewResult.additionalFeedback) {
+      additionalFeedback = reviewResult.additionalFeedback;
+      combinedQuery += `\n\nAdditional clarifications:\n${additionalFeedback}`;
+    }
 
-  // 提取报告标题作为文件名
+    console.log('\n━━━ Step 3: 执行计划细化 ━━━');
+    const plan = await generateResearchPlan(combinedQuery, confirmedDims, breadth, depth);
+    console.log(`维度数: ${plan.dimensions.length}`);
+    plan.dimensions.forEach(d => {
+      console.log(`  [${d.priority}] ${d.title} (${d.subTopics.length} sub-topics, weight: ${d.estimatedWeight})`);
+    });
+    console.log(`预估搜索量: ${plan.totalEstimatedQueries}`);
+
+    console.log('\n━━━ Step 4: 报告大纲生成 ━━━');
+    let outline = await generateReportOutline(plan);
+    outline = await presentOutlineAndConfirm(outline, askQuestion, interactive);
+
+    console.log('\n━━━ Phase 5: 执行研究 ━━━');
+    console.log('Researching your topic by plan...');
+    const { learnings, visitedSources } = await deepResearchByPlan(combinedQuery, plan);
+
+    console.log(`\nLearnings: ${learnings.length}`);
+    console.log(`Sources: ${visitedSources.length}`);
+
+    console.log('\n━━━ Phase 6: 生成报告 ━━━');
+    console.log('Writing final report with outline...');
+    report = await writeFinalReportWithOutline({ outline, learnings, visitedSources });
+  } else {
+    // ─── 原有流程（fallback）────────────────
+    console.log('\nResearching your topic (legacy mode)...');
+
+    const { learnings, visitedSources } = await deepResearch({
+      query: combinedQuery,
+      breadth,
+      depth,
+    });
+
+    console.log(`\nLearnings: ${learnings.length}`);
+    console.log(`Sources: ${visitedSources.length}`);
+    console.log('Writing final report...');
+
+    report = await writeFinalReport({
+      prompt: combinedQuery,
+      learnings,
+      visitedSources,
+    });
+  }
+
+  // ─── 保存报告 ─────────────────────────
   let finalOutputPath = outputPath;
   if (outputPath === 'report.md') {
-    // 从报告中提取第一个#标题
     const titleMatch = report.match(/^#\s+(.+)$/m);
     let filename = 'report.md';
     if (titleMatch) {
-      // 处理标题中的特殊字符，替换为安全的字符
       const title = titleMatch[1].trim();
       filename = title.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '-') + '.md';
     }
     finalOutputPath = path.join(__dirname, '..', 'output', filename);
-    // 确保output目录存在
     await fs.mkdir(path.dirname(finalOutputPath), { recursive: true });
   }
 
-  // Save report to file
   await fs.writeFile(finalOutputPath, report, 'utf-8');
-
   console.log(`\n\nFinal Report:\n\n${report}`);
   console.log(`\nReport has been saved to ${finalOutputPath}`);
   rl.close();

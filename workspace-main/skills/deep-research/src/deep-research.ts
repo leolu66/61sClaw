@@ -4,15 +4,17 @@ import pLimit from 'p-limit';
 import { z } from 'zod';
 
 import { o3MiniModel, trimPrompt } from './ai/providers';
-import { systemPrompt } from './prompt';
+import { getSearchLimiter } from './concurrency';
+import { systemPrompt, reportSystemPrompt } from './prompt';
+import { ResearchPlan, ReportOutline } from './research-plan';
 import { smartSearch, SearchResult } from './search-providers';
 
-type Source = {
+export type Source = {
   url: string;
   title: string;
 };
 
-type ResearchResult = {
+export type ResearchResult = {
   learnings: string[];
   visitedSources: Source[];
 };
@@ -161,7 +163,7 @@ export async function deepResearch({
     learnings,
     numQueries: breadth,
   });
-  const limit = pLimit(ConcurrencyLimit);
+  const limit = getSearchLimiter();
 
   const results = await Promise.all(
     serpQueries.map(serpQuery =>
@@ -241,4 +243,202 @@ export async function deepResearch({
     learnings: allLearnings,
     visitedSources: uniqueSources,
   };
+}
+
+// ─── 按计划执行研究 ─────────────────────────────
+
+export async function deepResearchByPlan(
+  query: string,
+  plan: ResearchPlan,
+): Promise<ResearchResult> {
+  const allLearnings: string[] = [];
+  const allSources: Source[] = [];
+  const limiter = getSearchLimiter();
+
+  // 按 executionOrder 遍历维度，维度间并行（受全局 limiter 控制）
+  const dimensionResults = await Promise.all(
+    plan.executionOrder.map(dimId => {
+      const dimension = plan.dimensions.find(d => d.id === dimId);
+      if (!dimension) return Promise.resolve({ learnings: [], visitedSources: [] });
+
+      return processDimension(dimension, limiter);
+    }),
+  );
+
+  // 合并所有维度结果
+  for (const result of dimensionResults) {
+    allLearnings.push(...result.learnings);
+    allSources.push(...result.visitedSources);
+  }
+
+  // 去重
+  const uniqueLearnings = [...new Set(allLearnings)];
+  const uniqueSources = Array.from(
+    new Map(allSources.map(source => [source.url, source])).values(),
+  );
+
+  return {
+    learnings: uniqueLearnings,
+    visitedSources: uniqueSources,
+  };
+}
+
+async function processDimension(
+  dimension: ResearchPlan['dimensions'][number],
+  limiter: ReturnType<typeof pLimit>,
+): Promise<ResearchResult> {
+  console.log(`\n━━ 研究维度: ${dimension.title} (${dimension.priority}) ━━`);
+
+  // 维度内子主题并行（受全局 limiter 控制）
+  const subTopicResults = await Promise.all(
+    dimension.subTopics.map(subTopic =>
+      limiter(async () => {
+        try {
+          return processSubTopic(subTopic);
+        } catch (e) {
+          console.error(`Error processing sub-topic "${subTopic.title}":`, e);
+          return { learnings: [], visitedSources: [] };
+        }
+      }),
+    ),
+  );
+
+  const dimLearnings = subTopicResults.flatMap(r => r.learnings);
+  const dimSources = subTopicResults.flatMap(r => r.visitedSources);
+  const uniqueSources = Array.from(
+    new Map(dimSources.map(s => [s.url, s])).values(),
+  );
+
+  console.log(`━━ 维度 "${dimension.title}" 完成: ${dimLearnings.length} learnings, ${uniqueSources.length} sources ━━`);
+
+  return { learnings: dimLearnings, visitedSources: uniqueSources };
+}
+
+async function processSubTopic(subTopic: {
+  title: string;
+  initialQueries: string[];
+  suggestedBreadth: number;
+  suggestedDepth: number;
+}): Promise<ResearchResult> {
+  let subLearnings: string[] = [];
+  let subSources: Source[] = [];
+
+  // 用预设搜索词执行搜索
+  for (const query of subTopic.initialQueries) {
+    try {
+      const { results, provider } = await smartSearch(query, 5);
+      if (results.length === 0) {
+        console.log(`  No results for: ${query}`);
+        continue;
+      }
+
+      console.log(`  [${provider}] "${query}" → ${results.length} results`);
+
+      const newSources = compact(
+        results.map(item =>
+          item.url && item.title ? { url: item.url, title: item.title.trim() } : null,
+        ),
+      );
+      subSources.push(...newSources);
+
+      // AI 提取 learnings
+      const extracted = await processSerpResult({
+        query,
+        results,
+        numFollowUpQuestions: subTopic.suggestedBreadth,
+      });
+      subLearnings.push(...extracted.learnings);
+
+      // 递归深入
+      if (subTopic.suggestedDepth > 1) {
+        const nextQuery = `
+          Sub-topic: ${subTopic.title}
+          Follow-up directions: ${extracted.followUpQuestions.map(q => `\n${q}`).join('')}
+        `.trim();
+
+        const deeper = await deepResearch({
+          query: nextQuery,
+          breadth: subTopic.suggestedBreadth,
+          depth: subTopic.suggestedDepth - 1,
+          learnings: subLearnings,
+          visitedSources: subSources,
+        });
+        subLearnings = deeper.learnings;
+        subSources = deeper.visitedSources;
+      }
+    } catch (e) {
+      console.error(`  Error searching "${query}":`, e);
+    }
+  }
+
+  return { learnings: subLearnings, visitedSources: subSources };
+}
+
+// ─── 按大纲生成报告 ─────────────────────────────
+
+export async function writeFinalReportWithOutline({
+  outline,
+  learnings,
+  visitedSources,
+}: {
+  outline: ReportOutline;
+  learnings: string[];
+  visitedSources: Source[];
+}): Promise<string> {
+  const learningsString = trimPrompt(
+    learnings
+      .map(learning => `<learning>\n${learning}\n</learning>`)
+      .join('\n'),
+    150_000,
+  );
+
+  const chapterStructure = outline.chapters
+    .map(ch => {
+      const weight = `~${Math.round(ch.estimatedWeight * 100)}%`;
+      const subs = ch.subSections?.map(s => `    - ${s}`).join('\n') || '';
+      return `  ${ch.chapterType === 'intro' ? '0' : ch.chapterType === 'appendix' ? '附' : ch.id}: ${ch.title} [${ch.chapterType}] (${weight})\n    内容要求: ${ch.description}${subs ? '\n    子章节:\n' + subs : ''}`;
+    })
+    .join('\n');
+
+  const res = await generateObject({
+    model: o3MiniModel,
+    system: reportSystemPrompt(),
+    prompt: `Write a comprehensive research report following the exact chapter structure below.
+
+Report title: ${outline.title}
+Research overview: ${outline.summary}
+
+Chapter structure (follow this EXACTLY):
+${chapterStructure}
+
+Here are all the learnings from research:
+<learnings>
+${learningsString}
+</learnings>
+
+Requirements:
+1. Write in Markdown format with proper headings (## for chapters, ### for sub-sections)
+2. Each body chapter should be proportional to its estimated weight
+3. Use ALL learnings - distribute them across the appropriate chapters
+4. The intro chapter should explain the research scope and methodology
+5. The conclusion chapter should synthesize findings and provide actionable recommendations
+6. Include specific numbers, dates, entity names from the learnings
+7. Use tables where comparison data is available
+8. Be as detailed and information-dense as possible`,
+    schema: z.object({
+      reportMarkdown: z
+        .string()
+        .describe('Complete research report in Markdown following the chapter structure'),
+    }),
+  });
+
+  // 追加参考来源
+  const sourcesSection = `\n\n## Sources\n\n${visitedSources
+    .map(source => {
+      const safeTitle = source.title.replace(/[\[\]()]/g, '').trim();
+      return `- [${safeTitle}](${source.url})`;
+    })
+    .join('\n')}`;
+
+  return res.object.reportMarkdown + sourcesSection;
 }

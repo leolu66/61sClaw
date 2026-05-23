@@ -13,3 +13,21 @@ export const systemPrompt = () => {
   - Consider new technologies and contrarian ideas, not just the conventional wisdom.
   - You may use high levels of speculation or prediction, just flag it for me.`;
 };
+
+/**
+ * 报告生成专用 system prompt
+ * 强调按照大纲结构组织内容
+ */
+export const reportSystemPrompt = () => {
+  return `${systemPrompt()}
+
+  Additional instructions for report writing:
+  - Strictly follow the provided chapter structure and order.
+  - Each chapter should match its specified estimated weight in terms of content length.
+  - The intro chapter should set the context and explain the research methodology.
+  - Body chapters should be information-dense with specific data points, metrics, and examples.
+  - The conclusion chapter should synthesize findings and provide actionable recommendations.
+  - Use clear headings, subheadings, bullet points, and tables where appropriate.
+  - Include specific numbers, dates, and entity names from the research learnings.
+  - Flag any speculative claims or areas where information was limited.`;
+};
