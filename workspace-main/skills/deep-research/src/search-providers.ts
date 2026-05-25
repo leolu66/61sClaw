@@ -34,7 +34,7 @@ async function detectClashProxy(): Promise<string | undefined> {
       const dispatcher = new ProxyAgent(proxyUrl);
       const response = await undiciFetch('http://httpbin.org/ip', {
         dispatcher,
-        connectTimeout: 3000,
+        signal: AbortSignal.timeout(3000),
       });
       if (response.ok) {
         console.log(`Detected Clash proxy: ${proxyUrl}`);
@@ -434,21 +434,4 @@ export async function smartSearch(
   // 全部失败
   console.log('All search providers failed');
   return { results: [], provider: 'firecrawl' };
-}
-
-/**
- * 批量搜索多个查询
- */
-export async function batchSearch(
-  queries: string[],
-  limit: number = 5
-): Promise<Map<string, SearchResult[]>> {
-  const results = new Map<string, SearchResult[]>();
-
-  for (const query of queries) {
-    const { results: searchResults } = await smartSearch(query, limit);
-    results.set(query, searchResults);
-  }
-
-  return results;
 }

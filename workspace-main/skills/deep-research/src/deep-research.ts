@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { o3MiniModel, trimPrompt } from './ai/providers';
 import { getSearchLimiter } from './concurrency';
 import { systemPrompt, reportSystemPrompt } from './prompt';
-import { ResearchPlan, ReportOutline } from './research-plan';
+import { ResearchPlan, ReportOutline, QueryAnalysis } from './research-plan';
 import { smartSearch, SearchResult } from './search-providers';
 
 export type Source = {
@@ -17,10 +17,8 @@ export type Source = {
 export type ResearchResult = {
   learnings: string[];
   visitedSources: Source[];
+  learningsByDimension?: Map<string, string[]>;
 };
-
-// increase this if you have higher API rate limits
-const ConcurrencyLimit = 2;
 
 // take en user query, return a list of SERP queries
 async function generateSerpQueries({
@@ -250,10 +248,14 @@ export async function deepResearch({
 export async function deepResearchByPlan(
   query: string,
   plan: ResearchPlan,
+  preloadedLearnings?: string[],
+  preloadedSourceRefs?: Source[],
 ): Promise<ResearchResult> {
   const allLearnings: string[] = [];
   const allSources: Source[] = [];
   const limiter = getSearchLimiter();
+  const totalDims = plan.executionOrder.length;
+  let completedDims = 0;
 
   // 按 executionOrder 遍历维度，维度间并行（受全局 limiter 控制）
   const dimensionResults = await Promise.all(
@@ -261,14 +263,34 @@ export async function deepResearchByPlan(
       const dimension = plan.dimensions.find(d => d.id === dimId);
       if (!dimension) return Promise.resolve({ learnings: [], visitedSources: [] });
 
-      return processDimension(dimension, limiter);
+      console.log(`\n[进度] 维度 ${completedDims + 1}/${totalDims} 开始: ${dimension.title}`);
+
+      return processDimension(dimension, limiter).then(result => {
+        completedDims++;
+        console.log(`[进度] 维度 ${completedDims}/${totalDims} 完成: ${dimension.title} (${result.learnings.length} learnings, ${result.visitedSources.length} sources)`);
+        return result;
+      });
     }),
   );
 
-  // 合并所有维度结果
-  for (const result of dimensionResults) {
+  // 合并所有维度结果，按维度记录 learnings
+  const learningsByDimension = new Map<string, string[]>();
+  for (let i = 0; i < dimensionResults.length; i++) {
+    const dimId = plan.executionOrder[i];
+    const result = dimensionResults[i];
     allLearnings.push(...result.learnings);
     allSources.push(...result.visitedSources);
+    learningsByDimension.set(dimId, result.learnings);
+  }
+
+  // 合并预加载素材的 learnings 和 sources
+  if (preloadedLearnings && preloadedLearnings.length > 0) {
+    allLearnings.push(...preloadedLearnings);
+    console.log(`[预加载] 合并 ${preloadedLearnings.length} 条预加载 learnings`);
+  }
+  if (preloadedSourceRefs && preloadedSourceRefs.length > 0) {
+    allSources.push(...preloadedSourceRefs);
+    console.log(`[预加载] 合并 ${preloadedSourceRefs.length} 个预加载来源`);
   }
 
   // 去重
@@ -280,6 +302,7 @@ export async function deepResearchByPlan(
   return {
     learnings: uniqueLearnings,
     visitedSources: uniqueSources,
+    learningsByDimension,
   };
 }
 
@@ -294,7 +317,7 @@ async function processDimension(
     dimension.subTopics.map(subTopic =>
       limiter(async () => {
         try {
-          return processSubTopic(subTopic);
+          return processSubTopic(subTopic, limiter);
         } catch (e) {
           console.error(`Error processing sub-topic "${subTopic.title}":`, e);
           return { learnings: [], visitedSources: [] };
@@ -314,61 +337,74 @@ async function processDimension(
   return { learnings: dimLearnings, visitedSources: uniqueSources };
 }
 
-async function processSubTopic(subTopic: {
-  title: string;
-  initialQueries: string[];
-  suggestedBreadth: number;
-  suggestedDepth: number;
-}): Promise<ResearchResult> {
-  let subLearnings: string[] = [];
-  let subSources: Source[] = [];
+async function processSubTopic(
+  subTopic: {
+    title: string;
+    initialQueries: string[];
+    suggestedBreadth: number;
+    suggestedDepth: number;
+  },
+  limiter: ReturnType<typeof pLimit>,
+): Promise<ResearchResult> {
+  // 并行执行所有 initialQueries（受全局 limiter 控制）
+  const queryResults = await Promise.all(
+    subTopic.initialQueries.map(query =>
+      limiter(async () => {
+        try {
+          const { results, provider } = await smartSearch(query, 5);
+          if (results.length === 0) {
+            console.log(`  No results for: ${query}`);
+            return { learnings: [] as string[], sources: [] as Source[], followUpQuestions: [] as string[] };
+          }
 
-  // 用预设搜索词执行搜索
-  for (const query of subTopic.initialQueries) {
-    try {
-      const { results, provider } = await smartSearch(query, 5);
-      if (results.length === 0) {
-        console.log(`  No results for: ${query}`);
-        continue;
-      }
+          console.log(`  [${provider}] "${query}" → ${results.length} results`);
 
-      console.log(`  [${provider}] "${query}" → ${results.length} results`);
+          const newSources = compact(
+            results.map(item =>
+              item.url && item.title ? { url: item.url, title: item.title.trim() } : null,
+            ),
+          );
 
-      const newSources = compact(
-        results.map(item =>
-          item.url && item.title ? { url: item.url, title: item.title.trim() } : null,
-        ),
-      );
-      subSources.push(...newSources);
+          const extracted = await processSerpResult({
+            query,
+            results,
+            numFollowUpQuestions: subTopic.suggestedBreadth,
+          });
 
-      // AI 提取 learnings
-      const extracted = await processSerpResult({
-        query,
-        results,
-        numFollowUpQuestions: subTopic.suggestedBreadth,
-      });
-      subLearnings.push(...extracted.learnings);
+          return {
+            learnings: extracted.learnings,
+            sources: newSources,
+            followUpQuestions: extracted.followUpQuestions,
+          };
+        } catch (e) {
+          console.error(`  Error searching "${query}":`, e);
+          return { learnings: [] as string[], sources: [] as Source[], followUpQuestions: [] as string[] };
+        }
+      }),
+    ),
+  );
 
-      // 递归深入
-      if (subTopic.suggestedDepth > 1) {
-        const nextQuery = `
-          Sub-topic: ${subTopic.title}
-          Follow-up directions: ${extracted.followUpQuestions.map(q => `\n${q}`).join('')}
-        `.trim();
+  // 合并所有查询结果
+  let subLearnings = queryResults.flatMap(r => r.learnings);
+  let subSources = queryResults.flatMap(r => r.sources);
+  const allFollowUps = queryResults.flatMap(r => r.followUpQuestions);
 
-        const deeper = await deepResearch({
-          query: nextQuery,
-          breadth: subTopic.suggestedBreadth,
-          depth: subTopic.suggestedDepth - 1,
-          learnings: subLearnings,
-          visitedSources: subSources,
-        });
-        subLearnings = deeper.learnings;
-        subSources = deeper.visitedSources;
-      }
-    } catch (e) {
-      console.error(`  Error searching "${query}":`, e);
-    }
+  // 递归深入（串行，依赖前一轮 learnings）
+  if (subTopic.suggestedDepth > 1 && allFollowUps.length > 0) {
+    const nextQuery = `
+      Sub-topic: ${subTopic.title}
+      Follow-up directions: ${allFollowUps.map(q => `\n${q}`).join('')}
+    `.trim();
+
+    const deeper = await deepResearch({
+      query: nextQuery,
+      breadth: subTopic.suggestedBreadth,
+      depth: subTopic.suggestedDepth - 1,
+      learnings: subLearnings,
+      visitedSources: subSources,
+    });
+    subLearnings = deeper.learnings;
+    subSources = deeper.visitedSources;
   }
 
   return { learnings: subLearnings, visitedSources: subSources };
@@ -380,11 +416,27 @@ export async function writeFinalReportWithOutline({
   outline,
   learnings,
   visitedSources,
+  analysis,
+  plan,
+  learningsByDimension,
 }: {
   outline: ReportOutline;
   learnings: string[];
   visitedSources: Source[];
+  analysis?: QueryAnalysis;
+  plan?: ResearchPlan;
+  learningsByDimension?: Map<string, string[]>;
 }): Promise<string> {
+  const analysisContext = analysis
+    ? `\nResearch type: ${analysis.questionType} | Complexity: ${analysis.estimatedComplexity}${analysis.keyEntities.length > 0 ? `\nKey entities: ${analysis.keyEntities.join(', ')}` : ''}${analysis.scope.domains.length > 0 ? `\nDomains: ${analysis.scope.domains.join(', ')}` : ''}`
+    : '';
+
+  // 如果有 plan + learningsByDimension，按章节生成（质量更高）
+  if (plan && learningsByDimension) {
+    return writeReportPerChapter(outline, plan, learnings, learningsByDimension, visitedSources, analysisContext);
+  }
+
+  // fallback: 单次生成（无 plan 时）
   const learningsString = trimPrompt(
     learnings
       .map(learning => `<learning>\n${learning}\n</learning>`)
@@ -406,7 +458,7 @@ export async function writeFinalReportWithOutline({
     prompt: `Write a comprehensive research report following the exact chapter structure below.
 
 Report title: ${outline.title}
-Research overview: ${outline.summary}
+Research overview: ${outline.summary}${analysisContext}
 
 Chapter structure (follow this EXACTLY):
 ${chapterStructure}
@@ -424,7 +476,8 @@ Requirements:
 5. The conclusion chapter should synthesize findings and provide actionable recommendations
 6. Include specific numbers, dates, entity names from the learnings
 7. Use tables where comparison data is available
-8. Be as detailed and information-dense as possible`,
+8. Be as detailed and information-dense as possible
+9. Write in the SAME LANGUAGE as the research query/overview above`,
     schema: z.object({
       reportMarkdown: z
         .string()
@@ -433,12 +486,113 @@ Requirements:
   });
 
   // 追加参考来源
-  const sourcesSection = `\n\n## Sources\n\n${visitedSources
+  const sourcesSection = buildSourcesSection(visitedSources);
+  return res.object.reportMarkdown + sourcesSection;
+}
+
+function buildSourcesSection(sources: Source[]): string {
+  return `\n\n## Sources\n\n${sources
     .map(source => {
       const safeTitle = source.title.replace(/[\[\]()]/g, '').trim();
       return `- [${safeTitle}](${source.url})`;
     })
     .join('\n')}`;
+}
 
-  return res.object.reportMarkdown + sourcesSection;
+async function writeReportPerChapter(
+  outline: ReportOutline,
+  plan: ResearchPlan,
+  allLearnings: string[],
+  learningsByDimension: Map<string, string[]>,
+  visitedSources: Source[],
+  analysisContext: string,
+): Promise<string> {
+  const chapterContents: string[] = [];
+  const totalChapters = outline.chapters.length;
+
+  // 构建所有标题的上下文（让每章知道前后章节）
+  const allChapterTitles = outline.chapters.map((ch, i) => `${i + 1}. ${ch.title}`).join('\n');
+
+  for (let i = 0; i < totalChapters; i++) {
+    const chapter = outline.chapters[i];
+    console.log(`  Generating chapter ${i + 1}/${totalChapters}: ${chapter.title}`);
+
+    // 确定该章节的 learnings
+    let chapterLearnings: string[];
+    if (chapter.chapterType === 'body' && chapter.dimensionId) {
+      // body 章节使用对应维度的 learnings
+      chapterLearnings = learningsByDimension.get(chapter.dimensionId) || [];
+      // 如果该维度没有 learnings，使用全部 learnings 的一小部分
+      if (chapterLearnings.length === 0) {
+        chapterLearnings = allLearnings.slice(0, Math.ceil(allLearnings.length / totalChapters));
+      }
+    } else {
+      // intro/conclusion/appendix 使用全部 learnings（截断）
+      chapterLearnings = allLearnings;
+    }
+
+    const learningsStr = trimPrompt(
+      chapterLearnings
+        .map(l => `<learning>\n${l}\n</learning>`)
+        .join('\n'),
+      80_000,
+    );
+
+    // 章节类型特定的指令
+    let typeInstruction = '';
+    switch (chapter.chapterType) {
+      case 'intro':
+        typeInstruction = 'Write an introduction that sets the research context, explains the scope and methodology. Mention key entities and the research question type.';
+        break;
+      case 'body':
+        typeInstruction = `Write a detailed body chapter. Use ALL provided learnings. Include specific numbers, dates, entity names. Use tables where comparison data is available. Aim for ~${Math.round(chapter.estimatedWeight * 100)}% of total report length.`;
+        break;
+      case 'conclusion':
+        typeInstruction = 'Write a conclusion that synthesizes all findings, provides actionable recommendations and key takeaways. Reference specific data points from the research.';
+        break;
+      case 'appendix':
+        typeInstruction = 'Write an appendix with terminology definitions, data sources overview, and any supplementary information.';
+        break;
+    }
+
+    const subSectionsHint = chapter.subSections?.length
+      ? `\nInclude these sub-sections: ${chapter.subSections.join(', ')}`
+      : '';
+
+    const res = await generateObject({
+      model: o3MiniModel,
+      system: reportSystemPrompt(),
+      prompt: `Write ONE chapter of a research report.
+
+Report title: ${outline.title}
+Research overview: ${outline.summary}${analysisContext}
+
+Full report structure (for context):
+${allChapterTitles}
+
+--- YOUR CHAPTER ---
+Title: ${chapter.title}
+Type: ${chapter.chapterType}
+Description: ${chapter.description}${subSectionsHint}
+
+${typeInstruction}
+
+Learnings for this chapter:
+<learnings>
+${learningsStr}
+</learnings>
+
+Write ONLY this chapter in Markdown (start with ## heading). Do NOT include any other chapters.
+Write in the SAME LANGUAGE as the research query/overview above.`,
+      schema: z.object({
+        chapterMarkdown: z.string().describe('The chapter content in Markdown'),
+      }),
+    });
+
+    chapterContents.push(res.object.chapterMarkdown);
+  }
+
+  // 拼接所有章节 + sources
+  const fullReport = chapterContents.join('\n\n');
+  return fullReport + buildSourcesSection(visitedSources);
 }

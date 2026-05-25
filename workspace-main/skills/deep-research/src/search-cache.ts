@@ -20,6 +20,15 @@ const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;
 let cacheEnabled = true;
 let cacheTtlMs = DEFAULT_TTL_MS;
 
+// 统计计数器
+let cacheHits = 0;
+let cacheMisses = 0;
+let cacheWrites = 0;
+
+export function getCacheStats() {
+  return { hits: cacheHits, misses: cacheMisses, writes: cacheWrites };
+}
+
 export function initCache(options: { enabled?: boolean; ttlSeconds?: number } = {}) {
   if (options.enabled !== undefined) {
     cacheEnabled = options.enabled;
@@ -64,10 +73,12 @@ export async function getCached(query: string): Promise<SearchResult[] | null> {
     if (age > entry.ttl) {
       // 过期，删除缓存文件
       await fs.unlink(cacheFile).catch(() => {});
+      cacheMisses++;
       return null;
     }
 
     if (entry.results && entry.results.length > 0) {
+      cacheHits++;
       console.log(`  Cache hit: "${query.slice(0, 50)}..." (${entry.results.length} results, provider: ${entry.provider})`);
       return entry.results;
     }
@@ -75,6 +86,7 @@ export async function getCached(query: string): Promise<SearchResult[] | null> {
     // 缓存文件不存在或解析失败，返回 null
   }
 
+  cacheMisses++;
   return null;
 }
 
@@ -104,6 +116,7 @@ export async function setCached(
     // 确保 cache 目录存在
     await fs.mkdir(CACHE_DIR, { recursive: true });
     await fs.writeFile(cacheFile, JSON.stringify(entry, null, 2), 'utf-8');
+    cacheWrites++;
   } catch (error) {
     console.log(`  Cache write failed: ${error}`);
   }

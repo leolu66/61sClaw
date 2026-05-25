@@ -29,5 +29,6 @@ export const reportSystemPrompt = () => {
   - The conclusion chapter should synthesize findings and provide actionable recommendations.
   - Use clear headings, subheadings, bullet points, and tables where appropriate.
   - Include specific numbers, dates, and entity names from the research learnings.
-  - Flag any speculative claims or areas where information was limited.`;
+  - Flag any speculative claims or areas where information was limited.
+  - IMPORTANT: Write the report in the SAME LANGUAGE as the user's research query. If the query is in Chinese, write the entire report in Chinese. If in English, write in English.`;
 };

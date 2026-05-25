@@ -319,7 +319,7 @@ export function getSearchLimiter(): pLimit.Limit
 | 用户参与 | 无预览 | 维度确认 + 审核追问 + 大纲确认 |
 | 降级兼容 | - | --no-plan 保留原有逻辑 |
 
-## 文件变更清单
+## 文件变更清单 (v1.1.0)
 
 | 文件 | 操作 | 说明 |
 |------|------|------|
@@ -332,3 +332,210 @@ export function getSearchLimiter(): pLimit.Limit
 | `src/prompt.ts` | 修改 | 各阶段专用 prompt |
 | `SKILL.md` | 修改 | 功能描述+参数表 |
 | `_meta.json` | 修改 | 命令参数 |
+
+---
+
+# v1.2.0: 多源素材集成 + 研究归档
+
+## 设计概要
+
+新增两个核心能力：
+1. **多源素材收集**：URL / 本地文件 / Obsidian 笔记作为预加载素材
+2. **研究归档目录**：每次研究建立独立目录，保存全流程产物
+
+### 完整流程（v1.2.0）
+
+```
+Step 0:   createWorkspace(query)            ← 创建工作目录
+Step 1:   analyzeQuery()                    ← AI 问题分析
+Step 2:   presentAndConfirm()               ← 用户确认维度
+Step 2.5: reviewDimensions()                ← AI 审核反思
+Step 3:   generateResearchPlan()            ← AI 细化计划
+Step 4:   generateReportOutline()           ← AI 生成大纲 + 用户确认
+  |
+Step 4.5: 素材收集（新增）
+  |-- 交互询问：是否补充 URL / 参考文件？
+  |-- 用户提供 URL → Firecrawl scrapeUrl 抓取
+  |-- 用户参考文件 → markitdown 转换
+  |-- Obsidian 笔记（默认）→ 自动用 plan 搜索关键词搜索
+  |
+  汇总 → AI 提取 learnings → 作为 preloadedLearnings
+  |
+Phase 5:  deepResearchByPlan(preloaded)     ← 搜索 + 素材合并
+Phase 6:  writeFinalReportWithOutline()     ← 按大纲生成报告
+```
+
+### 研究归档目录结构
+
+```
+deep-research/research/
+  └── K8s-vs-Swarm对比研究/          # 从查询生成的简短主题名
+      ├── src/                        # 输入素材
+      │   ├── urls/                   # URL 抓取的 markdown
+      │   ├── files/                  # 用户参考文件（转换后 md）
+      │   └── obsidian/               # Obsidian 匹配笔记
+      ├── work/                       # 加工过程
+      │   ├── analysis.json           # QueryAnalysis
+      │   ├── dimensions.json         # 确认后的维度
+      │   ├── plan.json               # ResearchPlan
+      │   ├── outline.json            # ReportOutline
+      │   ├── learnings.json          # 所有 learnings（含来源标注）
+      │   └── sources.json            # 所有访问来源
+      └── output/                     # 输出
+          └── report.md               # 最终报告
+```
+
+## Task 1: 新增 `src/research-workspace.ts` — 研究归档模块
+
+约 150 行。
+
+### 1.1 类型定义
+```typescript
+export type ResearchWorkspace = {
+  rootDir: string;       // deep-research/research/<topic>/
+  srcDir: string;        // rootDir/src/
+  workDir: string;       // rootDir/work/
+  outputDir: string;     // rootDir/output/
+  topicName: string;
+};
+```
+
+### 1.2 `createWorkspace(query: string): Promise<ResearchWorkspace>`
+- 用 AI 从查询生成简短主题名（中文，10字以内，文件系统安全）
+- 创建 `research/<topicName>/src/{urls,files,obsidian}` + `work/` + `output/`
+- 返回 `ResearchWorkspace`
+
+### 1.3 保存方法
+```typescript
+saveAnalysis(ws, analysis)           // -> work/analysis.json
+savePlan(ws, plan)                   // -> work/plan.json
+saveOutline(ws, outline)             // -> work/outline.json
+saveUrlContent(ws, url, markdown)    // -> src/urls/<hash>.md
+saveFileContent(ws, path, md)        // -> src/files/<basename>.md
+saveObsidianNote(ws, notePath, md)   // -> src/obsidian/<noteName>.md
+saveLearnings(ws, learnings, byDim)  // -> work/learnings.json
+saveSources(ws, sources)             // -> work/sources.json
+saveReport(ws, report)               // -> output/report.md
+```
+
+## Task 2: 新增 `src/source-collector.ts` — 多源素材收集模块
+
+约 300 行。
+
+### 2.1 URL 抓取 — `collectUrls(urls: string[])`
+- 复用 Firecrawl `scrapeUrl(url, { formats: ['markdown'] })`
+- 失败 fallback 到 `fetch` + HTML→text
+- 并行执行（受全局 limiter）
+- 结果保存到 `src/urls/`
+
+### 2.2 文件读取 — `collectFiles(filePaths: string[])`
+- `.md` / `.txt` → 直接读取
+- `.pdf` / `.docx` / `.html` 等 → 调用 markitdown 脚本
+- 保存到 `src/files/`
+
+### 2.3 Obsidian 搜索 — `collectFromObsidian(keywords: string[], vaultPath?)`
+- **默认启用**，自动检测 vault（`%APPDATA%/obsidian/obsidian.json` 中 `"open": true`）
+- 关键词从 `ResearchPlan.subTopic.initialQueries` 提取（去重取前5个）
+- `obsidian-cli search-content "<keyword>"` → 读取匹配笔记
+- 最多 10 篇，保存到 `src/obsidian/`
+- `--no-obsidian` 禁用，`--obsidian-vault` 覆盖路径
+
+### 2.4 AI 提取 learnings
+- `trimPrompt` 截断 → 一次 AI 调用提取 learnings
+- 返回 `CollectionResult { sources, preloadedLearnings, preloadedSourceRefs }`
+
+### 2.5 统一入口 — `collectAllSources(options)`
+```typescript
+export async function collectAllSources(options: {
+  query: string;
+  urls?: string[];
+  files?: string[];
+  plan?: ResearchPlan;
+  workspace?: ResearchWorkspace;
+  obsidianVault?: string;
+  obsidianEnabled?: boolean;  // 默认 true
+}): Promise<CollectionResult>
+```
+
+## Task 3: 改造 `src/run.ts` — 流程集成
+
+### 3.1 新增 CLI 参数
+```typescript
+'urls': { type: 'string', default: '' },            // 逗号分隔 URL（预设）
+'files': { type: 'string', default: '' },            // 逗号分隔文件路径（预设）
+'no-obsidian': { type: 'boolean', default: false },  // 禁用 Obsidian
+'obsidian-vault': { type: 'string', default: '' },   // vault 路径覆盖
+```
+
+### 3.2 流程改造
+```
+Step 0:   createWorkspace(query)              // 创建工作目录
+Step 1:   analyzeQuery -> saveAnalysis
+Step 2:   presentAndConfirm
+Step 2.5: reviewDimensions
+Step 3:   generateResearchPlan -> savePlan
+Step 4:   generateReportOutline -> saveOutline
+Step 4.5: 交互收集素材（u URL / f 文件 / y 确认 / n 跳过）
+  + Obsidian 自动搜索（用 plan 关键词）
+  + collectAllSources -> 保存到 src/
+Phase 5:  deepResearchByPlan(preloaded) -> saveLearnings, saveSources
+Phase 6:  writeFinalReportWithOutline -> saveReport
+```
+
+### 3.3 交互收集（Step 4.5）
+```
+=================================================
+  是否提供补充素材？（Obsidian 笔记将自动搜索）
+
+  u URL1,URL2    — 添加参考网页
+  f 文件路径      — 添加本地文件 (md/pdf/docx/html)
+  y              — 确认，开始研究
+  n              — 跳过素材收集
+=================================================
+```
+多轮输入，CLI 参数作为预设可追加。
+
+### 3.4 结束时打印
+```
+[归档] 研究目录: deep-research/research/K8s-vs-Swarm对比研究/
+```
+
+## Task 4: 改造 `src/deep-research.ts`
+
+- `deepResearchByPlan` 新增 `preloadedLearnings?: string[]`, `preloadedSourceRefs?: Source[]`
+- 合并到最终结果，参与去重
+- 报告生成时预加载 learnings 用于 intro/conclusion
+
+## Task 5: 更新 SKILL.md 和 _meta.json
+
+- 功能描述增加多源素材 + 研究归档
+- 参数表增加 `--urls`, `--files`, `--no-obsidian`, `--obsidian-vault`
+
+## Task 6: TypeScript 编译验证
+
+## 文件变更清单 (v1.2.0)
+
+| 文件 | 操作 | 说明 |
+|------|------|------|
+| `src/research-workspace.ts` | **新增** | 工作目录创建 + 各阶段产物保存 |
+| `src/source-collector.ts` | **新增** | URL抓取 + 文件转换 + Obsidian搜索 + AI提取 |
+| `src/run.ts` | 修改 | CLI参数 + Step 0/4.5 + 各步保存 |
+| `src/deep-research.ts` | 修改 | preloadedLearnings 合并 |
+| `SKILL.md` | 修改 | 功能+参数 |
+| `_meta.json` | 修改 | options |
+
+## 使用示例
+
+```bash
+# 默认：网络搜索 + Obsidian 自动搜索（交互会询问补充）
+deep_research "K8s vs Swarm 对比"
+
+# 预设 URL 和文件
+deep_research "K8s 最佳实践" --urls "https://k8s.io/" --files "design.pdf"
+
+# 禁用 Obsidian
+deep_research "AI Agent" --no-obsidian
+
+# 指定 vault
+deep_research "微服务" --obsidian-vault "D:\notes\work"
+```

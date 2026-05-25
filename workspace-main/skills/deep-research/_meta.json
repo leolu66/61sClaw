@@ -1,10 +1,10 @@
 {
   "name": "deep-research",
-  "version": "1.1.0",
-  "description": "自动化深度研究工具，支持问题分析/维度确认/反思审核/执行计划/报告大纲/搜索缓存/并发控制，按计划驱动递归搜索生成结构化研究报告",
+  "version": "1.2.0",
+  "description": "自动化深度研究工具，支持问题分析/维度确认/反思审核/执行计划/报告大纲/多源素材收集(URL+文件+Obsidian笔记)/研究归档/搜索缓存/并发控制",
   "author": "dzhng",
   "license": "MIT",
-  "keywords": ["research", "web-search", "firecrawl", "ai", "report"],
+  "keywords": ["research", "web-search", "firecrawl", "ai", "report", "obsidian", "multi-source"],
   "commands": [
     {
       "name": "deep_research",
@@ -42,6 +42,22 @@
         {
           "name": "--cache-ttl <seconds>",
           "description": "搜索缓存有效期（秒），默认86400（24h）"
+        },
+        {
+          "name": "--urls <url1,url2,...>",
+          "description": "逗号分隔的参考URL列表"
+        },
+        {
+          "name": "--files <path1,path2,...>",
+          "description": "逗号分隔的参考文件路径列表（支持md/pdf/docx/html/pptx/xlsx）"
+        },
+        {
+          "name": "--no-obsidian",
+          "description": "禁用Obsidian笔记自动搜索"
+        },
+        {
+          "name": "--obsidian-vault <path>",
+          "description": "指定Obsidian vault路径（默认自动检测当前打开的vault）"
         }
       ]
     }

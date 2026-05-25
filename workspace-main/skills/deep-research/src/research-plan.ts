@@ -428,6 +428,7 @@ export async function presentReviewAndHandle(
 
 export async function generateResearchPlan(
   query: string,
+  analysis: QueryAnalysis,
   confirmedDimensions: RecommendedDimension[],
   userBreadth: number,
   userDepth: number,
@@ -476,16 +477,6 @@ Also determine execution order: critical dimensions first, then important, then 
     }),
   });
 
-  // 构建完整的 ResearchPlan
-  const analysis: QueryAnalysis = {
-    topic: query,
-    questionType: '',
-    keyEntities: [],
-    scope: { domains: [] },
-    estimatedComplexity: 'medium',
-    recommendedDimensions: confirmedDimensions,
-  };
-
   return {
     analysis,
     dimensions: res.object.dimensions as ResearchDimension[],
@@ -497,12 +488,22 @@ Also determine execution order: critical dimensions first, then important, then 
 // ─── Step 4: 报告大纲 ──────────────────────────────
 
 export async function generateReportOutline(plan: ResearchPlan): Promise<ReportOutline> {
+  const { analysis } = plan;
+  const entityContext = analysis.keyEntities.length > 0
+    ? `\nKey entities: ${analysis.keyEntities.join(', ')}`
+    : '';
+  const scopeContext = analysis.scope.domains.length > 0
+    ? `\nDomains: ${analysis.scope.domains.join(', ')}${analysis.scope.timeRange ? `, time range: ${analysis.scope.timeRange}` : ''}`
+    : '';
+
   const res = await generateObject({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Generate a report outline (chapter structure) based on the research plan below.
 
-Research topic: "${plan.analysis.topic}"
+Research topic: "${analysis.topic}"
+Question type: ${analysis.questionType}
+Complexity: ${analysis.estimatedComplexity}${entityContext}${scopeContext}
 
 Research dimensions:
 ${plan.dimensions.map(d => `  [${d.priority}] ${d.title} (weight: ${d.estimatedWeight})
