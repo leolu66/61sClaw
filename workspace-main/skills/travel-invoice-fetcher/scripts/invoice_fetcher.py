@@ -47,9 +47,33 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
     
     applications_data = []
     
-    # 如果未提供内容，尝试自动获取
+    # 优先读取本地缓存（避免每次开浏览器）
     if not content:
-        # 尝试调用 fol_auto_login.py 自动获取
+        # 检查本地缓存 + fol-login 共享缓存
+        cache_candidates = [
+            script_dir / "fol_applications.json",
+            Path.home() / ".openclaw" / "workspace-main" / "skills" / "fol-login" / "fol_applications.json"
+        ]
+        for cache_file in cache_candidates:
+            if cache_file.exists():
+                cache_age = (dt.now() - dt.fromtimestamp(cache_file.stat().st_mtime)).total_seconds()
+                # 缓存 30 分钟内有效
+                if cache_age < 1800:
+                    print(f"📁 使用缓存文件: {cache_file}（{int(cache_age)}秒前）")
+                    try:
+                        with open(cache_file, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            applications_data = data.get('applications', [])
+                        if applications_data:
+                            print(f"✅ 从缓存读取 {len(applications_data)} 条申请单")
+                            break  # 找到有效缓存，跳过其他
+                    except Exception as e:
+                        print(f"⚠️ 读取缓存文件失败: {e}")
+                else:
+                    print(f"ℹ️  缓存文件已过期（{int(cache_age)}秒前），将重新获取...")
+    
+    # 缓存无效或不存在时，调用 fol_auto_login.py 自动获取
+    if not applications_data and not content:
         fol_skill_path = Path.home() / ".openclaw" / "workspace-main" / "skills" / "fol-login"
         auto_login_script = fol_skill_path / "fol_auto_login.py"
         
@@ -78,21 +102,6 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
                 print("⏰ fol_auto_login.py 执行超时（150秒）")
             except Exception as e:
                 print(f"⚠️ 调用 fol_auto_login.py 失败: {e}")
-        else:
-            print("⚠️ 未找到 fol_auto_login.py，尝试读取缓存文件...")
-    
-    # 如果自动获取失败，尝试读取缓存文件
-    if not applications_data and not content:
-        cache_file = script_dir / "fol_applications.json"
-        if cache_file.exists():
-            print(f"📁 从缓存文件读取: {cache_file}")
-            try:
-                with open(cache_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    applications_data = data.get('applications', [])
-                    print(f"✅ 从缓存读取 {len(applications_data)} 条申请单")
-            except Exception as e:
-                print(f"⚠️ 读取缓存文件失败: {e}")
     
     # 如果提供了文本内容，解析它
     if content:
@@ -146,19 +155,31 @@ def import_from_fol(count: int = 1, content: str = None) -> List[TripSegment]:
     
     print(f"✅ 共 {len(applications_data)} 条申请单")
     
-    # 过滤：只保留状态为"完成"且行程已开始（开始日期 <= 今天）的申请单
+    # 过滤：只保留已完成的申请单（状态='完成'）且行程已开始（开始日期 <= 今天）
+    # 注：fol_auto_login.py 返回的数据中 status 可能被误解析为提交时间（表格列偏移）
     from datetime import datetime as dt
+    import re as re_mod
     today = dt.now()
     
     filtered_apps = []
     for app in applications_data:
         status = app.get('status', '')
         start_date_str = app.get('start_date')
+        has_detail = bool(app.get('departure_city') and app.get('start_date'))
         
-        # 检查状态
-        if status != '完成':
+        # 判断状态：如果 status 看起来像时间戳（如 "2026-05-09 23:29:40"），
+        # 说明表格列偏移，视为有效申请单（来自"我的申请单"即已提交）
+        is_timestamp = bool(re_mod.match(r'\d{4}-\d{2}-\d{2}', status))
+        is_completed = (status == '完成') or is_timestamp
+        
+        if not is_completed:
             print(f"   ⏭️ 跳过 {app.get('form_no', '未知')}: 状态='{status}'（非完成）")
             continue
+        
+        # 补齐 submit_time（如果被误放到 status）
+        if is_timestamp and not app.get('submit_time'):
+            app['submit_time'] = status
+            app['status'] = '完成'
         
         # 检查是否已开始（开始日期 <= 今天）
         if start_date_str:

@@ -170,13 +170,19 @@ class EmailFetcher:
             skipped_sender = 0
             skipped_date_range = 0
             
-            # 设置最大发票邮件数量，避免处理过多
-            max_invoice_emails = 20  # 找到 20 封发票邮件后停止
+            # 设置最大检查限制，避免处理过多
+            max_invoice_emails = 20   # 找到 20 封发票邮件后停止
+            max_checked = 100          # 最多检查 100 封邮件（从最新开始）
             
             for idx, email_id in enumerate(email_ids):
                 # 如果已经找到足够的发票邮件，停止处理
                 if len(invoice_emails) >= max_invoice_emails:
                     print(f"   ⏹️  已找到 {len(invoice_emails)} 封发票邮件，停止处理")
+                    break
+                # 限制检查总数，加快处理速度
+                if idx >= max_checked:
+                    if len(invoice_emails) > 0:
+                        print(f"   ⏹️  已检查 {max_checked} 封邮件（最新部分），后续已跳过")
                     break
                 
                 try:
