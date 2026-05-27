@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 
 import type { Source } from './deep-research';
+import type { ExpansionResult } from './prompt-expansion';
 import type { QueryAnalysis, ResearchPlan, ReportOutline } from './research-plan';
 
 // ─── 类型定义 ───────────────────────────────────────
@@ -127,6 +128,15 @@ export async function savePlan(ws: ResearchWorkspace, plan: ResearchPlan): Promi
 /** 保存 ReportOutline 到 work/outline.json */
 export async function saveOutline(ws: ResearchWorkspace, outline: ReportOutline): Promise<void> {
   await writeJson(path.join(ws.workDir, 'outline.json'), outline);
+}
+
+/** 保存提示词扩写结果到 work/expansion.json */
+export async function saveExpansion(ws: ResearchWorkspace, expansion: ExpansionResult): Promise<void> {
+  await writeJson(path.join(ws.workDir, 'expansion.json'), {
+    direction: expansion.direction,
+    variables: expansion.variables,
+    expandedQuery: expansion.expandedQuery,
+  });
 }
 
 /** 保存 URL 抓取的 markdown 到 src/urls/ */

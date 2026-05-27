@@ -30,8 +30,10 @@ import {
   saveLearnings,
   saveSources,
   saveReport,
+  saveExpansion,
 } from './research-workspace';
 import { collectAllSources } from './source-collector';
+import { expandQuery } from './prompt-expansion';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -63,6 +65,9 @@ async function run() {
       files: { type: 'string', default: '' },
       'no-obsidian': { type: 'boolean', default: false },
       'obsidian-vault': { type: 'string', default: '' },
+      // v1.3.0: 提示词扩写
+      direction: { type: 'string', default: 'auto' },
+      'no-expand': { type: 'boolean', default: false },
     },
     allowPositionals: true,
   });
@@ -86,6 +91,10 @@ async function run() {
     : [];
   const obsidianEnabled = !values['no-obsidian'];
   const obsidianVault = values['obsidian-vault'] as string || undefined;
+
+  // v1.3.0: 提示词扩写参数
+  const directionParam = values.direction as 'auto' | 'radar' | 'deepdive' | 'general';
+  const useExpand = !values['no-expand'];
 
   // 初始化并发控制和缓存
   initConcurrency(concurrency);
@@ -151,9 +160,28 @@ ${followUpQuestions.map((q, i) => `Q: ${q}\nA: ${answers[i]}`).join('\n')}
     const ws = await createWorkspace(initialQuery);
     timings['工作目录'] = Date.now() - t0;
 
+    // ─── Step 0.5: 提示词扩写 ───
+    let isExpanded = false;
+    if (useExpand) {
+      t0 = Date.now();
+      console.log('\n━━━ Step 0.5: 提示词扩写 ━━━');
+      const expansion = await expandQuery(combinedQuery, {
+        directionHint: directionParam,
+        interactive,
+        askQuestion,
+      });
+
+      if (expansion.direction !== 'general') {
+        combinedQuery = expansion.expandedQuery;
+        await saveExpansion(ws, expansion);
+        isExpanded = true;
+      }
+      timings['提示词扩写'] = Date.now() - t0;
+    }
+
     t0 = Date.now();
     console.log('\n━━━ Step 1: 问题分析 ━━━');
-    const analysis = await analyzeQuery(combinedQuery);
+    const analysis = await analyzeQuery(combinedQuery, isExpanded);
     await saveAnalysis(ws, analysis);
     timings['问题分析'] = Date.now() - t0;
     console.log(`主题: ${analysis.topic}`);

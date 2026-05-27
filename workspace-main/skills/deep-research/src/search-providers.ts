@@ -350,8 +350,8 @@ async function searchWithBrave(query: string, limit: number = 5): Promise<Search
 
 /**
  * 智能搜索：按优先级尝试多个搜索源
- * 1. Firecrawl (最佳质量，可能额度不足)
- * 2. Volcengine (火山引擎，中文优化，5000次免费额度，无需 VPN)
+ * 1. Volcengine (火山引擎，中文优化，5000次免费额度，无需 VPN)
+ * 2. Firecrawl (最佳质量，备用搜索源)
  * 3. MultiSearch (Bing CN Web抓取，补充索引覆盖，无需 VPN)
  * 4. Baidu (中文优化，无需 VPN)
  * 5. Brave (国际搜索备用，需 VPN)
@@ -366,20 +366,7 @@ export async function smartSearch(
     return { results: cached, provider: 'cache' };
   }
 
-  // 尝试 Firecrawl
-  try {
-    console.log(`Trying Firecrawl for: ${query}`);
-    const results = await searchWithFirecrawl(query, limit);
-    if (results.length > 0) {
-      console.log(`Firecrawl returned ${results.length} results`);
-      await setCached(query, 'firecrawl', results);
-      return { results, provider: 'firecrawl' };
-    }
-  } catch (error: any) {
-    console.log(`Firecrawl failed: ${error.message || error}`);
-  }
-
-  // 尝试火山引擎搜索
+  // 尝试火山引擎搜索（优先级最高：有免费额度、中文优化、无需 VPN）
   try {
     console.log(`Trying Volcengine for: ${query}`);
     const results = await searchWithVolc(query, limit);
@@ -390,6 +377,19 @@ export async function smartSearch(
     }
   } catch (error: any) {
     console.log(`Volcengine failed: ${error.message || error}`);
+  }
+
+  // 尝试 Firecrawl（备用，额度有限）
+  try {
+    console.log(`Trying Firecrawl for: ${query}`);
+    const results = await searchWithFirecrawl(query, limit);
+    if (results.length > 0) {
+      console.log(`Firecrawl returned ${results.length} results`);
+      await setCached(query, 'firecrawl', results);
+      return { results, provider: 'firecrawl' };
+    }
+  } catch (error: any) {
+    console.log(`Firecrawl failed: ${error.message || error}`);
   }
 
   // 尝试多搜索引擎 Web 抓取
