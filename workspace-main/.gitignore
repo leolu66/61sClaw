@@ -8,6 +8,3 @@ config.json
 logs/
 memory/
 repos/
-
-# Nested repos
-**/doubao-pro/
