@@ -256,6 +256,11 @@ async def fetch_with_playwright(config: dict, limit: int) -> List[dict]:
     return items
 
 
+def _escape_md_table(text: str) -> str:
+    """转义 Markdown 表格中的特殊字符"""
+    return text.replace("|", "\\|")
+
+
 def generate_markdown_output(all_items: List[dict], source_stats: dict, rss_items=None) -> str:
     """生成 Markdown 格式输出"""
     lines = []
@@ -317,11 +322,11 @@ def generate_markdown_output(all_items: List[dict], source_stats: dict, rss_item
                 
                 # 标题带链接
                 if url:
-                    title_cell = f"[{title}]({url})"
+                    title_cell = f"[{_escape_md_table(title)}]({url})"
                 else:
-                    title_cell = title
+                    title_cell = _escape_md_table(title)
                 
-                lines.append(f"| {i} | {title_cell} | {summary} | {pub_time} |")
+                lines.append(f"| {i} | {title_cell} | {_escape_md_table(summary)} | {pub_time} |")
             
             lines.append("")
     
