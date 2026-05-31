@@ -1,4 +1,4 @@
-# 🤖 AI 新闻速递 (05月21日 10:01)
+# 🤖 AI 新闻速递 (05月31日 10:26)
 
 ## 📊 采集汇总
 
@@ -20,68 +20,68 @@
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [6个月融25亿元，他是“字节系”最猛的AI创业者](https://36kr.com/p/3818285496255622) | 未来视频生成的壁垒是复合型的，就是数据、产品、用户之间的协同。 | 1小时前 |
-| 2 | [中国中专生3000元挑战好莱坞：一个AI时代的逆袭神话](https://36kr.com/p/3817660645753991) | 没包袱，一身轻。 | 1小时前 |
-| 3 | [智谱AI开辟AutoClaw新入口，推出APP版本](https://36kr.com/p/3817698479866757) | 智谱AI推出仅上架App Store的AutoClaw移动端APP，功能尚不完全。 | 1小时前 |
-| 4 | [解决一个“小bug”，这款AI社交产品MAU半年上涨6倍？](https://36kr.com/p/3817670526616455) | AI要解决的社交问题，是开口的第一句话？ | 1小时前 |
-| 5 | [爱优腾哔招聘解读：四家对AI的理解正在分化](https://36kr.com/p/3817716062192775) | 鹅找“一人剧组”，桃招AI销售，B站要“氛围编程” | 1小时前 |
+| 1 | [复旦学姐，估值1000亿](https://36kr.com/p/3831510606473090) | AI盛况。 | 1小时前 |
+| 2 | [马斯克「夸下的海口」，值2万亿美元吗？](https://36kr.com/p/3831272431593093) | 史上最大IPO，一个横跨天地的物理世界操作系统，还是一场前无古人的资本套利 ？ | 17小时前 |
+| 3 | [王小川和李开复，领着六小虎“AI的迫降”](https://36kr.com/p/3831204618477824) | AI创业者们该落地了 | 21小时前 |
+| 4 | [机器人不像人，还算“赛博物种”吗？](https://36kr.com/p/3831238496167808) | “物种”从来不是由外形来定义，而在于它解决了人类世界的什么问题。 | 22小时前 |
+| 5 | [苹果用AI重新发明了图像压缩：同样画质，文件只要三分之一](https://36kr.com/p/3831176819124103) | 让人眼满意 | 23小时前 |
 
 ## 2️⃣ AiBase新闻
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [劳动力市场大洗牌：美国官方数据证实AI正加速抢走人类饭碗](https://news.aibase.cn/news/28196) | 美国劳工统计局最新数据显示，18个最易受AI影响的典型职业从业人数整体下滑，标志着AI替代人类工作的... | 3分钟前 |
-| 2 | [阿里平头哥真武M890重磅亮相：性能跃升3倍，开启“芯-云-模型-推理”全栈Agent化时代](https://news.aibase.cn/news/28195) | 阿里云在2026年5月20日峰会上宣布全面升级至“智能体时代”技术体系，重构芯片、云平台、模型到推理... | 5分钟前 |
-| 3 | [苹果发布全新AI辅助功能：打通视听障碍，Apple Vision Pro可眼神控轮椅](https://news.aibase.cn/news/28194) | 苹果在第15个全球无障碍意识日发布了全新辅助功能，融合Apple Intelligence技术，提升... | 7分钟前 |
-| 4 | [智谱AI推AutoClaw iOS版：移动端Agent开启“双模式”进化](https://news.aibase.cn/news/28193) | 智谱AI近日推出AutoClaw（澳龙）iOS版，用户可通过App Store下载。这是继PC端上线... | 18分钟前 |
-| 5 | [腾讯“马维斯”正式上线：操作系统级AI助手，六大智能体 24 小时待命](https://news.aibase.cn/news/28191) | 腾讯于5月21日正式发布并上线操作系统级AI助手“马维斯”（Marvis），由应用宝团队打造，支持W... | 20分钟前 |
+| 1 | [预见未来！谷歌 DeepMind CEO 称 AGI 最快三年内到来](https://news.aibase.cn/news/28482) | 谷歌DeepMind CEO哈萨比斯预测，通用人工智能（AGI）最快可能在2029-2030年出现，... | 昨天 |
+| 2 | [机器人告别“逐帧学动作”！全球首个事件级具身智能世界模型发布](https://news.aibase.cn/news/28481) | 自变量机器人团队发布全球首个基于“事件级预测”的具身智能世界模型WALL-WM，突破传统按时间帧学习... | 昨天 |
+| 3 | [暴增三倍！企业级 AI 搜索独角兽 Glean 年营收突破 3 亿美元](https://news.aibase.cn/news/28480) | 企业级AI搜索初创公司Glean宣布年化营收突破3亿美元，距1亿美元仅15个月，增长三倍。此前在“企... | 昨天 |
+| 4 | [Oculus创始人再创业！对话式AI新星Sesame推出iOS应用，主打“边想边说”](https://news.aibase.cn/news/28478) | Sesame，由Oculus创始人及前VR核心成员创立的AI公司，于5月28日推出对话式AI智能体i... | 昨天 |
+| 5 | [携手 OpenAI！三菱日联金融集团推行全员 AI 化转型](https://news.aibase.cn/news/28477) | 三菱日联金融集团（MUFG）宣布，已向旗下约3.5万名员工全面部署ChatGPT Enterpris... | 昨天 |
 
 ## 3️⃣ InfoQ AI简报
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [斯坦福NLP团队发布具身空间智能基准测试ESI-BENCH](https://x.com/stanfordnlp/status/2057103455328907509) | 斯坦福NLP团队通过Twitter宣布推出ESI-BENCH（Embodied Spatial In... | 11小时前 |
-| 2 | [Gartner发布CSCO路线图：供应链AI转型需夯实数据基础](https://x.com/Gartner_inc/status/2057067838527934518) | Gartner于5月20日发布文章指出，尽管供应链领导者将AI视为未来竞争力的关键，但多数组织缺乏明... | 11小时前 |
-| 3 | [Qwen3.7系列模型在文本与视觉竞技场排名公布](https://x.com/WesRoth/status/2057073341329178858) | 2026年5月20日，WesRoth在Twitter发布消息称，Qwen3.7 Max Previe... | 11小时前 |
-| 4 | [Google Workspace 集成至 AI Studio](https://x.com/WesRoth/status/2057068828136472968) | 在 Google I/O 2026 上，Google 宣布将 Google Workspace 直接... | 11小时前 |
-| 5 | [LangChain团队将在波士顿举办线下见面会聚焦长时间运行Agent部署](https://x.com/LangChain/status/2057087738252300602) | LangChain团队成员Sydney Runkle计划于2026年5月27日在波士顿与Blitzy... | 11小时前 |
+| 1 | [通义实验室发布端侧MCP教程，实现手机本地视觉感知](https://mp.weixin.qq.com/s?__biz=MzkxMTYyMTAzNA==&mid=2247501356&idx=1&sn=993abfef62e3d6690c09365cf61e6950) | 通义实验室发布「手机上的创意AI」挑战赛首期教程，介绍如何通过端侧MCP架构在Android手机上部... | 昨天 |
+| 2 | [阿里云百炼CLI开源，一行命令接入AI Agent](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660260994&idx=1&sn=22205fc829075951f3d9aa7243167202) | 2026年5月29日，阿里云宣布百炼核心能力CLI化，并在GitHub开源（modelstudioa... | 昨天 |
+| 3 | [华为云三款数据库通过安全可靠测评，GaussDB获全形态II级](https://mp.weixin.qq.com/s?__biz=MzI1Mzc1MzMyOQ==&mid=2247843471&idx=1&sn=f15510a579da4574f78b2d445f77ec86) | 2026年5月26日，中国信息安全测评中心与国家保密科技测评中心联合发布《安全可靠测评结果公告（20... | 3天前 |
+| 4 | [商汤林海：AIDC建设从通用标准转向适用高效](https://mp.weixin.qq.com/s?__biz=MzIwNTcyNzYwMA==&mid=2247521950&idx=2&sn=e78efb6daa60ed544ac48bc80e29c79d) | 在2026全球AIDC产业论坛上，商汤科技大装置事业群智算中心总经理林海分享了商汤在智算中心建设中的... | 3天前 |
+| 5 | [阿里云发布Qwen Cloud，加速AI出海](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660260928&idx=1&sn=7e134690d76b9079b4a748145ca296d5) | 2026年5月26日，阿里云在新加坡面向海外市场发布全新AI产品官网Qwen Cloud、Agent... | 4天前 |
 
 ## 4️⃣ AI科技评论
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [拆解有道“子曰4”全量开源：如何通过重构思维链打下落地成本？](https://www.leiphone.com/category/industrynews/oFWmY9nYLzEJkh6o.html) | “子曰”大模型迎来 4.0 版本的全方位升级 | 昨天 18:04 |
-| 2 | [国产GPU进军AIPC：铠大师与摩尔线程达成生态共建合作](https://www.leiphone.com/category/industrynews/aCL3eqdE7TkJiPWs.html) | 共筑AIPC生态 激活端侧AI新动能 | 昨天 17:14 |
-| 3 | [独家丨AWS大中华区顾凡、凌琦、朱翊三位 L8 高管离职](https://www.leiphone.com/category/industrycloud/FkoVuL3rQWXcPeRu.html) | 一个月走掉四位L8级别高管，AWS大中华区怎么了？ | 昨天 13:54 |
-| 4 | [2026上半年最大IPO：Cerebras 上市，撕开美股「五大AI阵营」权力裂缝](https://www.leiphone.com/category/industrynews/RRZPwn3VBJFO0oGj.html) | Cerebras 的背后站满了想要重排座次的AI巨头们。 | 昨天 13:51 |
-| 5 | [贝塔无限连续完成种子轮、种子+轮数亿元融资，以系统工程重构消费级具身智能](https://www.leiphone.com/category/ai/W4jduezsmWldd7E0.html) | 贝塔无限正式于2026年3月开始运营，专注于打造业界领先的消费级具身智能物理Agent与终端产品。 | 昨天 12:43 |
+| 1 | [利润率仅剩2.9%，七位大佬深圳共识：中国汽车，真的不能再卷了 \| 大湾区车展观察](https://www.leiphone.com/category/transportation/VjGDTXEYi622aL1A.html) | 七位大佬先后登台，话里话外反映出一个共识，中国汽车产业真的不能再卷了。 | 昨天 18:49 |
+| 2 | [vivo S60 系列的星光发布会，想讲的不止手机](https://www.leiphone.com/category/industrynews/pAtBiYw3rnGoJZ0L.html) | 手机下半场，比拼圈层认同和情绪价值。 | 05月29日 22:21 |
+| 3 | [我所知道的胡峥楠](https://www.leiphone.com/category/transportation/LOcgOlT3BSp5NFyI.html) | 胡峥楠上位，不仅仅是一次小米内部的权力更迭。 | 05月29日 17:42 |
+| 4 | [CVPR 2026：深度学习的「标准件」，正在被逐个拆掉](https://www.leiphone.com/category/ai/nKjaz04ZsOd72e42.html) | 注意力的浮点精度不是必须的，归一化流的"精确可逆"是可以放弃的…… | 05月29日 17:39 |
+| 5 | [昇腾「减负」、鲲鹏「铺路」：中国计算产业生态如何填平开发者的「踩坑」时代？](https://www.leiphone.com/category/chips/DAav04SREqHlYPhU.html) | 鲲鹏昇腾生态，正在从“能用”进入“好用易用”的新阶段。 | 05月29日 17:31 |
 
 ## 5️⃣ 量子位
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [刚刚，马斯克公开SpaceX招股书！](https://www.qbitai.com/2026/05/420761.html) | 头一回见财报像海报的 | 22分钟前 |
-| 2 | [智象未来超两千亿参数图像大模型HiDream-O1-Image-Pro发布，融资持续提速](https://www.qbitai.com/2026/05/420753.html) | 向世界模型进发。 | 11小时前 |
-| 3 | [太初元碁洪源：异构计算能力将成为未来AI算力基础设施的重要方向｜AIGC2026](https://www.qbitai.com/2026/05/420743.html) | AI产业正在进入新一轮高强度算力周期 | 12小时前 |
-| 4 | [VC、品牌顾问、编剧，正在批量把自己做成AI](https://www.qbitai.com/2026/05/420703.html) | 让你的经验24小时自动接单 | 15小时前 |
-| 5 | [AIDC建设正从“通用标准”走向“适用高效”](https://www.qbitai.com/2026/05/420698.html) | 商汤大装置林海谈AIDC | 18小时前 |
+| 1 | [从Token无上限到全员Agent：MiniMax的AI Native组织进化实践](https://www.qbitai.com/2026/05/426793.html) | 与其焦虑AI，不如加入AI | 56分钟前 |
+| 2 | [帮Gemini拿下IMO金牌的关键先生，差点成了职业钢琴家](https://www.qbitai.com/2026/05/426706.html) | （可能是）大模型圈里最会弹钢琴的人 | 19小时前 |
+| 3 | [英伟达清华团队提出Gamma-World：世界模型从「一个人玩」到「多人共处」](https://www.qbitai.com/2026/05/426662.html) | 让世界模型迈向多智能体交互仿真 | 19小时前 |
+| 4 | [英伟达清华团队提出Gamma-World：世界模型从「一个人玩」到「多人共处」](https://www.qbitai.com/2026/05/426643.html) | 让世界模型迈向多智能体交互仿真 | 23小时前 |
+| 5 | [4nm！比亚迪自研AI芯片来了：制程对齐英伟达，算力拉爆特斯拉](https://www.qbitai.com/2026/05/426557.html) | 智驾出事，比亚迪兜底 | 前天 22:30 |
 
 ## 6️⃣ 智东西
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [时薪800、学历硕士起：大厂热抢的AI数据“炼金师”到底在做什么？](https://zhidx.com/p/558379.html) | 数据标注正成为一项更有技术含量的工作。 | 昨天 |
-| 2 | [具身智能落地的真机数据难关，被这个清华系创企做成了低成本方案](https://zhidx.com/p/558248.html) | 打破真机数据采集不可能三角，灵御智能将成本大降90%。 | 2天前 |
-| 3 | [实测两款AI工具后，我开始认真考虑“一人公司”了](https://zhidx.com/p/558125.html) | 不再造轮子，AI正在批量制造“超级个体”。 | 6天前 |
-| 4 | [打破AI体验天花板，联发科成了Agent跨端生态“铺路人”](https://zhidx.com/p/557793.html) | 三年暗战Agent赛道，联发科炼出AI“生态底座”最强王牌。 | 05-14 |
-| 5 | [智谱首破5000亿！六小虎与DeepSeek千亿估值竞赛，谁的拳头最硬？](https://zhidx.com/p/557320.html) | 5000亿门槛前，中国大模型谁最像真巨头？ | 05-14 |
+| 1 | [好抓马！AI删光2.8万行代码，干崩后台，还编造了一份故障修复报告](https://zhidx.com/p/560458.html) | 删代码宕机后，连修复报告都是现编的。 | 3天前 |
+| 2 | [全球AI工厂4万亿激战！这家国产厂商领先一个身位了](https://zhidx.com/p/560946.html) | OpenAI、Anthropic刚下场，中国企业已提前卡位。 | 4天前 |
+| 3 | [集体涨价！大模型开始找你“要钱”](https://zhidx.com/p/557313.html) | DeepSeek降价封神，豆包收费被喷！大模型陷入价格混战。 | 5天前 |
+| 4 | [石头科技北美出海第一课：卖出去只是开始](https://zhidx.com/p/559676.html) | 石头科技北美8年：产品开路、渠道扎根，一个中国品牌的本地进化。 | 05-22 |
+| 5 | [对谈苏妈后，李开复的“一把手工程”堪称CEO学习的新圣典](https://zhidx.com/p/559478.html) | 李开复给CEO划重点：你的AI部署不提升财报数字，就是浪费钱。 | 05-21 |
 
 ## 7️⃣ 极客公园
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [AI 第一网红 Karpathy 加盟 Anthropic，图啥？](https://www.geekpark.net/news/364451) | 不是一次硅谷普通的跳槽，而是一场知识权力的迁移。 | 1 天前 |
-| 2 | [670 亿美元！AI 崛起，促成美国最大能源并购案](https://www.geekpark.net/news/364399) | GPU 烧算力，电网烧钱，最后是普通消费者买单。 | 2026/05/19 |
-| 3 | [垄断已成！AI 创业公司 800 亿美元 ARR，九成被 2 家公司拿走](https://www.geekpark.net/news/364398) | 这不是赢家通吃，这是赢家把桌子掀了。 | 2026/05/19 |
-| 4 | [吴恩达、Karpathy 天使轮，微软、SpaceX抢购，这家初创公司到底什么来头？](https://www.geekpark.net/news/364342) | 扩散模型杀进了文本生成的地盘，而巨头们为了抢它，已经打起来了。 | 2026/05/18 |
-| 5 | [ChatGPT 能替你管钱了，你敢把银行账户交给它吗？](https://www.geekpark.net/news/364341) | AI 聊天机器人从帮你写文案，到想帮你理财，中间隔着的不是技术，是信任。 | 2026/05/18 |
+| 1 | [两大 AI「妖股」，杀回 A 股](https://www.geekpark.net/news/365102) | 智谱港股上演「天地板」式震荡；MiniMax 披露 A 股上市辅导备案。 | 12 小时前 |
+| 2 | [营收1965亿，市值创近一年新低，马化腾：一年前上了AI的船，结果发现船漏水了](https://www.geekpark.net/news/365101) | AI放大腾讯核心优势。 | 20 小时前 |
+| 3 | [两大 AI「妖股」，杀回 A 股](https://www.geekpark.net/news/365100) | 智谱港股上演「天地板」式震荡；MiniMax 披露 A 股上市辅导备案。 | 20 小时前 |
+| 4 | [国内同行羡慕硅谷烧得起钱，硅谷羡慕宇树有副好身体](https://www.geekpark.net/news/365099) | 宇树真正的价值，不在招股书的财务报表里，而在它在全球具身浪潮里站的那个位置上。 | 2026/05/30 |
+| 5 | [让机器人学会番茄炒蛋爆红网络的 Genesis AI，开源了自己的机器人「训练场」](https://www.geekpark.net/news/365053) | ​真实世界需要 200 多个小时的模型评测任务，可以在仿真中不到 0.5 小时内完成。 | 2026/05/29 |

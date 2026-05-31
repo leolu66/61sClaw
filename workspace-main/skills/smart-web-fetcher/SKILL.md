@@ -19,6 +19,9 @@ description: "智能网页内容获取工具，自动适配不同类型网页。
 6. **自动提取网页标题生成文件名**，Windows 系统兼容（非法字符替换为 `-`）
 7. **可指定输出目录**，默认输出到 `skills/smart-web-fetcher/output/`
 8. **自动下载图片至本地**：在输出目录下创建 `images/` 文件夹，将网页中所有图片下载到本地，MD 文件中图片引用地址自动替换为本地路径
+9. **文章主体提取**（Playwright 模式）：优先取 `article > main > [role=main]` 等语义化容器，减少页面 Chrome 噪声
+10. **Markdown 噪声清理**：自动清除头部的导航链接、日期行、标签行等页面 Chrome
+11. **语义化图片命名**：图片按 URL 原始文件名 > alt 文本 > hash 回退优先级命名，不再是纯 hash
 
 ## 快速使用
 
@@ -80,17 +83,42 @@ python scripts/fetch_web_content.py https://www.toutiao.com/article/xxx \
 
 默认情况下，抓取网页内容时会自动执行以下操作：
 
-1. **提取图片 URL** — 支持 Markdown `![alt](url)`、HTML `<img src>`、微信 `data-src` 等格式
-2. **下载到本地** — 在输出目录下创建 `images/` 文件夹，按 URL 哈希命名（`a1b2c3d4e5f6.jpg`）
-3. **替换引用路径** — MD 文件中的图片地址自动改为 `images/文件名.扩展名`
-4. **去重复用** — 同一张图片重复出现只下载一次
+1. **提取图片 URL** — 支持 Markdown `![alt](url)`、HTML `<img src>`、微信 `data-src`/`data-croporisrc`、相对路径等格式
+2. **下载到本地** — 在输出目录下创建 `images/` 文件夹，按**语义化规则**命名图片
+3. **替换引用路径** — MD 文件中的图片地址自动改为 `images/文件名.扩展名`，支持**绝对/相对/路径多变体匹配**，确保不同引用形式的图片都能正确替换
+4. **去重复用** — 同一张图片重复出现只下载一次；同名不同扩展名的文件自动跳过
 5. **智能格式识别** — 根据 HTTP 响应的 Content-Type 自动修正扩展名（如 URL 无后缀也能正确识别）
 6. **失败隔离** — 单张图片下载失败不影响整体流程，失败图片保留原 URL
+
+### 语义化图片命名规则
+图片名按以下优先级生成：
+1. URL 中的原始文件名（如 `https://example.com/photo.jpg` → `photo.jpg`）
+2. 图片 alt 文本（安全截取 ≤50 字符）
+3. hash 回退（`a1b2c3d4.jpg`）
+
+自动处理文件名冲突（追加 `_2`、`_3`...），确保唯一性。
 
 ### 禁用图片下载
 ```bash
 python scripts/fetch_web_content.py <URL> --no-images
 ```
+
+## Markdown 页面 Chrome 噪声清理
+
+Playwright 模式支持文章主体内容提取和 Markdown 噪声自动清理：
+
+### 文章主体提取
+- Playwright 模式优先选取语义化容器：`article > main > [role=main] > .post-content > body`
+- 避免将侧边栏、导航栏、页脚等无关内容转换为 Markdown
+- 仅在主体内容不足时回退到 `document.body`
+
+### Markdown 头部噪声清理
+自动删除 Markdown 输出头部（前 15 行内）的页面 Chrome：
+- 导航链接（`[返回博客](url)`、`[Back to blog](url)`、`[首页](url)` 等）
+- 纯日期行（`2026-05-30`、`2026/05/30`）
+- 标签行（`AI Agent 多智能体 架构设计` 等元数据）
+
+仅在标题行（`# 标题`）之前或紧接其后的区域执行清理，不会误删正文内容。
 
 ## 文件命名规则
 
@@ -147,7 +175,11 @@ Workflow-Based
 1. 用户提供 URL → 判断是否需要特殊交互（点击/滚动/登录）
 2. 无交互 → 优先 `web_fetch`（快速） → 成功则输出
 3. 有交互 / web_fetch 失败 → 自动 `playwright`（模拟浏览器） → 输出
-4. 提取网页标题 → 生成 Windows 兼容文件名 → 保存到指定目录
+4. Playwright 模式：提取文章主体内容（`article > main > body`）→ 修复懒加载图片 → 收集图片 URL
+5. 提取网页标题 → 生成 Windows 兼容文件名
+6. [图片模式] 语义化命名图片 → 下载到本地 `images/` → 多变体替换引用路径
+7. [Markdown 模式] 清理头部导航/日期/标签等 Chrome 噪声
+8. 安全截断文章尾部噪声（评论区/推荐/广告等）→ 保存到指定目录
 
 ## Resources
 

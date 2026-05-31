@@ -199,6 +199,67 @@ def _find_attribution_end(lines, start, total):
     return end
 
 
+def clean_markdown_noise(content):
+    """
+    清理 markdown 开头的页面 chrome 噪声：
+    - 导航链接（返回博客、Back to blog 等）
+    - 日期行、标签行等元数据
+    对文章标题行(#开头)之前和紧接其后的连续噪声行进行处理
+    """
+    lines = content.split('\n')
+    
+    # 噪声行判断（前 15 行内适用）
+    def is_noise_start(line, idx):
+        if idx >= 15:
+            return False
+        stripped = line.strip()
+        if not stripped:
+            return False  # 空行保留
+        # 导航链接
+        if re.match(r'^\[返回.*\]\(.*\)$', stripped):
+            return True
+        if re.match(r'^\[Back.*\]\(.*\)$', stripped):
+            return True
+        if re.match(r'^\[.*首页.*\]\(.*\)$', stripped):
+            return True
+        # 纯日期行
+        if re.match(r'^\d{4}[-/]\d{2}[-/]\d{2}$', stripped):
+            return True
+        # 标签行: 中文英文数字混合、长度适中
+        if 5 < len(stripped) < 80:
+            # 无空格连续串
+            if ' ' not in stripped and re.match(r'^[\w\u4e00-\u9fff]+$', stripped):
+                return True
+            # 有空格但每段都是标签: "AI Agent多智能体 架构设计"
+            parts = stripped.split()
+            if 1 < len(parts) <= 6 and all(re.match(r'^[\w\u4e00-\u9fff]+$', p) for p in parts):
+                return True
+        return False
+    
+    # 找到标题行位置
+    title_idx = None
+    for i, line in enumerate(lines):
+        if i >= 15:
+            break
+        if re.match(r'^#{1,3}\s', line.strip()):
+            title_idx = i
+            break
+    
+    # 移除噪声行：标题之前的所有噪声行 + 标题之后紧接的噪声行
+    keep_mask = [True] * len(lines)
+    for i in range(min(15, len(lines))):
+        if is_noise_start(lines[i], i):
+            # 如果这行在标题之前或紧接标题之后(1-6行内, 中间可能有空行)
+            if title_idx is None or i < title_idx or (title_idx < i <= title_idx + 6):
+                keep_mask[i] = False
+    
+    result_lines = [lines[i] for i in range(len(lines)) if keep_mask[i]]
+    result = '\n'.join(result_lines)
+    # 清理开头多余空行
+    result = result.lstrip('\n')
+    return result
+
+
 def truncate_article_end(content):
     """
     安全截断策略：
@@ -439,26 +500,64 @@ def extract_image_urls_from_markdown(content, base_url=None):
     return results
 
 
-def download_image(url, images_dir, index, total):
+def _derive_image_name(url, alt_text='', used_names=None):
     """
-    下载单张图片
+    根据URL和alt文本生成语义化的文件名
+    优先级: URL原始文件名 > alt文本 > hash回退
+    """
+    parsed = urlparse(url)
+    path_part = parsed.path.split('?')[0].split('#')[0]
+    orig_name = Path(path_part).name
+    ext = Path(path_part).suffix.lower()
+    if ext not in IMAGE_EXTENSIONS:
+        ext = '.png'
+    
+    # 尝试使用URL中的原始文件名
+    if orig_name and ext:
+        base = orig_name
+    elif alt_text:
+        safe_alt = sanitize_filename(alt_text, max_length=50)
+        base = f"{safe_alt}{ext}" if safe_alt else f"{hashlib.md5(url.encode()).hexdigest()[:8]}{ext}"
+    else:
+        base = f"{hashlib.md5(url.encode()).hexdigest()[:8]}{ext}"
+    
+    # 确保唯一性
+    if used_names is not None:
+        if base not in used_names:
+            used_names.add(base)
+            return base
+        name_part, e = os.path.splitext(base)
+        counter = 2
+        while f"{name_part}_{counter}{e}" in used_names:
+            counter += 1
+        result = f"{name_part}_{counter}{e}"
+        used_names.add(result)
+        return result
+    
+    return base
+
+
+def download_image(url, images_dir, index, total, used_names=None):
+    """
+    下载单张图片（使用语义化文件名）
     返回: (local_filename, success)
     """
+    if used_names is None:
+        used_names = set()
+    
     try:
-        url_hash = hashlib.md5(url.encode('utf-8')).hexdigest()[:12]
-        
-        # 从URL推断扩展名
-        path_part = url.split('?')[0].split('#')[0]
-        ext = Path(path_part).suffix.lower()
-        if ext not in IMAGE_EXTENSIONS:
-            ext = '.jpg'
-        
-        filename = f"{url_hash}{ext}"
+        filename = _derive_image_name(url, '', used_names)
         filepath = images_dir / filename
         
         if filepath.exists():
             print(f"  [{index}/{total}] ⏭️ 已存在: {filename}", file=sys.stderr)
             return filename, True
+        
+        # 检查不同扩展名的同名文件
+        name_no_ext = os.path.splitext(filename)[0]
+        for existing in images_dir.glob(f"{name_no_ext}.*"):
+            print(f"  [{index}/{total}] ⏭️ 已存在(其他格式): {existing.name}", file=sys.stderr)
+            return existing.name, True
         
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
@@ -479,17 +578,20 @@ def download_image(url, images_dir, index, total):
             'image/x-icon': '.ico',
         }
         if content_type and not content_type.startswith('image/'):
-            # 非图片内容不下载
             print(f"  [{index}/{total}] ⚠️ 非图片类型({content_type}): {url[:80]}...", file=sys.stderr)
             return None, False
         
         for ct, e in ct_to_ext.items():
-            if content_type.startswith(ct) and e != ext:
-                filename = f"{url_hash}{e}"
+            if content_type.startswith(ct) and e != os.path.splitext(filename)[1]:
+                old_filename = filename
+                filename = os.path.splitext(filename)[0] + e
                 filepath = images_dir / filename
                 if filepath.exists():
                     print(f"  [{index}/{total}] ⏭️ 已存在: {filename}", file=sys.stderr)
                     return filename, True
+                # 更新 used_names
+                used_names.discard(old_filename)
+                used_names.add(filename)
                 break
         
         with open(filepath, 'wb') as f:
@@ -560,13 +662,23 @@ def download_and_replace_images(content, output_dir, base_url=None, extra_image_
     # 从markdown中提取常规图片URL
     md_image_urls = extract_image_urls_from_markdown(content, base_url)
     
-    # 合并所有图片URL(去重)
+    # 合并所有图片URL(去重)，并对extra_image_urls做防御性URL解析
     all_urls_set = set()
     for _, resolved_url in md_image_urls:
         all_urls_set.add(resolved_url)
     if extra_image_urls:
         for url in extra_image_urls:
-            all_urls_set.add(url)
+            # 防御性：确保所有URL都是绝对URL
+            if url.startswith('/') or (not url.startswith('http')):
+                resolved = urljoin(base_url, url) if base_url else url
+            else:
+                resolved = url
+            # 跳过无效的相对URL
+            if resolved and resolved.startswith('http'):
+                all_urls_set.add(resolved)
+            elif not resolved.startswith('http') and base_url:
+                # urljoin失败的回退
+                all_urls_set.add(urljoin(base_url, url))
     
     all_urls = list(all_urls_set)
     
@@ -576,10 +688,11 @@ def download_and_replace_images(content, output_dir, base_url=None, extra_image_
     total = len(all_urls)
     print(f"🖼️ 发现 {total} 张图片,开始下载...", file=sys.stderr)
     
-    # 下载所有图片
+    # 下载所有图片（使用语义化命名）
+    used_names = set()
     url_download_map = {}
     for i, url in enumerate(all_urls, 1):
-        filename, success = download_image(url, images_dir, i, total)
+        filename, success = download_image(url, images_dir, i, total, used_names)
         if success:
             url_download_map[url] = filename
     
@@ -595,36 +708,46 @@ def download_and_replace_images(content, output_dir, base_url=None, extra_image_
     for url in sorted_urls:
         local_path = f"images/{url_download_map[url]}"
         
-        # 替换 markdown ![](url) 格式
-        content = re.sub(
-            re.escape(f']({url})'),
-            f']({local_path})',
-            content
-        )
-        # 替换 ![](url "title") 格式
-        content = re.sub(
-            re.escape(f']({url} "') + r'(.+?)"\)',
-            lambda m, lp=local_path: f']({lp} "' + m.group(1) + '")',
-            content
-        )
-        # 替换 <img src="url">
-        content = re.sub(
-            r'(<img[^>]+src=)["\']' + re.escape(url) + r'["\']',
-            lambda m: m.group(1) + f'"{local_path}"',
-            content
-        )
-        # 替换 data-src="url"
-        content = re.sub(
-            r'(data-src=)["\']' + re.escape(url) + r'["\']',
-            lambda m: m.group(1) + f'"{local_path}"',
-            content
-        )
-        # 替换 data-croporisrc="url"
-        content = re.sub(
-            r'(data-croporisrc=)["\']' + re.escape(url) + r'["\']',
-            lambda m: m.group(1) + f'"{local_path}"',
-            content
-        )
+        # 生成所有可能的URL变体（绝对URL + 相对路径），用于匹配markdown中的不同引用形式
+        url_variants = [url]
+        if base_url and url.startswith(base_url):
+            # 相对路径变体: 去掉base_url前缀
+            url_variants.append(url[len(base_url):])
+        # 也尝试去掉scheme+host的路径部分
+        parsed = urlparse(url)
+        path_only = parsed.path
+        if parsed.query:
+            path_only += '?' + parsed.query
+        if path_only not in url_variants:
+            url_variants.append(path_only)
+        
+        for variant in url_variants:
+            # 替换 markdown ![](url) 格式
+            content = re.sub(
+                re.escape(f']({variant})'),
+                f']({local_path})',
+                content
+            )
+            # 替换 ![](url "title") 格式
+            content = re.sub(
+                re.escape(f']({variant} "') + r'(.+?)"\)',
+                lambda m, lp=local_path: f']({lp} "' + m.group(1) + '")',
+                content
+            )
+            # 替换 <img src="url">
+            content = re.sub(
+                r'(<img[^>]+src=)["\']' + re.escape(variant) + r'["\']',
+                lambda m: m.group(1) + f'"{local_path}"',
+                content
+            )
+        
+        # 替换 data-src / data-croporisrc (这些通常用绝对URL)
+        for attr in ['data-src', 'data-croporisrc']:
+            content = re.sub(
+                r'(' + attr + r'=)["\']' + re.escape(url) + r'["\']',
+                lambda m: m.group(1) + f'"{local_path}"',
+                content
+            )
     
     return content
 
@@ -705,27 +828,51 @@ def fetch_with_playwright(url, format_type='markdown', wait_time=3, cookie=None,
                 except Exception as e:
                     print(f"⚠️ 点击元素失败: {str(e)}", file=sys.stderr)
 
-            # 先用JS把所有懒加载图片的 src 替换成 data-src的真实地址
-            extra_image_urls = page.evaluate("""() => {
-                const urls = [];
+            # 修复懒加载图片 + 提取文章主体内容 + 收集图片URL
+            article_html = page.evaluate("""() => {
+                // 1. 修复懒加载图片
                 document.querySelectorAll('img[data-src], img[data-croporisrc], img[data-original-src]').forEach(img => {
                     const realSrc = img.getAttribute('data-src') || img.getAttribute('data-croporisrc') || img.getAttribute('data-original-src');
                     if (realSrc && !realSrc.startsWith('data:')) {
-                        urls.push(realSrc);
                         img.setAttribute('src', realSrc);
                         img.removeAttribute('data-src');
                         img.removeAttribute('data-croporisrc');
                         img.removeAttribute('data-original-src');
                     }
                 });
-                document.querySelectorAll('img[src]').forEach(img => {
-                    const src = img.getAttribute('src');
-                    if (src && !src.startsWith('data:') && src.length > 10) {
-                        urls.push(src);
+                
+                // 2. 提取文章主体内容（优先 article > main > [role=main] > .post > .content > body）
+                const selectors = ['article', 'main', '[role="main"]', '.post-content', '.article-content', '.entry-content', '.content', '.post', '.article'];
+                let article = null;
+                for (const sel of selectors) {
+                    const el = document.querySelector(sel);
+                    if (el && el.innerText.trim().length > 200) {
+                        article = el;
+                        break;
                     }
-                });
-                return urls;
+                }
+                return article ? article.innerHTML : document.body.innerHTML;
             }""")
+            
+            # 收集所有图片URL（解析为绝对URL）
+            base_url_js = url
+            extra_image_urls = page.evaluate(f"""() => {{
+                const urls = [];
+                const base = '{base_url_js}';
+                document.querySelectorAll('img[src]').forEach(img => {{
+                    const src = img.getAttribute('src');
+                    if (src && !src.startsWith('data:') && src.length > 10) {{
+                        try {{
+                            // 将相对URL解析为绝对URL
+                            const absUrl = new URL(src, base).href;
+                            urls.push(absUrl);
+                        }} catch(e) {{
+                            urls.push(src);
+                        }}
+                    }}
+                }});
+                return urls;
+            }}""")
             extra_image_urls = set(extra_image_urls)
 
             if scroll:
@@ -736,25 +883,24 @@ def fetch_with_playwright(url, format_type='markdown', wait_time=3, cookie=None,
                     time.sleep(1)
 
             page_title = page.title()
-            html_content = page.content()
             
             browser.close()
 
             if format_type == 'html':
-                return True, html_content, page_title, extra_image_urls
+                return True, article_html, page_title, extra_image_urls
             elif format_type == 'text':
                 from bs4 import BeautifulSoup
-                soup = BeautifulSoup(html_content, 'html.parser')
+                soup = BeautifulSoup(article_html, 'html.parser')
                 text = soup.get_text(separator='\n', strip=True)
                 return True, text, page_title, set()
             else:
                 try:
                     import markdownify
-                    markdown_content = markdownify.markdownify(html_content, heading_style="ATX")
+                    markdown_content = markdownify.markdownify(article_html, heading_style="ATX")
                     return True, markdown_content, page_title, extra_image_urls
                 except ImportError:
                     print("⚠️ 缺少markdownify依赖,返回HTML格式", file=sys.stderr)
-                    return True, html_content, page_title, extra_image_urls
+                    return True, article_html, page_title, extra_image_urls
 
     except Exception as e:
         print(f"[playwright] 抓取失败: {str(e)}", file=sys.stderr)
@@ -844,6 +990,10 @@ def main():
         base_url = args.url
         content = download_and_replace_images(content, output_dir, base_url, extra_image_urls)
 
+    # 清理页面chrome噪声(导航链接/日期/标签等)
+    if args.format == 'markdown':
+        content = clean_markdown_noise(content)
+    
     # 截断文章尾部噪声(默认开启)
     if not args.no_truncate and args.format != 'html':
         content = truncate_article_end(content)
