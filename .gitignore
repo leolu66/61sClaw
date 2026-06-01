@@ -114,3 +114,6 @@ test*.py
 
 # 自动生成的新闻简报
 **/ai_news_*.md
+
+# Nested repos
+**/doubao-pro/
