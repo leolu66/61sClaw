@@ -1,0 +1,85 @@
+{
+  "topic": "Claude Code深度研究：AI Coding Agent赛道最热产品的热点归因、技术架构拆解、产品交互设计与竞争壁垒评估",
+  "questionType": "综述研究",
+  "keyEntities": [
+    "Claude Code",
+    "Anthropic",
+    "Claude 3.5/4",
+    "Cursor",
+    "GitHub Copilot",
+    "Windsurf/Cascade",
+    "OpenAI Codex CLI",
+    "Aider",
+    "MCP (Model Context Protocol)",
+    "Tool-Use/Function Calling",
+    "Agentic Loop",
+    "SWE-bench",
+    "Dario Amodei",
+    "Mike Krieger",
+    "CLI Agent范式",
+    "IDE插件范式",
+    "沙箱执行机制"
+  ],
+  "scope": {
+    "domains": [
+      "AI Coding Agent",
+      "Agentic Coding",
+      "Developer Tools",
+      "LLM Application Engineering",
+      "CLI Tools",
+      "AI Product Strategy"
+    ],
+    "timeRange": "2025-2026"
+  },
+  "estimatedComplexity": "high",
+  "recommendedDimensions": [
+    {
+      "title": "热点归因与范式转移判断",
+      "priority": "critical",
+      "description": "分析Claude Code在2025年中后期爆发的多重归因：Claude 3.5/4模型coding能力跃升的乘数效应、CLI原生Agent范式对IDE插件范式的代际优势、开发者对全自主编码Agent的刚需释放、Anthropic官方出品的信任溢价、MCP生态的网络效应。判断是短期舆论泡沫还是长期范式转移信号。对应输出结构第2章。",
+      "source": "ai-generated"
+    },
+    {
+      "title": "技术架构深度拆解",
+      "priority": "critical",
+      "description": "拆解Claude Code核心技术栈：Claude模型长上下文窗口与指令遵循能力对多文件编辑的支撑、Tool-Use/Function Calling工具链设计（文件读写、Bash执行、Git操作、搜索）、沙箱安全执行机制、Agentic Loop规划-执行-验证循环架构、MCP集成扩展机制、与同类方案在模型依赖度和架构开放性上的差异与限制。对应输出结构第3章。",
+      "source": "ai-generated"
+    },
+    {
+      "title": "产品交互设计与用户体验拆解",
+      "priority": "critical",
+      "description": "拆解Claude Code目标用户（全栈/后端开发者、DevOps、AI工程师）与核心场景（代码库理解与重构、Bug修复、测试生成、Git工作流自动化），分析CLI交互范式为何比IDE插件更好用（低侵入性、全仓库上下文、终端原生工作流），关键产品机制如自主规划-确认-执行循环、上下文压缩与记忆管理、推动口碑传播的Wow时刻设计。对应输出结构第4章。",
+      "source": "ai-generated"
+    },
+    {
+      "title": "竞品对比与差异化定位",
+      "priority": "critical",
+      "description": "对比Cursor（IDE集成Agent）、GitHub Copilot（嵌入式补全/Agent）、Windsurf（AI-first IDE）、OpenAI Codex CLI（同赛道直接竞品）、Aider（开源CLI方案）的差异化定位，评估Claude Code在模型能力、产品体验、生态开放性上的优势与短板。对应输出结构第5章。",
+      "source": "ai-generated"
+    },
+    {
+      "title": "壁垒评估与可持续性判断",
+      "priority": "critical",
+      "description": "从五个维度评估Claude Code护城河深度：模型能力绑定深度、CLI原生范式先发优势、MCP生态网络效应、Anthropic官方出品信任溢价、全栈Agent能力纵深。判断6-12个月可持续性，预判IDE原生Agent与CLI Agent融合趋势及Claude Code演进方向。对应输出结构第6章。",
+      "source": "ai-generated"
+    },
+    {
+      "title": "行业启示与战略建议",
+      "priority": "important",
+      "description": "对行业、创业者或产品团队的启示：AI Coding Agent赛道的范式转移信号、CLI vs IDE的终局判断、模型厂商自研Agent的垂直整合策略、MCP开放标准的生态机会、开发者工具的Wow时刻设计方法论。对应输出结构第7章。",
+      "source": "ai-generated"
+    },
+    {
+      "title": "性能基准与实证数据",
+      "priority": "important",
+      "description": "SWE-bench/Codex benchmark竞品评测数据、开发者横向对比报告、Claude Code在各类coding任务上的实测表现与局限性，为技术判断和竞争分析提供实证支撑。",
+      "source": "preset"
+    },
+    {
+      "title": "生态与社区动态",
+      "priority": "important",
+      "description": "Claude Code开源生态与社区插件（claude-code-commands、MCP server集成等GitHub仓库）、开发者社区深度讨论（HackerNews、Reddit r/ClaudeAI、X/Twitter技术圈、V2EX）、口碑传播路径与社区驱动力分析。",
+      "source": "preset"
+    }
+  ]
+}

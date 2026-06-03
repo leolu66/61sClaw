@@ -1,0 +1,36 @@
+{
+  "direction": "technical-deepdive",
+  "variables": {
+    "coreSubject": "Claude Code（Anthropic 官方 AI 编程 Agent CLI 工具）",
+    "researchIntent": "解释 Claude Code 为什么在 2025-2026 年成为 AI Coding Agent 赛道最热产品，深度拆解其 Agentic Coding 技术架构（模型能力依赖、工具调用链、沙箱执行机制）、产品交互设计（CLI 原生范式为何胜出）、与 Cursor/Copilot/Windsurf 等竞品的本质差异，并判断其护城河深度与 6-12 个月可持续性",
+    "focusSources": [
+      "Anthropic 官方工程博客与 Claude Code 技术文档（含 system prompt 泄露/逆向分析）",
+      "Claude Code 开源生态与社区插件（claude-code-commands、MCP server 集成等 GitHub 仓库）",
+      "AI Agent 与 Tool-Use 学术论文（ReAct、Function Calling、SWE-bench 基准研究）",
+      "SWE-bench/Codex benchmark 竞品评测与开发者横向对比报告",
+      "Anthropic 创始人/Dario Amodei/Mike Krieger 演讲与访谈中关于 Coding Agent 战略的表述",
+      "开发者社区深度讨论（HackerNews、Reddit r/ClaudeAI、X/Twitter 技术圈、V2EX）"
+    ],
+    "technicalLayers": [
+      "热点归因层 — 分析 Claude Code 为何在 2025 年中后期爆发：Claude 3.5/4 系列模型 coding 能力跃升的乘数效应、CLI 原生 Agent 范式对 IDE 插件范式的代际优势、开发者对'全自主编码 Agent'的刚需释放、Anthropic 官方出品带来的信任溢价、以及开源社区 MCP 生态的网络效应，判断是短期舆论泡沫还是长期范式转移信号",
+      "技术拆解层 — 拆解 Claude Code 核心技术栈：Claude 模型的长上下文窗口与指令遵循能力如何支撑多文件编辑、Tool-Use/Function Calling 的工具链设计（文件读写、Bash 执行、Git 操作、搜索）、沙箱安全执行机制、Agentic Loop 的规划-执行-验证循环架构、MCP（Model Context Protocol）集成扩展机制、与同类方案在模型依赖度和架构开放性上的差异与限制",
+      "产品拆解层 — 拆解 Claude Code 的目标用户（全栈/后端开发者、DevOps、AI 工程师）与核心场景（代码库理解与重构、Bug 修复、测试生成、Git 工作流自动化），分析 CLI 交互范式为何比 IDE 插件'明显更好用'（低侵入性、全仓库上下文、终端原生工作流），关键产品机制如自主规划-确认-执行循环、上下文压缩与记忆管理、推动口碑传播的'Wow 时刻'设计",
+      "竞争与趋势判断层 — 对比 Cursor（IDE 集成 Agent）、GitHub Copilot（嵌入式补全/Agent）、Windsurf（AI-first IDE）、OpenAI Codex CLI 的差异化定位，评估 Claude Code 在模型能力、产品体验、生态开放性上的优势与短板，判断 Anthropic 自研模型+自研 Agent 的垂直整合护城河是否可持续，预判 6-12 个月内 IDE 原生 Agent 与 CLI Agent 的融合趋势及 Claude Code 的演进方向"
+    ],
+    "comparisonTargets": [
+      "Cursor（AI-native IDE + Agent 模式，IDE 集成范式代表）",
+      "GitHub Copilot Coding Agent（GitHub 生态嵌入式 Agent，企业市场代表）",
+      "Windsurf/Cascade（AI-first IDE + Flow Action，交互创新代表）",
+      "OpenAI Codex CLI（同赛道直接竞品，GPT 模型驱动 CLI Agent）",
+      "Aider（开源 CLI Coding Agent，社区驱动方案代表）"
+    ],
+    "moatDimensions": [
+      "模型能力绑定深度 — Claude Code 的体验天花板是否完全依赖 Claude 模型 coding 能力，模型层优势能否被竞品模型追赶抹平",
+      "CLI 原生范式先发优势 — 终端工作流的心智占领和开发者习惯锁定程度，CLI 范式是否构成真正的切换壁垒",
+      "MCP 生态网络效应 — Model Context Protocol 作为开放标准的生态扩展能力，第三方 MCP Server 的丰富度是否形成平台锁定",
+      "Anthropic 官方出品信任溢价 — 相比第三方工具，官方工具在模型适配深度、安全合规、长期维护上的信任优势能否持续",
+      "全栈 Agent 能力纵深 — 从代码理解→编辑→执行→验证→Git 的端到端自动化深度，是否形成竞品短期难以复制的工程壁垒"
+    ]
+  },
+  "expandedQuery": "请对Claude Code（Anthropic 官方 AI 编程 Agent CLI 工具）进行一项系统性的深度研究，目标不是简单介绍其功能，而是解释 Claude Code 为什么在 2025-2026 年成为 AI Coding Agent 赛道最热产品，深度拆解其 Agentic Coding 技术架构（模型能力依赖、工具调用链、沙箱执行机制）、产品交互设计（CLI 原生范式为何胜出）、与 Cursor/Copilot/Windsurf 等竞品的本质差异，并判断其护城河深度与 6-12 个月可持续性。\n\n原始查询：Everything Claude Code (ECC)深度研究\n\n请重点从以下四个层面展开：\n\n一、热点归因\n热点归因层 — 分析 Claude Code 为何在 2025 年中后期爆发：Claude 3.5/4 系列模型 coding 能力跃升的乘数效应、CLI 原生 Agent 范式对 IDE 插件范式的代际优势、开发者对'全自主编码 Agent'的刚需释放、Anthropic 官方出品带来的信任溢价、以及开源社区 MCP 生态的网络效应，判断是短期舆论泡沫还是长期范式转移信号\n\n二、技术拆解\n技术拆解层 — 拆解 Claude Code 核心技术栈：Claude 模型的长上下文窗口与指令遵循能力如何支撑多文件编辑、Tool-Use/Function Calling 的工具链设计（文件读写、Bash 执行、Git 操作、搜索）、沙箱安全执行机制、Agentic Loop 的规划-执行-验证循环架构、MCP（Model Context Protocol）集成扩展机制、与同类方案在模型依赖度和架构开放性上的差异与限制\n\n三、产品拆解\n产品拆解层 — 拆解 Claude Code 的目标用户（全栈/后端开发者、DevOps、AI 工程师）与核心场景（代码库理解与重构、Bug 修复、测试生成、Git 工作流自动化），分析 CLI 交互范式为何比 IDE 插件'明显更好用'（低侵入性、全仓库上下文、终端原生工作流），关键产品机制如自主规划-确认-执行循环、上下文压缩与记忆管理、推动口碑传播的'Wow 时刻'设计\n\n四、竞争与趋势判断\n竞争与趋势判断层 — 对比 Cursor（IDE 集成 Agent）、GitHub Copilot（嵌入式补全/Agent）、Windsurf（AI-first IDE）、OpenAI Codex CLI 的差异化定位，评估 Claude Code 在模型能力、产品体验、生态开放性上的优势与短板，判断 Anthropic 自研模型+自研 Agent 的垂直整合护城河是否可持续，预判 6-12 个月内 IDE 原生 Agent 与 CLI Agent 的融合趋势及 Claude Code 的演进方向\n\n重点关注以下信息来源：\n- Anthropic 官方工程博客与 Claude Code 技术文档（含 system prompt 泄露/逆向分析）\n- Claude Code 开源生态与社区插件（claude-code-commands、MCP server 集成等 GitHub 仓库）\n- AI Agent 与 Tool-Use 学术论文（ReAct、Function Calling、SWE-bench 基准研究）\n- SWE-bench/Codex benchmark 竞品评测与开发者横向对比报告\n- Anthropic 创始人/Dario Amodei/Mike Krieger 演讲与访谈中关于 Coding Agent 战略的表述\n- 开发者社区深度讨论（HackerNews、Reddit r/ClaudeAI、X/Twitter 技术圈、V2EX）\n\n主要竞品/替代方案参考：Cursor（AI-native IDE + Agent 模式，IDE 集成范式代表）、GitHub Copilot Coding Agent（GitHub 生态嵌入式 Agent，企业市场代表）、Windsurf/Cascade（AI-first IDE + Flow Action，交互创新代表）、OpenAI Codex CLI（同赛道直接竞品，GPT 模型驱动 CLI Agent）、Aider（开源 CLI Coding Agent，社区驱动方案代表）\n壁垒评估维度：模型能力绑定深度 — Claude Code 的体验天花板是否完全依赖 Claude 模型 coding 能力，模型层优势能否被竞品模型追赶抹平、CLI 原生范式先发优势 — 终端工作流的心智占领和开发者习惯锁定程度，CLI 范式是否构成真正的切换壁垒、MCP 生态网络效应 — Model Context Protocol 作为开放标准的生态扩展能力，第三方 MCP Server 的丰富度是否形成平台锁定、Anthropic 官方出品信任溢价 — 相比第三方工具，官方工具在模型适配深度、安全合规、长期维护上的信任优势能否持续、全栈 Agent 能力纵深 — 从代码理解→编辑→执行→验证→Git 的端到端自动化深度，是否形成竞品短期难以复制的工程壁垒\n\n研究要求：\n- 同时从技术视角和产品视角分析\n- 尽量引用具体产品案例、功能、发布时间、公开演示、用户反馈、定价和社区讨论\n- 区分事实、推断和分析判断\n- 如果关键信息缺失，请明确指出并做谨慎推断\n- 避免空泛介绍，重点解释\"为什么它会火\"和\"它是否真的有价值\"\n\n请按以下结构输出：\n1. 执行摘要\n2. 热点形成原因分析\n3. 技术特征拆解\n4. 产品特征拆解\n5. 竞品与替代方案对比\n6. 壁垒、风险与可持续性判断\n7. 对行业、创业者或产品团队的启示"
+}
