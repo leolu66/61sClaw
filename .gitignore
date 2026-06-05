@@ -117,3 +117,32 @@ test*.py
 
 # Nested repos
 **/doubao-pro/
+
+workspace-main/TOOLS.md
+
+workspace-main/_tmp_baidu_price.py
+
+workspace-main/config/
+
+workspace-main/deep-research-from-scratch-original.md
+
+workspace-main/deep-research-from-scratch-p2-original.md
+
+workspace-main/deep-research-from-scratch-p2-zh.md
+
+workspace-main/deep-research-from-scratch-zh.md
+
+workspace-main/notify.ps1
+
+workspace-main/response-wrapper.js
+
+workspace-main/数字民乐PPT/
+
+workspace-main/项目/
+
+workspace-main/skills/验证审计技能清单.md
+
+# 2026-06-05 合规检查新增：禁止同步的目录
+workspace-main/docs/
+workspace-main/scripts/
+workspace-main/projects/
