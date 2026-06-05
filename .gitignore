@@ -146,3 +146,12 @@ workspace-main/skills/验证审计技能清单.md
 workspace-main/docs/
 workspace-main/scripts/
 workspace-main/projects/
+
+# 2026-06-05 合规检查：禁止上传所有技能的 output 目录
+**/skills/*/output/
+**/skills/*/test_output*
+**/skills/*/verify-output/
+**/skills/*/demos/
+**/skills/*/notebooks/
+**/skills/*/research/
+**/skills/*/.gitignore
