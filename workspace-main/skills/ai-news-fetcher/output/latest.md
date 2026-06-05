@@ -1,4 +1,4 @@
-# 🤖 AI 新闻速递 (06月02日 10:00)
+# 🤖 AI 新闻速递 (06月05日 10:07)
 
 ## 📊 采集汇总
 
@@ -20,68 +20,68 @@
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [成都机器人公司，冲刺港股IPO](https://36kr.com/p/3835381461578885) | 已构建三类超70个型号机器人产品。 | 50秒前 |
-| 2 | [刚刚，Anthropic抢先交表，冲击AI史上最大IPO](https://36kr.com/p/3835377534497926) | 奥特曼回应了 | 10分钟前 |
-| 3 | [软件巨头的「AI转型税」来了](https://36kr.com/p/3835306364220548) | 人效飞跃的A面和B面。 | 40分钟前 |
-| 4 | [黄仁勋发布Alpamayo 2 Super：自动驾驶黑箱终于被打开了](https://36kr.com/p/3835247285761416) | 320亿参数，换一个“透明”的驾驶决策。 | 1小时前 |
-| 5 | [VLA不会死，但不融合世界模型的除外](https://36kr.com/p/3834566686879879) | 数据工厂的沉默战争，决定谁能笑到最后 | 1小时前 |
+| 1 | [硬氪独家 \| 唐文斌「原力灵机」并购物流机器人公司，并获智谱、商汤、阶跃等投资](https://36kr.com/p/3838835333253385) | 被并购公司「Atomix」的年营收近十亿，有500多个项目的真实数据。 | 1小时前 |
+| 2 | [Bonus独家｜小鹏机器人核心产品一号位施晓鑫6月初主动离职](https://36kr.com/p/3839560961116417) | 服务1675天的老兵，曾主导IRON产品设计。 | 1小时前 |
+| 3 | [国家队下场做AI虚拟细胞，「百曜科技」完成数千万元新一轮融资｜36氪首发](https://36kr.com/p/3835460873385348) | AI虚拟细胞有望成为“未来AI+生命科学最具有颠覆性的领域之一”。 | 1小时前 |
+| 4 | [突发！Anthropic呼吁全员停止AI研究](https://36kr.com/p/3839532802132489) | AI自进化，开始了 | 1小时前 |
+| 5 | [可灵头上缺了一朵遮风挡雨的云](https://36kr.com/p/3838758058019336) | 无云的快手最狠心？ | 14小时前 |
 
 ## 2️⃣ AiBase新闻
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [算力巨头也缺水？SpaceX 递交上市文件：AI 数据中心面临水资源短缺风险](https://news.aibase.cn/news/28546) | SpaceX在最新IPO文件中警告，为其数据中心降温所需的水资源面临严重供给风险。随着马斯克旗下AI... | 3分钟前 |
-| 2 | [谷歌强推 AI 惹众怒？隐私搜索巨头出手，上线“纯净版”无 AI 搜索插件](https://news.aibase.cn/news/28545) | 全球科技巨头推动搜索引擎全面AI化，引发部分用户抗拒。这一趋势使主打隐私保护的DuckDuckGo访... | 6分钟前 |
-| 3 | [​OpenAI官宣进军机器人赛道，独立组建团队押注具身智能](https://news.aibase.cn/news/28544) | OpenAI宣布成立Robotics事业部，将AI从软件拓展至具身智能领域，旨在通过大模型连接物理世... | 34分钟前 |
-| 4 | [大厂速度！京东云首发上线MiniMax M3 大模型，推理效率迎跨越式升级](https://news.aibase.cn/news/28543) | MiniMax M3模型正式发布，京东云JoyBuilder平台同步接入并开放服务。核心亮点是推理性... | 36分钟前 |
-| 5 | [扣子 3.0 正式上线，支持多人多 Agent 协同作业](https://news.aibase.cn/news/28542) | 字节跳动推出扣子3.0版本，核心升级包括Agent写作新模式、团队协作与生态接入。新版本支持“一人+... | 38分钟前 |
+| 1 | [​英国强制 Google开放AI搜索"退出门"，出版商可一键屏蔽内容被AI抓取](https://news.aibase.cn/news/28670) | 英国监管机构CMA要求Google为出版商提供AI搜索退出选项，Google已遵守。新规允许出版商通... | 12分钟前 |
+| 2 | [xAI发布Grok Imagine Video1.5:一张图片秒变视频，直面Google Veo竞争](https://news.aibase.cn/news/28669) | xAI发布Grok Imagine Video1.5预览版，进军AI视频生成赛道。该模型可将单张静态... | 14分钟前 |
+| 3 | [美情报机构借助 Anthropic 新大模型开展网络攻防，AI 初创巨头深陷地缘政治](https://news.aibase.cn/news/28668) | 人工智能初创公司Anthropic与美国国家安全局合作，部署Claude Mythos大模型用于进攻... | 29分钟前 |
+| 4 | [奥尔特曼预言 AI 第三阶段："主动式 AI"将让 Agent 在后台自动干活](https://news.aibase.cn/news/28667) | OpenAI CEO萨姆·奥尔特曼提出AI产品发展三阶段理论：当前聊天机器人（如ChatGPT）为第... | 48分钟前 |
+| 5 | [Airbnb CEO Brian Chesky进军AI:计划成立全新人工智能实验室](https://news.aibase.cn/news/28666) | Airbnb正计划成立全新人工智能实验室，探索下一代AI产品与交互方式。该消息由CEO Brian ... | 50分钟前 |
 
 ## 3️⃣ InfoQ AI简报
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [牧原联合阿里云基于千问打造智能养猪大模型](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660261008&idx=1&sn=cfbce0d2ee5cb623bfe818d9f6796a18) | 2026年6月1日，畜牧企业牧原集团与阿里云达成AI战略合作，将依托牧原的海量数据与专家经验，结合千... | 12小时前 |
-| 2 | [通义实验室发布端侧MCP教程，实现手机本地视觉感知](https://mp.weixin.qq.com/s?__biz=MzkxMTYyMTAzNA==&mid=2247501356&idx=1&sn=993abfef62e3d6690c09365cf61e6950) | 通义实验室发布「手机上的创意AI」挑战赛首期教程，介绍如何通过端侧MCP架构在Android手机上部... | 3天前 |
-| 3 | [阿里云百炼CLI开源，一行命令接入AI Agent](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660260994&idx=1&sn=22205fc829075951f3d9aa7243167202) | 2026年5月29日，阿里云宣布百炼核心能力CLI化，并在GitHub开源（modelstudioa... | 3天前 |
-| 4 | [华为云三款数据库通过安全可靠测评，GaussDB获全形态II级](https://mp.weixin.qq.com/s?__biz=MzI1Mzc1MzMyOQ==&mid=2247843471&idx=1&sn=f15510a579da4574f78b2d445f77ec86) | 2026年5月26日，中国信息安全测评中心与国家保密科技测评中心联合发布《安全可靠测评结果公告（20... | 5天前 |
-| 5 | [商汤林海：AIDC建设从通用标准转向适用高效](https://mp.weixin.qq.com/s?__biz=MzIwNTcyNzYwMA==&mid=2247521950&idx=2&sn=e78efb6daa60ed544ac48bc80e29c79d) | 在2026全球AIDC产业论坛上，商汤科技大装置事业群智算中心总经理林海分享了商汤在智算中心建设中的... | 5天前 |
+| 1 | [阿里云发布Qwen3.7-Plus，多模态智能体能力升级](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660261038&idx=1&sn=7bfc6972f097eddc563f3474e7ead339) | 2026年6月2日，阿里云发布千问3.7系列最新多模态大模型Qwen3.7-Plus，已上架千问云和... | 2天前 |
+| 2 | [牧原联合阿里云基于千问打造智能养猪大模型](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660261008&idx=1&sn=cfbce0d2ee5cb623bfe818d9f6796a18) | 2026年6月1日，畜牧企业牧原集团与阿里云达成AI战略合作，将依托牧原的海量数据与专家经验，结合千... | 3天前 |
+| 3 | [通义实验室发布端侧MCP教程，实现手机本地视觉感知](https://mp.weixin.qq.com/s?__biz=MzkxMTYyMTAzNA==&mid=2247501356&idx=1&sn=993abfef62e3d6690c09365cf61e6950) | 通义实验室发布「手机上的创意AI」挑战赛首期教程，介绍如何通过端侧MCP架构在Android手机上部... | 6天前 |
+| 4 | [阿里云百炼CLI开源，一行命令接入AI Agent](https://mp.weixin.qq.com/s?__biz=MzA4NjI4MzM4MQ==&mid=2660260994&idx=1&sn=22205fc829075951f3d9aa7243167202) | 2026年5月29日，阿里云宣布百炼核心能力CLI化，并在GitHub开源（modelstudioa... | 6天前 |
+| 5 | [华为云三款数据库通过安全可靠测评，GaussDB获全形态II级](https://mp.weixin.qq.com/s?__biz=MzI1Mzc1MzMyOQ==&mid=2247843471&idx=1&sn=f15510a579da4574f78b2d445f77ec86) | 2026年5月26日，中国信息安全测评中心与国家保密科技测评中心联合发布《安全可靠测评结果公告（20... | 05-27 |
 
 ## 4️⃣ AI科技评论
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [早古神帖还会续更吗？天涯社区正式恢复访问；曝美国人形机器人已投入俄乌战场，美军拟造5万机器人大军；奔驰或在美国面临禁售禁产](https://www.leiphone.com/category/zaobao/H4KB4Yaqa6dhc9hf.html) | 早报来啦~ | 1小时前 |
-| 2 | [一颗288核的至强6+，为什么能同时运行500个Agent？](https://www.leiphone.com/category/chips/WxcUhbV0RIXlGVdR.html) | 至强下一代服务器CPU代号Diamond Rapids，将基于Intel 18A P工艺，2027年... | 昨天 18:20 |
-| 3 | [VAST 斩获近2亿美元A轮系列融资，同步推出世界模型，顶级财投和产业资本鼎力入局](https://www.leiphone.com/category/industrynews/cd9pn4fdlQ4qhMzP.html) | 继今年 3 月融资后，VAST时隔两月再度获得资本加持。 | 昨天 17:24 |
-| 4 | [除了外卖，京东还在押注什么？](https://www.leiphone.com/category/industrynews/jnBGW8KfBf9D8qk6.html) | 营收、利润双超预期背后，京东的焦虑仍未得到 | 昨天 16:51 |
-| 5 | [独家｜ 京东零售高层大调整：杨博接棒汽车事业部，钟波执掌拍卖业务](https://www.leiphone.com/category/industrynews/XeZ2kvzh5LO5yiMz.html) | 中高层管理者能否为京东业绩增长挑起大梁？ | 昨天 16:43 |
+| 1 | [全球首个！材科源图发布有机高分子应用智能体](https://www.leiphone.com/category/ai/cPAorDy6hbflU7fy.html) | 中国团队有机高分子材料研发 | 昨天 21:38 |
+| 2 | [不卷价格和参数，中国汽车如何卖到5000万辆？](https://www.leiphone.com/category/transportation/cj8k172esGa3neuj.html) | 周光、陆传华、王谭、王琅、崔东树，五位业内人士对汽车行业的建言献策。 | 昨天 19:25 |
+| 3 | [面壁智能「开源周」：一场定义端侧 AI 终局的系统性「亮剑」](https://www.leiphone.com/category/industrynews/WRAi6uWPkKnPmIWN.html) | 一场罕见的「技术组曲」。 | 昨天 18:09 |
+| 4 | [何小鹏内部讲话曝光，「最美」机器人量产时间表出来了？](https://www.leiphone.com/category/industrynews/iu4aAqUhmLtjXqyM.html) | 机器人能不能规模化稳定交付，是整个行业的生死问题。 | 昨天 18:07 |
+| 5 | [CVPR 2026：深度学习的「标准件」，正在被逐个拆掉](https://www.leiphone.com/category/industrynews/EvOI1x7Wt5zyH7qe.html) | 注意力的浮点精度不是必须的，归一化流的"精确可逆"是可以放弃的…… | 昨天 18:06 |
 
 ## 5️⃣ 量子位
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [云端模型如何落地物理世界？招商局狮子山人工智能实验室用LiOS打通具身智能全链路](https://www.qbitai.com/2026/06/427472.html) | 从仿真到多形态真机，具身模型如何落地复杂家庭柔性物体操作？ | 26分钟前 |
-| 2 | [老黄的Token经济学翻车了！微软亚马逊通通跳车](https://www.qbitai.com/2026/06/427541.html) | token热潮开始降温 | 1小时前 |
-| 3 | [清智系企业亮相 BEYOND Expo 2026 并斩获多项大奖](https://www.qbitai.com/2026/06/427530.html) | 已经投资了数个世界领先的AI科技公司 | 15小时前 |
-| 4 | [德系精工邂逅中国智慧 全新奥迪Q5L现已登陆全国门店](https://www.qbitai.com/2026/06/427231.html) |  | 17小时前 |
-| 5 | [OpenAI重返机器人赛道！四大核心岗位开招](https://www.qbitai.com/2026/06/427238.html) | 年薪超200万 | 19小时前 |
+| 1 | [重估比亚迪，从智驾开始](https://www.qbitai.com/2026/06/429192.html) |  | 12小时前 |
+| 2 | [中国足球小将夺冠，比亚迪携手足球少年走向世界](https://www.qbitai.com/2026/06/429186.html) |  | 13小时前 |
+| 3 | [连GitLab都开始裁程序员了](https://www.qbitai.com/2026/06/429117.html) | 硅谷科技公司Q1裁员同比增长40% | 17小时前 |
+| 4 | [A股账户可以买Robotaxi了](https://www.qbitai.com/2026/06/428954.html) | Robotaxi双雄同日官宣 | 18小时前 |
+| 5 | [英博数科亮相CCIG 2026，首次公开EBFlex私有化算力管理平台](https://www.qbitai.com/2026/06/428942.html) | 聚焦高校科研算力 | 18小时前 |
 
 ## 6️⃣ 智东西
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [不限时免费！全球榜单前十AI Lab开放全模态API，我先替你测了](https://zhidx.com/p/561816.html) | 代码、图片、视频免费生成！ | 昨天 |
-| 2 | [好抓马！AI删光2.8万行代码，干崩后台，还编造了一份故障修复报告](https://zhidx.com/p/560458.html) | 删代码宕机后，连修复报告都是现编的。 | 5天前 |
-| 3 | [全球AI工厂4万亿激战！这家国产厂商领先一个身位了](https://zhidx.com/p/560946.html) | OpenAI、Anthropic刚下场，中国企业已提前卡位。 | 6天前 |
-| 4 | [集体涨价！大模型开始找你“要钱”](https://zhidx.com/p/557313.html) | DeepSeek降价封神，豆包收费被喷！大模型陷入价格混战。 | 05-26 |
-| 5 | [石头科技北美出海第一课：卖出去只是开始](https://zhidx.com/p/559676.html) | 石头科技北美8年：产品开路、渠道扎根，一个中国品牌的本地进化。 | 05-22 |
+| 1 | [狂揽10亿！让小米理想上头的95后学霸，带着他的新“手”海外狂吸粉](https://zhidx.com/p/563023.html) | 二代灵巧手新品实物首展ICRA 2026。 | 昨天 |
+| 2 | [从手机PC机器人到数据中心，高通“计算连续体”成Agent时代AI路基](https://zhidx.com/p/562343.html) | Agent时代卷起分布式推理风暴，高通“从毫瓦到千瓦”AI全家桶进击。 | 3天前 |
+| 3 | [不限时免费！全球榜单前十AI Lab开放全模态API，我先替你测了](https://zhidx.com/p/561816.html) | 代码、图片、视频免费生成！ | 4天前 |
+| 4 | [好抓马！AI删光2.8万行代码，干崩后台，还编造了一份故障修复报告](https://zhidx.com/p/560458.html) | 删代码宕机后，连修复报告都是现编的。 | 05-28 |
+| 5 | [全球AI工厂4万亿激战！这家国产厂商领先一个身位了](https://zhidx.com/p/560946.html) | OpenAI、Anthropic刚下场，中国企业已提前卡位。 | 05-27 |
 
 ## 7️⃣ 极客公园
 
 | 序号 | 标题 | 摘要 | 更新时间 |
 |------|------|------|----------|
-| 1 | [李彦宏首提 DAA：价值始于非共识](https://www.geekpark.net/news/365213) | DAA：智能体时代的新价值逻辑。 | 13 小时前 |
-| 2 | [Opus4.8 正式发布，AI 第一次会说「我不确定」了](https://www.geekpark.net/news/365201) | Claude Opus 4.8 不是一次跃迁，而是一次聚焦。 | 17 小时前 |
-| 3 | [疯狂烧了数十亿美元 Token 之后，硅谷大厂开始限制员工 Token 用量了](https://www.geekpark.net/news/365203) | AI 为企业自动化的是员工「讨厌的工作」，而不是「赚钱的工作」。 | 17 小时前 |
-| 4 | [营收1965亿，市值创近一年新低，马化腾：一年前上了AI的船，结果发现船漏水了](https://www.geekpark.net/news/365101) | AI放大腾讯核心优势。 | 2026/05/30 |
-| 5 | [两大 AI「妖股」，杀回 A 股](https://www.geekpark.net/news/365100) | 智谱港股上演「天地板」式震荡；MiniMax 披露 A 股上市辅导备案。 | 2026/05/30 |
+| 1 | [AI Agent 的门票，MiniMax 想先打下来](https://www.geekpark.net/news/365422) | 为何人人都在 token 焦虑？ | 19 小时前 |
+| 2 | [AI 硬件迎来寒武纪时刻：百度智能云如何成为爆发催化剂](https://www.geekpark.net/news/365376) | 让创业者低门槛上场，让成熟玩家降低进入 AI 世界的摩擦。 | 2026/06/03 |
+| 3 | [还在纠结「本地 or 云端」？Perplexity 的「任务路由」彻底解决 AI 难题](https://www.geekpark.net/news/365355) | 不是问题的问题。 | 2026/06/03 |
+| 4 | [CPU，悄悄回到了 AI 算力的舞台中央](https://www.geekpark.net/news/365360) | 你认为 AI 智能体时代，CPU 还能不能重回算力舞台中心？ | 2026/06/03 |
+| 5 | [不满足于 Copilot，微软给你捏了个24 小时在线的「虾同事」](https://www.geekpark.net/news/365356) | 你准备好和它共事了吗？ | 2026/06/03 |
