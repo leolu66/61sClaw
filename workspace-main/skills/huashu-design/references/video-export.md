@@ -107,6 +107,29 @@ bash /path/to/claude-design/scripts/convert-formats.sh <input.mp4> [gif_width] [
 - 1280 —— 更清晰但文件更大
 - 600 —— Twitter/X 优先加载
 
+### 4. `render-video-seek.js` — 真 60fps / 确定性渲染（推荐高质量交付）
+
+`render-video.js` 的 recordVideo 路径有三个固有限制：帧率被 Chromium compositor 锁死 25fps、开头有加载黑帧需 trim、60fps 只能靠事后 minterpolate 插帧（有 ghosting + macOS QuickTime 兼容 bug，见 `animation-pitfalls.md §14`）。需要**真 60fps、确定性输出、或交付 B站/作品集**时，改用 seek 渲染。
+
+它逐帧 seek 到时间戳截图、再用 ffmpeg 把 PNG 序列编码成 MP4。技术内核借鉴 HeyGen HyperFrames（Apache 2.0）的「冻结时钟 + seek 截图」思路，但不引入任何第三方包——只用本 skill 已有的 playwright + ffmpeg，runtime 中立。
+
+```bash
+NODE_PATH=$(npm root -g) node /path/to/claude-design/scripts/render-video-seek.js <html文件> --fps=60
+```
+
+参数：`--duration` · `--fps`（默认 60）· `--width` · `--height` · `--concurrency`（默认 4 个 worker 并行）· `--settle`（seek 后等几个 rAF 再截图，默认 2，重 layout 动画可调高）· `--keep-chrome`。输出与 HTML 同目录、同名 `.mp4`。
+
+正面解决 recordVideo 三死结：
+- **真原生任意帧率**：`--fps=60` 出真 60fps（每帧都是真实 seek 画面），不再经 `convert-formats.sh` 的 minterpolate 插帧，绕开 ghosting + macOS 兼容 bug
+- **无开头黑帧**：不录屏，根本没有加载期黑帧，不需要 `--trim` / `--fontwait`
+- **确定性**：seek 到时间戳截图，同输入同输出，不受机器负载/丢帧影响
+
+**适用边界（重要）**：只支持走 Stage 时钟的动画——`assets/animations.jsx` 的 `<Stage>` 或 `narration_stage.jsx` 的 `<NarrationStage>`，它们会响应 `window.__seekRender` 冻结自驱时钟并暴露 `window.__seek(t)`。纯 CSS `@keyframes` / Lottie / 手写非 Stage 动画不吃 `__seek`，这类继续用 `render-video.js`（脚本检测不到 `__seek` 会报错并提示）。
+
+**代价**：逐帧截图，长视频总耗时可能比 recordVideo 实时录更久（靠 `--concurrency` 多 worker 缓解）；大量临时 PNG 占盘，渲染前建议关其他大内存 App。
+
+**二选一策略**：默认仍用 `render-video.js`（零风险、覆盖所有动画类型）；需要真 60fps / 确定性 / 高质量交付、且动画走 Stage 时钟时，用 `render-video-seek.js`。带解说的长动画用 `render-narration.sh --seek` 一键走 seek 渲染 + 混音。
+
 ## 完整流程（标准推荐）
 
 用户说「导出视频」后：

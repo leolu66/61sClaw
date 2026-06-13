@@ -48,10 +48,38 @@ function formatBytes(bytes) {
   return bytes + " B";
 }
 
-function formatTimeAgo(date) {
+/**
+ * Format a date as relative time (e.g., "just now", "5m ago", "in 2h")
+ * @param {Date|string|number|null} input - Date object, ISO string, timestamp, or null/undefined
+ * @returns {string|null} Formatted relative time, or null for invalid input
+ */
+function formatTimeAgo(input) {
+  if (!input) return null;
+
+  let date;
+  if (input instanceof Date) {
+    date = input;
+  } else if (typeof input === "string") {
+    date = new Date(input);
+  } else if (typeof input === "number") {
+    date = new Date(input);
+  } else {
+    return null;
+  }
+
+  if (isNaN(date.getTime())) return null;
+
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.round(diffMs / 60000);
+
+  if (diffMins < 0) {
+    const futureMins = Math.abs(diffMins);
+    if (futureMins < 60) return `in ${futureMins}m`;
+    if (futureMins < 1440) return `in ${Math.round(futureMins / 60)}h`;
+    return `in ${Math.round(futureMins / 1440)}d`;
+  }
+
   if (diffMins < 1) return "just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffMins < 1440) return `${Math.round(diffMins / 60)}h ago`;

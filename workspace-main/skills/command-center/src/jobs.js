@@ -7,6 +7,7 @@
 
 const path = require("path");
 const { CONFIG } = require("./config");
+const { formatTimeAgo } = require("./utils");
 
 // Jobs directory (from config with auto-detection)
 const JOBS_DIR = CONFIG.paths.jobs;
@@ -43,29 +44,6 @@ async function getAPI() {
 function _resetForTesting(options = {}) {
   apiInstance = null;
   forceApiUnavailable = options.forceUnavailable || false;
-}
-
-/**
- * Format relative time
- */
-function formatRelativeTime(isoString) {
-  if (!isoString) return null;
-  const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.round(diffMs / 60000);
-
-  if (diffMins < 0) {
-    const futureMins = Math.abs(diffMins);
-    if (futureMins < 60) return `in ${futureMins}m`;
-    if (futureMins < 1440) return `in ${Math.round(futureMins / 60)}h`;
-    return `in ${Math.round(futureMins / 1440)}d`;
-  }
-
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffMins < 1440) return `${Math.round(diffMins / 60)}h ago`;
-  return `${Math.round(diffMins / 1440)}d ago`;
 }
 
 /**
@@ -112,8 +90,8 @@ async function handleJobsRequest(req, res, pathname, query, method) {
       // Enhance with relative times
       const enhanced = jobs.map((job) => ({
         ...job,
-        lastRunRelative: formatRelativeTime(job.lastRun),
-        nextRunRelative: formatRelativeTime(job.nextRun),
+        lastRunRelative: formatTimeAgo(job.lastRun),
+        nextRunRelative: formatTimeAgo(job.nextRun),
       }));
 
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -134,13 +112,13 @@ async function handleJobsRequest(req, res, pathname, query, method) {
       }
 
       // Enhance with relative times
-      job.lastRunRelative = formatRelativeTime(job.lastRun);
-      job.nextRunRelative = formatRelativeTime(job.nextRun);
+      job.lastRunRelative = formatTimeAgo(job.lastRun);
+      job.nextRunRelative = formatTimeAgo(job.nextRun);
       if (job.recentRuns) {
         job.recentRuns = job.recentRuns.map((run) => ({
           ...run,
-          startedAtRelative: formatRelativeTime(run.startedAt),
-          completedAtRelative: formatRelativeTime(run.completedAt),
+          startedAtRelative: formatTimeAgo(run.startedAt),
+          completedAtRelative: formatTimeAgo(run.completedAt),
         }));
       }
 
@@ -158,8 +136,8 @@ async function handleJobsRequest(req, res, pathname, query, method) {
 
       const enhanced = runs.map((run) => ({
         ...run,
-        startedAtRelative: formatRelativeTime(run.startedAt),
-        completedAtRelative: formatRelativeTime(run.completedAt),
+        startedAtRelative: formatTimeAgo(run.startedAt),
+        completedAtRelative: formatTimeAgo(run.completedAt),
       }));
 
       res.writeHead(200, { "Content-Type": "application/json" });
