@@ -15,6 +15,7 @@ if (!query) {
   console.error('  --depth <number>     研究深度，默认2');
   console.error('  --output <path>      报告输出路径，默认./report.md');
   console.error('  --no-interactive     禁用交互模式');
+  console.error('  --model <name>        AI 模型名称，默认 deepseek-v4-pro（如 deepseek-v4-flash）');
   process.exit(1);
 }
 

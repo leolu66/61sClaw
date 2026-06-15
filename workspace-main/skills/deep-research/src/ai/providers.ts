@@ -4,6 +4,7 @@ import { getEncoding } from 'js-tiktoken';
 import { z } from 'zod';
 
 import { RecursiveCharacterTextSplitter } from './text-splitter';
+import { AI_TIMEOUT_HEAVY_MS } from '../constants';
 
 // Providers
 
@@ -13,10 +14,11 @@ const openai = createOpenAI({
 });
 
 // Models - 使用鲸云可用模型 (OpenAI 兼容接口)
-// gpt-4o 代理报 500、deepseek/glm 不支持 structured output，关闭 structuredOutputs 由 SDK 用 prompt 做 JSON
-export const gpt4Model = openai('glm-5.1', { structuredOutputs: false });
-export const gpt4MiniModel = openai('glm-5.1', { structuredOutputs: false });
-export const o3MiniModel = openai('glm-5.1', { structuredOutputs: false });
+// 默认 deepseek-v4-pro，可通过环境变量 DEEP_RESEARCH_MODEL 指定其他模型
+const modelName = process.env.DEEP_RESEARCH_MODEL || 'deepseek-v4-pro';
+export const primaryModel = openai(modelName, { structuredOutputs: false });
+/** @deprecated Use primaryModel instead */
+export const o3MiniModel = primaryModel;
 
 const MinChunkSize = 140;
 const encoder = getEncoding('o200k_base');
@@ -38,11 +40,12 @@ export async function generateObjectWithRetry<T>(params: {
   prompt: string;
   schema: z.ZodSchema<T>;
   retries?: number;
+  timeoutMs?: number;
   // NOTE: abortSignal 不穿透到底层 generateObject，因为它是单次消费的。
   // 重试包装器自身提供超时保护，见 timeoutMs。
 }): Promise<{ object: T; usage?: any }> {
   const maxRetries = params.retries ?? 3;
-  const perCallTimeoutMs = 180_000; // 每次调用 180s 硬超时
+  const perCallTimeoutMs = params.timeoutMs ?? AI_TIMEOUT_HEAVY_MS;
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
