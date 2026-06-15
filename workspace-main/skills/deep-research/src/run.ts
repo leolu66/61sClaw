@@ -150,10 +150,12 @@ ${followUpQuestions.map((q, i) => `Q: ${q}\nA: ${answers[i]}`).join('\n')}
   }
 
   let report: string;
+  let planFailed = false;
 
   if (usePlan) {
-    // ─── 计划驱动流程 ─────────────────────
-    const timings: Record<string, number> = {};
+    try {
+      // ─── 计划驱动流程 ─────────────────────
+      const timings: Record<string, number> = {};
 
     // Step 0: 创建工作目录
     let t0 = Date.now();
@@ -330,12 +332,18 @@ ${followUpQuestions.map((q, i) => `Q: ${q}\nA: ${answers[i]}`).join('\n')}
     const total = hits + misses;
     const hitRate = total > 0 ? Math.round((hits / total) * 100) : 0;
     console.log(`[缓存] 命中: ${hits} | 未命中: ${misses} | 写入: ${writes} | 命中率: ${hitRate}%`);
-    console.log(`[归档] 研究目录: research/${ws.topicName}/`);
-  } else {
+      console.log(`[归档] 研究目录: research/${ws.topicName}/`);
+    } catch (err: any) {
+      planFailed = true;
+      console.warn(`\n⚠️  Plan mode failed: ${err.name || 'error'}. Falling back to legacy mode.`);
+    }
+  }
+
+  if (!usePlan || planFailed) {
     // ─── 原有流程（fallback）────────────────
     console.log('\nResearching your topic (legacy mode)...');
 
-    const { learnings, visitedSources } = await deepResearch({
+    let { learnings, visitedSources } = await deepResearch({
       query: combinedQuery,
       breadth,
       depth,
@@ -343,13 +351,23 @@ ${followUpQuestions.map((q, i) => `Q: ${q}\nA: ${answers[i]}`).join('\n')}
 
     console.log(`\nLearnings: ${learnings.length}`);
     console.log(`Sources: ${visitedSources.length}`);
-    console.log('Writing final report...');
 
-    report = await writeFinalReport({
-      prompt: combinedQuery,
-      learnings,
-      visitedSources,
-    });
+    if (learnings.length === 0) {
+      console.warn('No learnings collected, search phase may have entirely failed');
+    }
+
+    console.log('Writing final report...');
+    try {
+      report = await writeFinalReport({
+        prompt: combinedQuery,
+        learnings,
+        visitedSources,
+      });
+      console.log(`Report generated: ${report.length} chars`);
+    } catch (reportErr: any) {
+      console.error(`Report generation failed: ${reportErr.name || 'error'}`, reportErr.message || '');
+      report = `# Research Report\n\n## Learnings\n\n${learnings.map((l: string, i: number) => `${i + 1}. ${l}`).join('\n\n')}\n\n*Auto-generated report failed, showing raw learnings.*`;
+    }
   }
 
   // ─── 保存报告 ─────────────────────────

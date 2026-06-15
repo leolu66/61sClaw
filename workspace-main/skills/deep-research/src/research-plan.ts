@@ -3,7 +3,7 @@
  * 问题分析 → 维度确认 → 反思审核 → 计划细化 → 报告大纲
  */
 
-import { generateObject } from 'ai';
+import { generateObjectWithRetry } from './ai/providers';
 import { z } from 'zod';
 
 import { o3MiniModel } from './ai/providers';
@@ -138,7 +138,7 @@ export async function analyzeQuery(query: string, isExpanded: boolean = false): 
 Prioritize deriving dimensions from these structured sections rather than relying solely on preset templates.`
     : '';
 
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Analyze the following research query and determine the research approach.
@@ -295,7 +295,7 @@ export async function reviewDimensions(
   dimensions: RecommendedDimension[],
   userFeedback?: string,
 ): Promise<DimensionReview> {
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: `You are a senior research methodology reviewer. Your job is to critically evaluate a proposed research dimension plan and identify issues. Be thorough but not pedantic — only flag real problems, not minor nitpicks.
 
@@ -443,7 +443,7 @@ export async function generateResearchPlan(
 ): Promise<ResearchPlan> {
   const totalBudget = userBreadth * userDepth;
 
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Given the confirmed research dimensions below, generate a detailed research execution plan.
@@ -504,7 +504,7 @@ export async function generateReportOutline(plan: ResearchPlan): Promise<ReportO
     ? `\nDomains: ${analysis.scope.domains.join(', ')}${analysis.scope.timeRange ? `, time range: ${analysis.scope.timeRange}` : ''}`
     : '';
 
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Generate a report outline (chapter structure) based on the research plan below.

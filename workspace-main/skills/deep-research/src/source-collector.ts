@@ -4,7 +4,7 @@
  * AI 提取 learnings 后与网络搜索结果合并
  */
 
-import { generateObject } from 'ai';
+import { generateObjectWithRetry } from './ai/providers';
 import { execSync } from 'child_process';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import * as fs from 'fs/promises';
@@ -336,7 +336,7 @@ export async function extractLearningsFromSources(
   console.log(`  [AI] 从 ${sources.length} 个素材中提取 learnings...`);
 
   try {
-    const res = await generateObject({
+    const res = await generateObjectWithRetry({
       model: o3MiniModel,
       system: systemPrompt(),
       prompt: `Given the following reference materials collected from various sources, extract key learnings relevant to the research query.

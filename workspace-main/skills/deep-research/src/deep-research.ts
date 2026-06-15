@@ -1,4 +1,4 @@
-import { generateObject } from 'ai';
+import { generateObjectWithRetry } from './ai/providers';
 import { compact } from 'lodash-es';
 import pLimit from 'p-limit';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ async function generateSerpQueries({
   // optional, if provided, the research will continue from the last learning
   learnings?: string[];
 }) {
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Given the following prompt from the user, generate a list of SERP queries to research the topic. Return a maximum of ${numQueries} queries, but feel free to return less if the original prompt is clear. Make sure each query is unique and not similar to each other: <prompt>${query}</prompt>\n\n${
@@ -81,9 +81,8 @@ async function processSerpResult({
   );
   console.log(`Ran ${query}, found ${contents.length} contents`);
 
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
-    abortSignal: AbortSignal.timeout(60_000),
     system: systemPrompt(),
     prompt: `Given the following contents from a SERP search for the query <query>${query}</query>, generate a list of learnings from the contents. Return a maximum of ${numLearnings} learnings, but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other. The learnings should be concise and to the point, as detailed and infromation dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any exact metrics, numbers, or dates. The learnings will be used to research the topic further.\n\n<contents>${contents
       .map(content => `<content>\n${content}\n</content>`)
@@ -123,7 +122,7 @@ export async function writeFinalReport({
     150_000,
   );
 
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>`,
@@ -452,7 +451,7 @@ export async function writeFinalReportWithOutline({
     })
     .join('\n');
 
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: reportSystemPrompt(),
     prompt: `Write a comprehensive research report following the exact chapter structure below.
@@ -559,7 +558,7 @@ async function writeReportPerChapter(
       ? `\nInclude these sub-sections: ${chapter.subSections.join(', ')}`
       : '';
 
-    const res = await generateObject({
+    const res = await generateObjectWithRetry({
       model: o3MiniModel,
       system: reportSystemPrompt(),
       prompt: `Write ONE chapter of a research report.

@@ -4,7 +4,7 @@
  * 支持两种方向：市场雷达 (A) 和 技术拆解 (B)
  */
 
-import { generateObject } from 'ai';
+import { generateObjectWithRetry } from './ai/providers';
 import { z } from 'zod';
 
 import { o3MiniModel } from './ai/providers';
@@ -52,7 +52,7 @@ export type DirectionDetection = {
 // ─── 方向检测 ───────────────────────────────────────
 
 export async function detectDirection(query: string): Promise<DirectionDetection> {
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `Analyze the following research query and determine which research direction best fits it.
@@ -80,7 +80,7 @@ Return your best judgment. If confidence is below 0.7, the system will ask the u
 // ─── 方向 A：市场雷达扩写 ────────────────────────────
 
 async function expandMarketRadar(query: string): Promise<{ variables: MarketRadarVariables; expandedQuery: string }> {
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `You are helping to expand a brief research query into a detailed "Market Radar" research brief.
@@ -163,7 +163,7 @@ ${signalCriteriaList}
 // ─── 方向 B：技术拆解扩写 ────────────────────────────
 
 async function expandTechnicalDeepDive(query: string): Promise<{ variables: TechnicalDeepDiveVariables; expandedQuery: string }> {
-  const res = await generateObject({
+  const res = await generateObjectWithRetry({
     model: o3MiniModel,
     system: systemPrompt(),
     prompt: `You are helping to expand a brief research query into a detailed "Technical Deep-dive" research brief.
