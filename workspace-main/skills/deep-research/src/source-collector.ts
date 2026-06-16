@@ -11,8 +11,12 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { z } from 'zod';
 
-import { o3MiniModel, trimPrompt } from './ai/providers';
+import { primaryModel, trimPrompt } from './ai/providers';
 import { getSearchLimiter } from './concurrency';
+import {
+  SEARCH_RESULT_MAX_TOKENS,
+  SOURCE_MATERIALS_MAX_TOKENS,
+} from './constants';
 import type { Source } from './deep-research';
 import type { ResearchPlan } from './research-plan';
 import {
@@ -324,9 +328,9 @@ export async function extractLearningsFromSources(
   // 构建内容字符串（截断到 120k tokens）
   const contentsStr = trimPrompt(
     sources
-      .map(s => `<source type="${s.type}" title="${s.title}">\n${trimPrompt(s.content, 25_000)}\n</source>`)
+      .map(s => `<source type="${s.type}" title="${s.title}">\n${trimPrompt(s.content, SEARCH_RESULT_MAX_TOKENS)}\n</source>`)
       .join('\n\n'),
-    120_000,
+    SOURCE_MATERIALS_MAX_TOKENS,
   );
 
   const sourceSummary = sources
@@ -337,7 +341,7 @@ export async function extractLearningsFromSources(
 
   try {
     const res = await generateObjectWithRetry({
-      model: o3MiniModel,
+      model: primaryModel,
       system: systemPrompt(),
       prompt: `Given the following reference materials collected from various sources, extract key learnings relevant to the research query.
 

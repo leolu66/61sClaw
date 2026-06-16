@@ -17,11 +17,40 @@ export type SearchResult = {
 
 export type SearchProvider = 'firecrawl' | 'volc' | 'multi' | 'baidu' | 'brave' | 'cache';
 
+// ─── 搜索成功率监控 ─────────────────────────
+
+let searchTotal = 0;
+let searchSuccess = 0;
+let searchByProvider: Record<string, { success: number; fail: number }> = {};
+
+export function getSearchMonitorStats() {
+  const rate = searchTotal > 0 ? Math.round((searchSuccess / searchTotal) * 100) : 0;
+  return { total: searchTotal, success: searchSuccess, rate, byProvider: searchByProvider };
+}
+
+function recordSearchSuccess(provider: string) {
+  searchTotal++;
+  searchSuccess++;
+  if (!searchByProvider[provider]) searchByProvider[provider] = { success: 0, fail: 0 };
+  searchByProvider[provider].success++;
+}
+
+function recordSearchFail(provider: string) {
+  searchTotal++;
+  if (!searchByProvider[provider]) searchByProvider[provider] = { success: 0, fail: 0 };
+  searchByProvider[provider].fail++;
+}
+
 /**
  * 自动检测 Clash 代理是否可用
  * 检测 127.0.0.1:7890 (HTTP) 和 127.0.0.1:7897 (Mixed)
  */
+let cachedProxy: { url: string | undefined; detected: boolean } | null = null;
+
 async function detectClashProxy(): Promise<string | undefined> {
+  // 返回缓存结果，避免重复检测
+  if (cachedProxy) return cachedProxy.url;
+
   const { ProxyAgent, fetch: undiciFetch } = await import('undici');
   
   // 优先检测的 Clash 端口
@@ -38,6 +67,7 @@ async function detectClashProxy(): Promise<string | undefined> {
       });
       if (response.ok) {
         console.log(`Detected Clash proxy: ${proxyUrl}`);
+        cachedProxy = { url: proxyUrl, detected: true };
         return proxyUrl;
       }
     } catch {
@@ -50,9 +80,11 @@ async function detectClashProxy(): Promise<string | undefined> {
                    process.env.HTTP_PROXY || process.env.http_proxy;
   if (envProxy) {
     console.log(`Using proxy from env: ${envProxy}`);
+    cachedProxy = { url: envProxy, detected: true };
     return envProxy;
   }
-  
+
+  cachedProxy = { url: undefined, detected: true };
   return undefined;
 }
 
@@ -373,10 +405,13 @@ export async function smartSearch(
     if (results.length > 0) {
       console.log(`Volcengine returned ${results.length} results`);
       await setCached(query, 'volc', results);
+      recordSearchSuccess('volc');
       return { results, provider: 'volc' };
     }
+    recordSearchFail('volc');
   } catch (error: any) {
     console.log(`Volcengine failed: ${error.message || error}`);
+    recordSearchFail('volc');
   }
 
   // 尝试 Firecrawl（备用，额度有限）
@@ -386,10 +421,13 @@ export async function smartSearch(
     if (results.length > 0) {
       console.log(`Firecrawl returned ${results.length} results`);
       await setCached(query, 'firecrawl', results);
+      recordSearchSuccess('firecrawl');
       return { results, provider: 'firecrawl' };
     }
+    recordSearchFail('firecrawl');
   } catch (error: any) {
     console.log(`Firecrawl failed: ${error.message || error}`);
+    recordSearchFail('firecrawl');
   }
 
   // 尝试多搜索引擎 Web 抓取
@@ -399,10 +437,13 @@ export async function smartSearch(
     if (results.length > 0) {
       console.log(`MultiSearch returned ${results.length} results`);
       await setCached(query, 'multi', results);
+      recordSearchSuccess('multi');
       return { results, provider: 'multi' };
     }
+    recordSearchFail('multi');
   } catch (error: any) {
     console.log(`MultiSearch failed: ${error.message || error}`);
+    recordSearchFail('multi');
   }
 
   // 尝试百度搜索
@@ -412,10 +453,13 @@ export async function smartSearch(
     if (results.length > 0) {
       console.log(`Baidu returned ${results.length} results`);
       await setCached(query, 'baidu', results);
+      recordSearchSuccess('baidu');
       return { results, provider: 'baidu' };
     }
+    recordSearchFail('baidu');
   } catch (error: any) {
     console.log(`Baidu failed: ${error.message || error}`);
+    recordSearchFail('baidu');
   }
 
   // 尝试 Brave Search
@@ -425,13 +469,21 @@ export async function smartSearch(
     if (results.length > 0) {
       console.log(`Brave returned ${results.length} results`);
       await setCached(query, 'brave', results);
+      recordSearchSuccess('brave');
       return { results, provider: 'brave' };
     }
+    recordSearchFail('brave');
   } catch (error: any) {
     console.log(`Brave failed: ${error.message || error}`);
+    recordSearchFail('brave');
   }
 
   // 全部失败
   console.log('All search providers failed');
+  // 搜索成功率告警
+  const stats = getSearchMonitorStats();
+  if (stats.total >= 5 && stats.rate < 50) {
+    console.warn(`⚠️  搜索成功率过低: ${stats.rate}% (${stats.success}/${stats.total})，请检查网络连接和 API Key`);
+  }
   return { results: [], provider: 'firecrawl' };
 }

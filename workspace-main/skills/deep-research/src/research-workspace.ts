@@ -199,3 +199,80 @@ export async function saveReport(ws: ResearchWorkspace, report: string): Promise
   await fs.writeFile(reportPath, report, 'utf-8');
   return reportPath;
 }
+
+// ─── 断点续传：加载已有工作目录 ─────────────────────
+
+/** 从已有目录加载 Workspace 对象（不创建新目录） */
+export async function loadWorkspaceFromDir(rootDir: string): Promise<ResearchWorkspace> {
+  const topicName = path.basename(rootDir);
+  return {
+    rootDir,
+    srcDir: path.join(rootDir, 'src'),
+    workDir: path.join(rootDir, 'work'),
+    outputDir: path.join(rootDir, 'output'),
+    topicName,
+  };
+}
+
+/** 查找最新的研究工作目录（按修改时间排序） */
+export async function findLatestWorkspace(): Promise<string | null> {
+  try {
+    const entries = await fs.readdir(RESEARCH_DIR, { withFileTypes: true });
+    const dirs = entries.filter(e => e.isDirectory());
+    if (dirs.length === 0) return null;
+
+    // 按修改时间倒序
+    const withStats = await Promise.all(
+      dirs.map(async d => {
+        const full = path.join(RESEARCH_DIR, d.name);
+        const stat = await fs.stat(full);
+        return { path: full, mtime: stat.mtimeMs };
+      }),
+    );
+    withStats.sort((a, b) => b.mtime - a.mtime);
+    return withStats[0].path;
+  } catch {
+    return null;
+  }
+}
+
+/** 通用 JSON 读取 */
+async function readJson<T>(filePath: string): Promise<T | null> {
+  try {
+    const raw = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function loadAnalysis(ws: ResearchWorkspace) {
+  return readJson<import('./research-plan').QueryAnalysis>(path.join(ws.workDir, 'analysis.json'));
+}
+
+export async function loadDimensions(ws: ResearchWorkspace) {
+  return readJson<import('./research-plan').RecommendedDimension[]>(path.join(ws.workDir, 'dimensions.json'));
+}
+
+export async function loadPlan(ws: ResearchWorkspace) {
+  return readJson<import('./research-plan').ResearchPlan>(path.join(ws.workDir, 'plan.json'));
+}
+
+export async function loadOutline(ws: ResearchWorkspace) {
+  return readJson<import('./research-plan').ReportOutline>(path.join(ws.workDir, 'outline.json'));
+}
+
+export async function loadExpansion(ws: ResearchWorkspace) {
+  return readJson<import('./prompt-expansion').ExpansionResult>(path.join(ws.workDir, 'expansion.json'));
+}
+
+export async function loadLearnings(ws: ResearchWorkspace): Promise<{ all: string[]; byDimension?: Record<string, string[]> } | null> {
+  const data = await readJson<{ total: number; all: string[]; byDimension?: Record<string, string[]> }>(path.join(ws.workDir, 'learnings.json'));
+  if (!data) return null;
+  return { all: data.all, byDimension: data.byDimension };
+}
+
+export async function loadSources(ws: ResearchWorkspace) {
+  const data = await readJson<{ total: number; sources: import('./deep-research').Source[] }>(path.join(ws.workDir, 'sources.json'));
+  return data?.sources ?? null;
+}

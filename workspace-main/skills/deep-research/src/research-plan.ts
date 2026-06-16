@@ -6,7 +6,7 @@
 import { generateObjectWithRetry } from './ai/providers';
 import { z } from 'zod';
 
-import { o3MiniModel } from './ai/providers';
+import { primaryModel } from './ai/providers';
 import { systemPrompt } from './prompt';
 
 // ─── 类型定义 ───────────────────────────────────────
@@ -139,7 +139,7 @@ Prioritize deriving dimensions from these structured sections rather than relyin
     : '';
 
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Analyze the following research query and determine the research approach.
 
@@ -296,7 +296,7 @@ export async function reviewDimensions(
   userFeedback?: string,
 ): Promise<DimensionReview> {
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: `You are a senior research methodology reviewer. Your job is to critically evaluate a proposed research dimension plan and identify issues. Be thorough but not pedantic — only flag real problems, not minor nitpicks.
 
 Review criteria:
@@ -444,7 +444,7 @@ export async function generateResearchPlan(
   const totalBudget = userBreadth * userDepth;
 
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Given the confirmed research dimensions below, generate a detailed research execution plan.
 
@@ -505,7 +505,7 @@ export async function generateReportOutline(plan: ResearchPlan): Promise<ReportO
     : '';
 
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Generate a report outline (chapter structure) based on the research plan below.
 

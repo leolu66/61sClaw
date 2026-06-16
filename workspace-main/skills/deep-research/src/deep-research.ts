@@ -3,11 +3,25 @@ import { compact } from 'lodash-es';
 import pLimit from 'p-limit';
 import { z } from 'zod';
 
-import { o3MiniModel, trimPrompt } from './ai/providers';
+import { primaryModel, trimPrompt } from './ai/providers';
 import { getSearchLimiter } from './concurrency';
+import {
+  SEARCH_RESULT_MAX_TOKENS,
+  ALL_LEARNINGS_MAX_TOKENS,
+  CHAPTER_LEARNINGS_MAX_TOKENS,
+} from './constants';
 import { systemPrompt, reportSystemPrompt } from './prompt';
 import { ResearchPlan, ReportOutline, QueryAnalysis } from './research-plan';
-import { smartSearch, SearchResult } from './search-providers';
+import { smartSearch, SearchResult, getSearchMonitorStats } from './search-providers';
+
+// ─── 进度条辅助 ────────────────────────────
+
+function progressBar(current: number, total: number, width = 20): string {
+  const pct = Math.min(current / total, 1);
+  const filled = Math.round(pct * width);
+  const empty = width - filled;
+  return '█'.repeat(filled) + '░'.repeat(empty) + ` ${current}/${total}`;
+}
 
 export type Source = {
   url: string;
@@ -33,7 +47,7 @@ async function generateSerpQueries({
   learnings?: string[];
 }) {
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Given the following prompt from the user, generate a list of SERP queries to research the topic. Return a maximum of ${numQueries} queries, but feel free to return less if the original prompt is clear. Make sure each query is unique and not similar to each other: <prompt>${query}</prompt>\n\n${
       learnings
@@ -77,12 +91,12 @@ async function processSerpResult({
   numFollowUpQuestions?: number;
 }) {
   const contents = compact(results.map(item => item.markdown)).map(
-    content => trimPrompt(content, 25_000),
+    content => trimPrompt(content, SEARCH_RESULT_MAX_TOKENS),
   );
   console.log(`Ran ${query}, found ${contents.length} contents`);
 
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Given the following contents from a SERP search for the query <query>${query}</query>, generate a list of learnings from the contents. Return a maximum of ${numLearnings} learnings, but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other. The learnings should be concise and to the point, as detailed and infromation dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any exact metrics, numbers, or dates. The learnings will be used to research the topic further.\n\n<contents>${contents
       .map(content => `<content>\n${content}\n</content>`)
@@ -119,11 +133,11 @@ export async function writeFinalReport({
     learnings
       .map(learning => `<learning>\n${learning}\n</learning>`)
       .join('\n'),
-    150_000,
+    ALL_LEARNINGS_MAX_TOKENS,
   );
 
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>`,
     schema: z.object({
@@ -256,17 +270,32 @@ export async function deepResearchByPlan(
   const totalDims = plan.executionOrder.length;
   let completedDims = 0;
 
+  // 计算预估搜索总量（用于进度显示）
+  const totalQueries = plan.totalEstimatedQueries || plan.dimensions.reduce((sum, d) =>
+    sum + d.subTopics.reduce((s, st) => s + st.initialQueries.length, 0), 0);
+  let completedQueries = 0;
+  const startTime = Date.now();
+
   // 按 executionOrder 遍历维度，维度间并行（受全局 limiter 控制）
   const dimensionResults = await Promise.all(
     plan.executionOrder.map(dimId => {
       const dimension = plan.dimensions.find(d => d.id === dimId);
       if (!dimension) return Promise.resolve({ learnings: [], visitedSources: [] });
 
-      console.log(`\n[进度] 维度 ${completedDims + 1}/${totalDims} 开始: ${dimension.title}`);
+      console.log(`\n[进度] ${progressBar(completedDims, totalDims)} 维度开始: ${dimension.title}`);
 
-      return processDimension(dimension, limiter).then(result => {
+      return processDimension(dimension, limiter, () => {
+        completedQueries++;
+        // 每完成一个查询显示进度
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+        if (completedQueries % 3 === 0 || completedQueries === totalQueries) {
+          const eta = completedQueries > 0 ? Math.round((Date.now() - startTime) / completedQueries * (totalQueries - completedQueries) / 1000) : 0;
+          console.log(`  [搜索] ${progressBar(completedQueries, totalQueries, 15)} | 已用 ${elapsed}s | ETA ~${eta}s`);
+        }
+      }).then(result => {
         completedDims++;
-        console.log(`[进度] 维度 ${completedDims}/${totalDims} 完成: ${dimension.title} (${result.learnings.length} learnings, ${result.visitedSources.length} sources)`);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+        console.log(`[进度] ${progressBar(completedDims, totalDims)} 维度完成: ${dimension.title} (${result.learnings.length} learnings, ${result.visitedSources.length} sources) | ${elapsed}s`);
         return result;
       });
     }),
@@ -308,6 +337,7 @@ export async function deepResearchByPlan(
 async function processDimension(
   dimension: ResearchPlan['dimensions'][number],
   limiter: ReturnType<typeof pLimit>,
+  onQueryComplete?: () => void,
 ): Promise<ResearchResult> {
   console.log(`\n━━ 研究维度: ${dimension.title} (${dimension.priority}) ━━`);
 
@@ -316,7 +346,7 @@ async function processDimension(
     dimension.subTopics.map(subTopic =>
       limiter(async () => {
         try {
-          return processSubTopic(subTopic, limiter);
+          return processSubTopic(subTopic, limiter, onQueryComplete);
         } catch (e) {
           console.error(`Error processing sub-topic "${subTopic.title}":`, e);
           return { learnings: [], visitedSources: [] };
@@ -344,6 +374,7 @@ async function processSubTopic(
     suggestedDepth: number;
   },
   limiter: ReturnType<typeof pLimit>,
+  onQueryComplete?: () => void,
 ): Promise<ResearchResult> {
   // 并行执行所有 initialQueries（受全局 limiter 控制）
   const queryResults = await Promise.all(
@@ -351,6 +382,7 @@ async function processSubTopic(
       limiter(async () => {
         try {
           const { results, provider } = await smartSearch(query, 5);
+          onQueryComplete?.();
           if (results.length === 0) {
             console.log(`  No results for: ${query}`);
             return { learnings: [] as string[], sources: [] as Source[], followUpQuestions: [] as string[] };
@@ -376,6 +408,7 @@ async function processSubTopic(
             followUpQuestions: extracted.followUpQuestions,
           };
         } catch (e) {
+          onQueryComplete?.();
           console.error(`  Error searching "${query}":`, e);
           return { learnings: [] as string[], sources: [] as Source[], followUpQuestions: [] as string[] };
         }
@@ -440,7 +473,7 @@ export async function writeFinalReportWithOutline({
     learnings
       .map(learning => `<learning>\n${learning}\n</learning>`)
       .join('\n'),
-    150_000,
+    ALL_LEARNINGS_MAX_TOKENS,
   );
 
   const chapterStructure = outline.chapters
@@ -452,7 +485,7 @@ export async function writeFinalReportWithOutline({
     .join('\n');
 
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: reportSystemPrompt(),
     prompt: `Write a comprehensive research report following the exact chapter structure below.
 
@@ -534,7 +567,7 @@ async function writeReportPerChapter(
       chapterLearnings
         .map(l => `<learning>\n${l}\n</learning>`)
         .join('\n'),
-      80_000,
+      CHAPTER_LEARNINGS_MAX_TOKENS,
     );
 
     // 章节类型特定的指令
@@ -559,7 +592,7 @@ async function writeReportPerChapter(
       : '';
 
     const res = await generateObjectWithRetry({
-      model: o3MiniModel,
+      model: primaryModel,
       system: reportSystemPrompt(),
       prompt: `Write ONE chapter of a research report.
 

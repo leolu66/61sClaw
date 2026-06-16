@@ -7,7 +7,7 @@
 import { generateObjectWithRetry } from './ai/providers';
 import { z } from 'zod';
 
-import { o3MiniModel } from './ai/providers';
+import { primaryModel } from './ai/providers';
 import { systemPrompt } from './prompt';
 
 // ─── 类型定义 ───────────────────────────────────────
@@ -53,7 +53,7 @@ export type DirectionDetection = {
 
 export async function detectDirection(query: string): Promise<DirectionDetection> {
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `Analyze the following research query and determine which research direction best fits it.
 
@@ -81,7 +81,7 @@ Return your best judgment. If confidence is below 0.7, the system will ask the u
 
 async function expandMarketRadar(query: string): Promise<{ variables: MarketRadarVariables; expandedQuery: string }> {
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `You are helping to expand a brief research query into a detailed "Market Radar" research brief.
 
@@ -164,7 +164,7 @@ ${signalCriteriaList}
 
 async function expandTechnicalDeepDive(query: string): Promise<{ variables: TechnicalDeepDiveVariables; expandedQuery: string }> {
   const res = await generateObjectWithRetry({
-    model: o3MiniModel,
+    model: primaryModel,
     system: systemPrompt(),
     prompt: `You are helping to expand a brief research query into a detailed "Technical Deep-dive" research brief.
 
