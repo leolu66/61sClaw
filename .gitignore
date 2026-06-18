@@ -155,3 +155,52 @@ workspace-main/projects/
 **/skills/*/notebooks/
 **/skills/*/research/
 **/skills/*/.gitignore
+
+# 浏览器缓存和数据
+**/browser/
+
+# 会话文件
+**/agents/*/sessions/
+
+# 备份文件
+**/backups/
+
+
+# OpenClaw 运行时目录
+/agents/
+/canvas/
+/completions/
+/credentials/
+/cron/
+/devices/
+/flows/
+/identity/
+/media/
+/models/
+/npm/
+/plugin-skills/
+/exec-approvals.json
+/gateway-supervisor-*.json
+/gateway.cmd
+/openclaw.json.bak
+/openclaw.json.last-good
+/openclaw.json.pre-update
+
+
+# 更多 OpenClaw 运行时
+/plugins/
+/qqbot/
+/skill-workshop/
+/skills/
+/state/
+/tasks/
+/tui/
+/stderr
+/update-check.json
+/vault/
+/workspace-attestations/
+/workspace-entertainment/
+/workspace-feishu-agent/
+/workspace-test-agent/
+/workspace-validator/
+

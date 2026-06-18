@@ -23,24 +23,22 @@ COUNTDOWN_SECS = 3
 
 def find_loopback_device() -> int:
     """自动查找可用环回设备"""
-    candidates = []
     try:
         devices = sd.query_devices()
+        # 优先级 1: 扬声器环回 (WASAPI loopback, 最可靠)
         for d in devices:
             name = d.get("name", "")
             inp = d.get("max_input_channels", 0)
-            idx = d["index"]
-            # 优先级 1: 立体声混音 (Stereo Mix)
-            if inp > 0 and "混音" in name:
+            if inp > 0 and ("扬声器" in name or "speaker" in name.lower()):
+                idx = d["index"]
                 print(f"[INFO] loopback: [{idx}] {name}")
                 return idx
-            # 优先级 2: 扬声器环回 / speaker loopback
-            if inp > 0 and ("扬声器" in name or "speaker" in name.lower()):
-                candidates.append(idx)
-        if candidates:
-            idx = candidates[0]
-            print(f"[INFO] loopback: [{idx}] {devices[idx]['name']}")
-            return idx
+        # 优先级 2: 立体声混音 (Stereo Mix)
+        for d in devices:
+            if d.get("max_input_channels", 0) > 0 and "混音" in d.get("name", ""):
+                idx = d["index"]
+                print(f"[INFO] loopback: [{idx}] {d['name']}")
+                return idx
     except Exception:
         pass
     print(f"[WARN] no loopback device found")

@@ -39,9 +39,11 @@ version: 1.0
 
 ### 第3步：同步 GitHub
 
-执行 Git 操作（**不推送 logs/ 和 memory/ 目录**）：
+执行 Git 操作（仅提交 skills/ 和 .gitignore，不提交隐私文件/日志/记忆）：
 ```bash
-git add -A && git reset -- logs/ memory/
+# 精准添加：仅 skills 目录
+cd workspace-main && git add skills/ && cd ..
+git add .gitignore
 git commit -m "提交描述"
 git push origin main
 ```
