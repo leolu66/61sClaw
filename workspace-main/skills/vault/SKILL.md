@@ -1,3 +1,10 @@
+---
+name: vault
+description: |
+  安全存储和查询各平台的账号、密码、API Key 等敏感信息。
+  当用户说"vault"、"密码箱"、"凭证"、"查xxx的密码"、"查xxx的token"时触发。
+---
+
 # Vault - 密码箱技能
 
 安全存储和查询各平台的账号、密码、API Key 等敏感信息。
